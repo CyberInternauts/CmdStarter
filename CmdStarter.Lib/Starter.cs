@@ -158,6 +158,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes);
 
+            // Filter by namespaces
+            commandsTypes = FilterTypesByClasses(commandsTypes);
+
             this.commandsTypes = CommandsTypes.Clear();
             if (commandsTypes != null)
             {
@@ -249,6 +252,29 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 if (!commandsTypes.Any())
                 {
                     throw new Exceptions.InvalidNamespaceException();
+                }
+            }
+
+            return commandsTypes;
+        }
+
+        private IEnumerable<Type> FilterTypesByClasses(IEnumerable<Type> commandsTypes)
+        {
+            var nbCommands = commandsTypes.Count();
+            if (nbCommands != 0 && Classes.Any())
+            {
+                var classesExcluded = Classes.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(EXCLUSION_SYMBOL));
+
+                commandsTypes = commandsTypes.Where(c =>
+                {
+                    bool outNamespaces = classesExcluded.Any(n => c.FullName?.StartsWith(n[1..]) ?? false);
+
+                    return !outNamespaces;
+                });
+
+                if (!commandsTypes.Any())
+                {
+                    throw new Exceptions.InvalidClassException();
                 }
             }
 
