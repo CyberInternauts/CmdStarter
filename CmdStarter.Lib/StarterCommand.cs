@@ -35,7 +35,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private void Initialize()
         {
             //TODO: Do real command handler (Already bad, because when a command is not a leaf, it shall show help
-            Handler = CommandHandler.Create(() => Console.WriteLine("Shall do " + this.GetType().Name));
+            //Handler = CommandHandler.Create(() => Console.WriteLine("Shall do " + this.GetType().Name));
 
             //TODO: Test was not written for this
             var descriptions = this.GetType().GetCustomAttributes(false).Where(a => a is DescriptionAttribute)

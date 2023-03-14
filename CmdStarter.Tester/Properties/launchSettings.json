@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "CmdStarter.TesterWithOption": {
+      "commandName": "Project",
+      "commandLineArgs": "list files --my-opt 123 mypath"
+    },
+    "CmdStarter.TesterOptionNotSet": {
+      "commandName": "Project",
+      "commandLineArgs": "list files mypath"
+    }
+  }
+}
