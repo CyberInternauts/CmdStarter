@@ -28,8 +28,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
         protected int HandleCommand(InvocationContext context)
         {
             CommandHandler.Create(HandleCommandOptions).Invoke(context);
-            return CommandHandler.Create(HandleInvoke).Invoke(context); //TODO: Manage async
+            return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
+
+        Delegate MethodForHandling { get => HandleInvoke; }
 
         private void HandleInvoke([Description("Param1")] string path)
         {
@@ -40,6 +42,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 
         public Files()
         {
+            var parameters = MethodForHandling.Method.GetParameters();
             //TODO: Build arguments using handling method params
             var at = typeof(Argument<>).MakeGenericType(typeof(string)); //TODO: typeof shall use the parameter type of the handling method
             var ctor = at.GetConstructor(Type.EmptyTypes);
