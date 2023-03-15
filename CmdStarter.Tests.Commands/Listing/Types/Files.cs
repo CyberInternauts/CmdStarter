@@ -17,7 +17,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 
         public Files()
         {
-            var arg = new Argument<string>("path");
+            var arg = new Argument<string>("path"); // The name has to match function parameter name
             this.AddArgument(arg);
             var opt = new Option<int>("--my-opt");
             opt.IsRequired = false;
@@ -29,6 +29,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
                     Console.WriteLine("folderPath=" + path);
                 }
             );
+
+            // me is null when using Command instead of Files
+            /*
+            Handler = CommandHandler.Create<Command, string>(
+                (Command me, string path) =>
+                {
+                    Console.WriteLine("folderPath=" + path);
+                }
+            );
+            */
         }
     }
 }
