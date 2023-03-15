@@ -33,7 +33,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 
         protected override Delegate MethodForHandling { get => HandleInvoke; }
 
-        private void HandleInvoke([Description("Param1")] string path)
+        private void HandleInvoke([Description("Param1")] string path = "default_path")
         {
             // Here the properties are filled from main args
             var a = 1;
@@ -49,11 +49,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
             var ata = (Argument)ctor!.Invoke(null); 
             ata.Name = "path"; //TODO: "path" must match the parameter name of the handling method
             ata.Description = "get desc from attribute1";
+            ata.SetDefaultValue("default_path");
             this.AddArgument(ata);
 
             //TODO : Build options using class properties
-            var opt = new Option<int>("--my-opt", "get desc from attribute2");
-            opt.IsRequired = false;
+            var opt = new Option<int>("--my-opt");
+            opt.Description = "get desc from attribute2"; //TODO: Take from attribute
+            opt.IsRequired = false; //TODO: Take from attribute
+            opt.AllowMultipleArgumentsPerToken = false; //TODO: Take from attribute
+            opt.AddAlias("-mo"); //TODO: Take from attribute
             this.AddOption(opt);
 
             Handler = CommandHandler.Create(HandleCommand);
