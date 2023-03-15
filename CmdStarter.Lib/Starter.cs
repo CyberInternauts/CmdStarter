@@ -126,7 +126,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             InstantiateCommands();
 
             var b = new CommandLineBuilder(RootCommand);
-
             return await b.UseDefaults().Build().InvokeAsync(args);
         }
 
