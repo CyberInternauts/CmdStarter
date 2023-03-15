@@ -42,8 +42,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
         {
             //TODO: Build arguments using handling method params
             var at = typeof(Argument<>).MakeGenericType(typeof(string)); //TODO: typeof shall use the parameter type of the handling method
-            var ctor = at.GetConstructor(new[] { typeof(string), typeof(string) });
-            var ata = (Argument)ctor!.Invoke(new[] { "path", "get desc from attribute1" }); //TODO: "path" must match the parameter name of the handling method
+            var ctor = at.GetConstructor(Type.EmptyTypes);
+            var ata = (Argument)ctor!.Invoke(null); 
+            ata.Name = "path"; //TODO: "path" must match the parameter name of the handling method
+            ata.Description = "get desc from attribute1";
             this.AddArgument(ata);
 
             //TODO : Build options using class properties
