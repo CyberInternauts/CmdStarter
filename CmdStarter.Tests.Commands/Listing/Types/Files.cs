@@ -31,7 +31,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
-        Delegate MethodForHandling { get => HandleInvoke; }
+        protected override Delegate MethodForHandling { get => HandleInvoke; }
 
         private void HandleInvoke([Description("Param1")] string path)
         {

@@ -32,6 +32,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             Initialize();
         }
 
+        protected virtual Delegate MethodForHandling { get; } = () => { };
+
+
         private void Initialize()
         {
             //TODO: Do real command handler (Already bad, because when a command is not a leaf, it shall show help
