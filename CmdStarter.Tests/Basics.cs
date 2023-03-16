@@ -1,5 +1,6 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Filtering;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Naming.MultilevelSame;
 using System.ComponentModel.Composition.Primitives;
 using System.Reflection;
@@ -172,25 +173,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
+        [TestCaseSource(nameof(FilterClasses))]
         [Category("Classes")]
         [Category("Filters")]
-        public void UsesClassesInclusion_WithoutWildcard()
+        public void UsesClassesInclusion_WithoutWildcard(IEnumerable<Type> types)
         {
+            const string MainNamespaceFilter = nameof(Commands.Filtering) + "**";
             const string IncludedClassName = nameof(Commands.Filtering.Starter);
 
-            Type[] expectedTypes = AppDomain.CurrentDomain
-                .GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .Where(t =>
-                {
-                    return t.IsClass && !t.IsAbstract
-                        && t.IsSubclassOf(typeof(StarterCommand))
-                        && t.Namespace != null
-                        && t.Name.Equals(IncludedClassName);
-                })
-                .ToArray();
+            IEnumerable<Type> expectedTypes = types.Where(t => t.Name.Equals(IncludedClassName));
 
-            starter.Classes = starter.Classes.Add(IncludedClassName);
+            starter.Classes = starter.Classes.Add($"{MainNamespaceFilter}{IncludedClassName}");
             starter.FindCommandsTypes();
 
             TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
@@ -386,6 +379,28 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
                 yield return first;
                 yield return second;
+            }
+        }
+
+        private static IEnumerable<TestCaseData> FilterClasses
+        {
+            get
+            {
+                IList<Type> types = new List<Type>
+                {
+                    typeof(Commands.Filtering.Starter),
+                    typeof(Commands.Filtering.StarterA),
+                    typeof(Commands.Filtering.StarterA),
+                    typeof(Commands.Filtering.StarterOn),
+                    typeof(Commands.Filtering.StarterOff),
+                    typeof(Commands.Filtering.A.IO.Starter),
+                    typeof(Commands.Filtering.B.IO.Starter),
+                    typeof(Commands.Filtering.NorthS.Starter),
+                    typeof(Commands.Filtering.EastNS.Starter),
+                    typeof(Commands.Filtering.NSouth.Starter)
+                };
+
+                yield return new(types);
             }
         }
     }
