@@ -154,6 +154,19 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             Assert.That(starter.CommandsTypes.Find(x => x.Name.Equals(ExcludedClassName)), Is.Null);
         }
+
+        [Test]
+        [Category("Classes")]
+        [Category("Filters")]
+        public void UsesClassesExclusion_Wildcard()
+        {
+            const string ExcludedClassName = nameof(Commands.Filtering.Starter);
+
+            starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + ExcludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
+            starter.FindCommandsTypes();
+
+            Assert.That(starter.CommandsTypes.Find(x => x.Name.StartsWith(ExcludedClassName)), Is.Null);
+        }
             starter.FindCommandsTypes();
 
             Assert.That(starter.CommandsTypes.Find(x => x.Equals(mainType)), Is.Null);
