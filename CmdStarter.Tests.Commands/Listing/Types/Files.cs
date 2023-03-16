@@ -2,6 +2,7 @@
 using System.CommandLine.Invocation;
 using System.ComponentModel;
 using System.CommandLine.NamingConventionBinder;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Security.Cryptography.X509Certificates;
 using System.Runtime.CompilerServices;
@@ -17,16 +18,29 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
         [Description("Option description")]
         public int MyOpt { get; set; } = 987;
 
+        public List<int> MultipleOption { get; set; } = new();
+
         //TODO: Make a generic version that resides in the base class|interface
-        protected void HandleCommandOptions(Files me)
+        protected void HandleCommandOptions(InvocationContext context, Files me)
         {
             //TODO: Copy all properties
             this.MyOpt = me.MyOpt;
+            this.MultipleOption = me.MultipleOption;
+
+            // Fill AllowMultiple options
+            var results = context.ParseResult.FindResultFor(this.Options[1]);
+            var values = results!.Tokens.Select(t => t.Value);
+            foreach (var value in values)
+            {
+                dynamic convertedValue = Convert.ChangeType(value, typeof(int));
+                this.MultipleOption.Add(convertedValue);
+            }
             var a = 1;
         }
 
         protected int HandleCommand(InvocationContext context)
         {
+            //context.ParseResult.FindResultFor(this.Options[1]).Tokens
             CommandHandler.Create(HandleCommandOptions).Invoke(context);
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
@@ -56,8 +70,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
             var opt = new Option<int>("--my-opt");
             opt.Description = "get desc from attribute2"; //TODO: Take from attribute
             opt.IsRequired = false; //TODO: Take from attribute
-            opt.AllowMultipleArgumentsPerToken = false; //TODO: Take from attribute
+            opt.AllowMultipleArgumentsPerToken = false; //TODO: Set to true if type implements IList
             opt.AddAlias("-mo"); //TODO: Take from attribute
+            this.AddOption(opt);
+
+            //Test for AllowMultiple true
+            //Usage: CmdStarter.Tester.exe list files mypath -mm 321 -mm 456
+            opt = new Option<int>("--multiple-option");
+            opt.Description = "get desc from attribute3"; //TODO: Take from attribute
+            opt.IsRequired = false; //TODO: Take from attribute
+            opt.AllowMultipleArgumentsPerToken = true; //TODO: Set to true if type implements IList
+            opt.AddAlias("-mm"); //TODO: Take from attribute
             this.AddOption(opt);
 
             Handler = CommandHandler.Create(HandleCommand);

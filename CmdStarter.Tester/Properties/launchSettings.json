@@ -7,6 +7,10 @@
     "CmdStarter.TesterOptionNotSet": {
       "commandName": "Project",
       "commandLineArgs": "list files mypath"
+    },
+    "CmdStarter.TesterWithMultipleOption": {
+      "commandName": "Project",
+      "commandLineArgs": "list files mypath -mm 321 -mm 456 -mo 123"
     }
   }
 }
