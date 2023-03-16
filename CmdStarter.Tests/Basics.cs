@@ -144,10 +144,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [Test]
         [Category("Classes")]
+        [Category("Filters")]
         public void UsesClassesExclusion()
         {
-            var mainType = typeof(Commands.Main);
-            starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + mainType);
+            const string ExcludedClassName = nameof(Commands.Filtering.Starter);
+
+            starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + ExcludedClassName);
+            starter.FindCommandsTypes();
+
+            Assert.That(starter.CommandsTypes.Find(x => x.Name.Equals(ExcludedClassName)), Is.Null);
+        }
             starter.FindCommandsTypes();
 
             Assert.That(starter.CommandsTypes.Find(x => x.Equals(mainType)), Is.Null);
