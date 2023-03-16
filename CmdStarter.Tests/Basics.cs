@@ -1,7 +1,10 @@
+using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Naming.MultilevelSame;
 using System.ComponentModel.Composition.Primitives;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -167,24 +170,200 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             Assert.That(starter.CommandsTypes.Find(x => x.Name.StartsWith(ExcludedClassName)), Is.Null);
         }
+
+        [Test]
+        [Category("Classes")]
+        [Category("Filters")]
+        public void UsesClassesInclusion_WithoutWildcard()
+        {
+            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+
+            Type[] expectedTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                {
+                    return t.IsClass && !t.IsAbstract
+                        && t.IsSubclassOf(typeof(StarterCommand))
+                        && t.Namespace != null
+                        && t.Name.Equals(IncludedClassName);
+                })
+                .ToArray();
+
+            starter.Classes = starter.Classes.Add(IncludedClassName);
             starter.FindCommandsTypes();
 
-            Assert.That(starter.CommandsTypes.Find(x => x.Equals(mainType)), Is.Null);
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
         }
 
         [Test]
         [Category("Classes")]
-        public void UsesClassesWildcards()
+        [Category("Filters")]
+        public void UsesClassesInclusion_SingleCharWildcard()
         {
-            starter.Classes = starter.Classes.Add(nameof(Do) + "");
-            Assert.Fail("NOT DONE");
+            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+
+            Regex matcher = new Regex(IncludedClassName + @".$", RegexOptions.RightToLeft);
+
+            Type[] expectedTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                {
+                    return t.IsClass && !t.IsAbstract
+                        && t.IsSubclassOf(typeof(StarterCommand))
+                        && t.Namespace != null
+                        && matcher.IsMatch(t.Name);
+                })
+                .ToArray();
+
+            starter.Classes = starter.Classes.Add(IncludedClassName + TestsCommon.ANY_CHAR_SYMBOL);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
         }
 
         [Test]
         [Category("Classes")]
-        public void UsesClassesPartialNamespace()
+        [Category("Filters")]
+        public void UsesClassesInclusion_AnyCharWildcard()
         {
-            Assert.Fail("NOT DONE");
+            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+
+            Regex matcher = new Regex(IncludedClassName + @"\w*$", RegexOptions.RightToLeft);
+
+            Type[] expectedTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                {
+                    return t.IsClass && !t.IsAbstract
+                        && t.IsSubclassOf(typeof(StarterCommand))
+                        && t.Namespace != null
+                        && matcher.IsMatch(t.Name);
+                })
+                .ToArray();
+
+            starter.Classes = starter.Classes.Add(IncludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
+        }
+
+        [Test]
+        [Category("Classes")]
+        [Category("Filters")]
+        public void UsesClassesInclusion_WithinNamespace_WithoutWildCard()
+        {
+            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+            string includedNamespace = nameof(Commands.Filtering.A.IO).Split(".").Last();
+            string finalFilter = $"{includedNamespace}.{IncludedClassName}";
+
+            Regex matcher = new Regex(includedNamespace + @"\." + IncludedClassName, RegexOptions.RightToLeft);
+
+            Type[] expectedTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                {
+                    return t.IsClass && !t.IsAbstract
+                        && t.IsSubclassOf(typeof(StarterCommand))
+                        && t.Namespace != null
+                        && matcher.IsMatch(t.FullName ?? string.Empty);
+                })
+                .ToArray();
+
+            starter.Classes = starter.Classes.Add(finalFilter);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
+        }
+
+        [Test]
+        [Category("Classes")]
+        [Category("Filters")]
+        public void UsesClassesInclusion_WithinNamespace_WithWildCardAfter()
+        {
+            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+            const string includedNamespace = "NS";
+            string finalFilter = $"{includedNamespace}{TestsCommon.MULTI_ANY_CHAR_SYMBOL}.{IncludedClassName}";
+
+            Regex matcher = new Regex(@$"(\.|^){includedNamespace}.*\.{IncludedClassName}");
+
+            Type[] expectedTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                {
+                    return t.IsClass && !t.IsAbstract
+                        && t.IsSubclassOf(typeof(StarterCommand))
+                        && t.Namespace != null
+                        && matcher.IsMatch(t.FullName ?? string.Empty);
+                })
+                .ToArray();
+
+            starter.Classes = starter.Classes.Add(finalFilter);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
+        }
+
+        [Test]
+        [Category("Classes")]
+        [Category("Filters")]
+        public void UsesClassesInclusion_WithinNamespace_WithWildCardBefore()
+        {
+            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+            const string includedNamespace = "NS";
+            string finalFilter = $"{TestsCommon.MULTI_ANY_CHAR_SYMBOL}{includedNamespace}.{IncludedClassName}";
+
+            Regex matcher = new Regex(@$".*{includedNamespace}\.{IncludedClassName}");
+
+            Type[] expectedTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                {
+                    return t.IsClass && !t.IsAbstract
+                        && t.IsSubclassOf(typeof(StarterCommand))
+                        && t.Namespace != null
+                        && matcher.IsMatch(t.FullName ?? string.Empty);
+                })
+                .ToArray();
+
+            starter.Classes = starter.Classes.Add(finalFilter);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
+        }
+
+        [Test]
+        [Category("Classes")]
+        [Category("Filters")]
+        public void UsesClassesInclusion_WithinNamespace_WithWildCardWithin()
+        {
+            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+            const string includedNamespace = "NS";
+            string finalFilter = $"{includedNamespace[0]}{TestsCommon.MULTI_ANY_CHAR_SYMBOL}{includedNamespace[^1]}.{IncludedClassName}";
+
+            Regex matcher = new Regex(@$"(\.|^){includedNamespace[0]}.*{includedNamespace[^1]}\.{IncludedClassName}");
+
+            Type[] expectedTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                {
+                    return t.IsClass && !t.IsAbstract
+                        && t.IsSubclassOf(typeof(StarterCommand))
+                        && t.Namespace != null
+                        && matcher.IsMatch(t.FullName ?? string.Empty);
+                })
+                .ToArray();
+
+            starter.Classes = starter.Classes.Add(finalFilter);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
         }
 
         [TestCaseSource(nameof(FSource))]
