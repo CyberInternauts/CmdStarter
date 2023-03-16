@@ -67,5 +67,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 Assert.That(starter.RootCommand.Subcommands, Is.Not.Empty);
             });
         }
+
+        public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> first, IEnumerable<T> second)
+        {
+            Assert.That(first.All(second.Contains) && second.All(first.Contains));
+        }
     }
 }
