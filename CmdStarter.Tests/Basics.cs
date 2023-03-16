@@ -169,7 +169,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + ExcludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
             starter.FindCommandsTypes();
 
-            Assert.That(starter.CommandsTypes.Find(x => x.Name.StartsWith(ExcludedClassName)), Is.Null);
+            Assert.That(!starter.CommandsTypes.Any(x => x.Name.StartsWith(ExcludedClassName)));
         }
 
         [Test]
