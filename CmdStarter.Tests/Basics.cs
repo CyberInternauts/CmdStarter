@@ -312,6 +312,37 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
         }
 
+        [Test]
+        [TestCaseSource(nameof(FilterClasses))]
+        [Category("Classes")]
+        [Category("Filters")]
+        public void UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithin(IEnumerable<Type> types)
+        {
+            const string NamespaceFilter = nameof(Commands.Filtering);
+            string finalFilter = $"{NamespaceFilter}.*";
+
+            Regex matcher = new Regex(@$"(\.|^){NamespaceFilter}\.\w*$");
+
+            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
+
+            starter.Classes = starter.Classes.Add(finalFilter);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
+        }
+
+        [Test]
+        [TestCaseSource(nameof(FilterClasses))]
+        public void UseClassesNoFilter(IEnumerable<Type> types)
+        {
+            const string MainNamespaceFilter = nameof(Commands.Filtering) + "**";
+
+            starter.Classes = starter.Classes.Add(MainNamespaceFilter);
+            starter.FindCommandsTypes();
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(types, starter.CommandsTypes);
+        }
+
         [TestCaseSource(nameof(FSource))]
         [Category("Classes")]
         public void TestingTest(Func<Type, bool> f)
