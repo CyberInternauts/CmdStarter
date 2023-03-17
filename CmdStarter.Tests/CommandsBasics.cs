@@ -287,7 +287,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                     {
                         Assert.That(String.IsNullOrEmpty(arg.Description), Is.True, message);
                     }
-                    if (parameter.DefaultValue != null)
+                    if (parameter.DefaultValue is not System.DBNull)
                     {
                         Assert.That(arg.HasDefaultValue, Is.True, message);
                         Assert.That(arg.GetDefaultValue(), Is.EqualTo(parameter.DefaultValue), message);

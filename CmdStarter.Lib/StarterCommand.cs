@@ -60,7 +60,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var argument = (Argument)constructor!.Invoke(null);
                 argument.Name = parameter.Name;
                 argument.Description = description;
-                argument.SetDefaultValue(parameter.DefaultValue);
+                if (parameter.DefaultValue is not System.DBNull)
+                {
+                    argument.SetDefaultValue(parameter.DefaultValue);
+                }
                 this.Add(argument);
             }
         }
