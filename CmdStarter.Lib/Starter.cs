@@ -5,6 +5,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
+using System.Text.RegularExpressions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -71,8 +72,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// - Using "~" in front of a class means to exclude this class
         /// </summary>
         /// <remarks>
-        /// "*" and "?" do not include dots
-        /// "**" and "??" do include dots
+        /// "*" and "?" do not include dots<br/>
+        /// "**" and "??" do include dots<br/><br/>
         /// 
         /// An empty list means no filter.<br/><br/>
         /// 
@@ -174,6 +175,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 this.commandsTypes = CommandsTypes.AddRange(commandsToAdd);
             }
         }
+
         public void BuildTree()
         {
             if (!hasToBuildTree) return;
@@ -269,13 +271,34 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             var nbCommands = commandsTypes.Count();
             if (nbCommands != 0 && Classes.Any())
             {
-                var classesExcluded = Classes.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(EXCLUSION_SYMBOL));
+                if (classes.IsEmpty)
+                    classes.Add(MULTI_ANY_CHAR_SYMBOL);
 
-                commandsTypes = commandsTypes.Where(c =>
+                bool onlyExclude = classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
+
+                Regex dotRegex = new Regex(@"\\.");
+
+                Regex[] xcludes = classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
+                    .Select(filter =>
+                    {
+                        var pattern = WildcardsToRegex(filter[1..]);
+                        return new Regex(pattern, RegexOptions.RightToLeft);
+                    }).ToArray();
+
+                Regex[] filters = classes.Where(filter => !filter.StartsWith(EXCLUSION_SYMBOL))
+                    .Select(filter =>
+                    {
+                        var pattern = WildcardsToRegex(filter);
+                        return new Regex(pattern, RegexOptions.RightToLeft);
+                    }).ToArray();
+
+                commandsTypes = commandsTypes.Where(type =>
                 {
-                    bool outNamespaces = classesExcluded.Any(n => c.FullName?.StartsWith(n[1..]) ?? false);
+                    bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
 
-                    return !outNamespaces;
+                    bool xcluded = xcludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
+
+                    return included && !xcluded;
                 });
 
                 if (!commandsTypes.Any())
