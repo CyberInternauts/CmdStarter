@@ -7,6 +7,7 @@ using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
+using System.CommandLine.Invocation;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -20,23 +21,55 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     {
         private const string TEMPORARY_NAME = "temp";
 
+        public virtual Delegate MethodForHandling { get; } = () => { };
+
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
             Name = ConvertToKebabCase(this.GetType().Name);
-            Initialize();
         }
 
         protected StarterCommand(string name, string? description = null)
             : base(ConvertToKebabCase(name), description)
         {
-            Initialize();
         }
 
-        private void Initialize()
+        internal void Initialize()
         {
-            //TODO: Do real command handler (Already bad, because when a command is not a leaf, it shall show help
-            Handler = CommandHandler.Create(() => Console.WriteLine("Shall do " + this.GetType().Name));
+            if (this.Subcommands.Count == 0) // Only leaves can execute code
+            {
+                Handler = CommandHandler.Create(HandleCommand);
+                LoadArguments();
+            }
 
+            LoadDescription();
+        }
+
+        private void LoadArguments()
+        {
+            var parameters = MethodForHandling.Method.GetParameters();
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Name == null) continue; // Skipping param without name
+
+                var description = (parameter.GetCustomAttributes(false)
+                        .FirstOrDefault(a => a is System.ComponentModel.DescriptionAttribute) as System.ComponentModel.DescriptionAttribute)
+                        ?.Description;
+
+                var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
+                var constructor = argumentType.GetConstructor(Type.EmptyTypes);
+                var argument = (Argument)constructor!.Invoke(null);
+                argument.Name = parameter.Name;
+                argument.Description = description;
+                if (parameter.DefaultValue is not System.DBNull)
+                {
+                    argument.SetDefaultValue(parameter.DefaultValue);
+                }
+                this.Add(argument);
+            }
+        }
+
+        private void LoadDescription()
+        {
             //TODO: Test was not written for this
             var descriptions = this.GetType().GetCustomAttributes(false).Where(a => a is DescriptionAttribute)
                 .Select(a => (a as DescriptionAttribute)!.Description);
@@ -44,6 +77,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                     new StringBuilder(), (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
                 ).ToString();
             Description = descriptions?.Any() ?? false ? description : "Fake";
+        }
+
+        private int HandleCommand(InvocationContext context)
+        {
+            //TODO: When doing options, enable this: CommandHandler.Create(HandleCommandOptions).Invoke(context);
+            return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
         private static string ConvertToKebabCase(string input)
