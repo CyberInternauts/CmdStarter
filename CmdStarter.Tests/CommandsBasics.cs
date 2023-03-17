@@ -4,6 +4,7 @@ using Erroneous = com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous
 using System.Data;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -233,6 +234,55 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(starter.CommandsTypes, Has.None.EqualTo(typeof(WrongTypeForGlobalOption)));
 
             Assert.That(starter.CommandsTypes.Where(t => !t.IsSubclassOf(typeof(StarterCommand))), Is.Empty); // Generic validation
+        }
+
+        [TestCase<FullArgs>]
+        [TestCase<NoArgs>]
+        public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : StarterCommand
+        {
+            starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
+            starter.InstantiateCommands();
+
+            var command = starter.RootCommand.Subcommands.FirstOrDefault(c => c is CommandType) as CommandType;
+            Assert.That(command, Is.Not.Null);
+
+            var parameters = command.MethodForHandling.Method.GetParameters();
+            Assert.That(parameters, Is.Not.Null);
+            Assert.That(command.Arguments, Has.Count.EqualTo(parameters.Length));
+
+            Assert.Multiple(() =>
+            {
+                var index = 0;
+                foreach (var parameter in parameters)
+                {
+                    var description = (parameter.GetCustomAttributes(false)
+                        .FirstOrDefault(a => a is System.ComponentModel.DescriptionAttribute) as System.ComponentModel.DescriptionAttribute)
+                        ?.Description;
+
+                    var message = () => "Error for parameter:" + parameter.Name;
+                    var arg = command.Arguments[index];
+                    Assert.That(arg.Name, Is.EqualTo(parameter.Name), message);
+                    if (description != null)
+                    {
+                        Assert.That(arg.Description, Is.EqualTo(description), message);
+                    }
+                    else
+                    {
+                        Assert.That(arg.Description, Is.Empty, message);
+                    }
+                    if (parameter.DefaultValue != null)
+                    {
+                        Assert.That(arg.HasDefaultValue, Is.True, message);
+                        Assert.That(arg.GetDefaultValue(), Is.EqualTo(parameter.DefaultValue), message);
+                    }
+                    else
+                    {
+                        Assert.That(arg.HasDefaultValue, Is.False, message);
+                    }
+
+                    index++;
+                }
+            });
         }
 
 

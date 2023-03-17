@@ -7,6 +7,7 @@ using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
+using System.CommandLine.Invocation;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -19,6 +20,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     public abstract class StarterCommand : Command
     {
         private const string TEMPORARY_NAME = "temp";
+
+        public virtual Delegate MethodForHandling { get; } = () => { };
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
@@ -34,9 +37,26 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private void Initialize()
         {
-            //TODO: Do real command handler (Already bad, because when a command is not a leaf, it shall show help
-            Handler = CommandHandler.Create(() => Console.WriteLine("Shall do " + this.GetType().Name));
+            if (this.Subcommands.Count == 0) // Only leaves can execute code
+            {
+                Handler = CommandHandler.Create(HandleCommand);
+                LoadArguments();
+            }
 
+            LoadDescription();
+        }
+
+        private void LoadArguments()
+        {
+            var parameters = MethodForHandling.Method.GetParameters();
+            foreach (var parameter in parameters)
+            {
+
+            }
+        }
+
+        private void LoadDescription()
+        {
             //TODO: Test was not written for this
             var descriptions = this.GetType().GetCustomAttributes(false).Where(a => a is DescriptionAttribute)
                 .Select(a => (a as DescriptionAttribute)!.Description);
@@ -44,6 +64,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                     new StringBuilder(), (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
                 ).ToString();
             Description = descriptions?.Any() ?? false ? description : "Fake";
+        }
+
+        private int HandleCommand(InvocationContext context)
+        {
+            //TODO: When doing options, enable this: CommandHandler.Create(HandleCommandOptions).Invoke(context);
+            return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
         private static string ConvertToKebabCase(string input)
