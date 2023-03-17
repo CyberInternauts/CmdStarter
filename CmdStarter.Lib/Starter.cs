@@ -66,10 +66,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// Filter by classes.<br/><br/>
         /// 
         /// - Wildcard "*" and "?" can be used<br/>
+        /// - Wildcard "**" and "??" can also be used<br/>
         /// - Can include partial namespace<br/>
         /// - Using "~" in front of a class means to exclude this class
         /// </summary>
         /// <remarks>
+        /// "*" and "?" do not include dots
+        /// "**" and "??" do include dots
+        /// 
         /// An empty list means no filter.<br/><br/>
         /// 
         /// Changing classes empty the commands.
