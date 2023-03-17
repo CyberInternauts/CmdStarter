@@ -19,7 +19,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     {
         public const string EXCLUSION_SYMBOL = "~";
         public const string ANY_CHAR_SYMBOL = "?";
+        public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = "??";
         public const string MULTI_ANY_CHAR_SYMBOL = "*";
+        public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = "**";
 
         private RootCommand rootCommand = new ();
         private ImmutableList<string> namespaces = ImmutableList<string>.Empty;
