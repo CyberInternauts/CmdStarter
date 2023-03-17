@@ -26,16 +26,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
             Name = ConvertToKebabCase(this.GetType().Name);
-            Initialize();
         }
 
         protected StarterCommand(string name, string? description = null)
             : base(ConvertToKebabCase(name), description)
         {
-            Initialize();
         }
 
-        private void Initialize()
+        internal void Initialize()
         {
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
@@ -51,7 +49,19 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             var parameters = MethodForHandling.Method.GetParameters();
             foreach (var parameter in parameters)
             {
+                if (parameter.Name == null) continue; // Skipping param without name
 
+                var description = (parameter.GetCustomAttributes(false)
+                        .FirstOrDefault(a => a is System.ComponentModel.DescriptionAttribute) as System.ComponentModel.DescriptionAttribute)
+                        ?.Description;
+
+                var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
+                var constructor = argumentType.GetConstructor(Type.EmptyTypes);
+                var argument = (Argument)constructor!.Invoke(null);
+                argument.Name = parameter.Name;
+                argument.Description = description;
+                argument.SetDefaultValue(parameter.DefaultValue);
+                this.Add(argument);
             }
         }
 

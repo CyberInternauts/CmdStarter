@@ -143,6 +143,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return 0;
         }
 
+        public Command? FindCommand<CommandType>() where CommandType : Command
+        {
+            var loopBody = (Command child) =>
+            {
+                if (child is CommandType) return child;
+                return null;
+            };
+
+            return VisitCommands(RootCommand, loopBody);
+        }
+
         /// <summary>
         /// Find all <see cref="StarterCommand "/>s that have a namespace
         /// </summary>
@@ -185,6 +196,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             BuildTree();
 
             AddLevel(RootCommand, CommandsTypesTree);
+
+            VisitCommands(RootCommand, (child) =>
+            {
+                if (child is StarterCommand command)
+                {
+                    command.Initialize();
+                }
+                return null;
+            });
         }
 
         private void AddLevel(Command currentParent, TreeNode<Type> currentNode)
@@ -253,6 +273,29 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
 
             return commandsTypes;
+        }
+
+        /// <summary>
+        /// Visit commands from a specific command until not null is returned
+        /// </summary>
+        /// <typeparam name="CommandType">Command type </typeparam>
+        /// <param name="currentParent">Command where to start visiting</param>
+        /// <param name="func">Function that is applied a command</param>
+        /// <returns>A command if func returned one, otherwise null</returns>
+        private Command? VisitCommands(Command currentParent, Func<Command, Command?> func)
+        {
+            if (currentParent == null) return null;
+
+            foreach (var child in currentParent.Subcommands)
+            {
+                var funcReturn = func(child);
+                if (funcReturn != null) return funcReturn;
+
+                var childChild = VisitCommands(child, func);
+                if (childChild != null) return childChild;
+            }
+
+            return null;
         }
     }
 }
