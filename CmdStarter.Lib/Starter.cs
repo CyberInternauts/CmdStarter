@@ -280,5 +280,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             return commandsTypes;
         }
+
+        private static string WildcardsToRegex(string wildcard)
+        {
+            const string STAR_PLACEHOLDER = "<-starplaceholder->";
+
+            return (@$"(.|^){wildcard}$")
+                .Replace(".", @"\.")
+                .Replace("??", ".")
+                .Replace("?", @"\w")
+                .Replace("**", @$".{STAR_PLACEHOLDER}")
+                .Replace("*", @"\w*")
+                .Replace(STAR_PLACEHOLDER, "*");
+        }
     }
 }
