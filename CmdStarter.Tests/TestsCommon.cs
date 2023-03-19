@@ -70,7 +70,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> first, IEnumerable<T> second)
         {
-            Assert.That(first.All(second.Contains) && second.All(first.Contains));
+            Assert.IsEmpty(first.Except(second));
+            Assert.IsEmpty(second.Except(first));
         }
     }
 }
