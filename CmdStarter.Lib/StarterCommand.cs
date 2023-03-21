@@ -29,9 +29,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             Name = this.GetType().Name.PascalToKebabCase()!;
         }
 
-        protected StarterCommand(string name, string? description = null)
-            : base(name.PascalToKebabCase() ?? string.Empty, description)
+        protected StarterCommand(string name, string? description = null) : base(TEMPORARY_NAME, description)
         {
+            if (String.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException(nameof(name) + " parameter can't be null or white spaces");
+            }
+
+            if (name.Contains('-'))
+            {
+                Name = name.ToLower();
+            }
+            else
+            {
+                Name = name.PascalToKebabCase()!;
+            }
         }
 
         internal void Initialize()
