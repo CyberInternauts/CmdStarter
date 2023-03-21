@@ -327,11 +327,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [Test]
         [TestCaseSource(nameof(FilterClasses))]
-        public void UseClassesNoFilter(IEnumerable<Type> types)
+        public void UseClassesNoFilter(string namespaceFilter, IEnumerable<Type> types)
         {
-            const string MainNamespaceFilter = nameof(Commands.Filtering) + "**";
-
-            starter.Classes = starter.Classes.Add(MainNamespaceFilter);
+            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
             starter.FindCommandsTypes();
 
             TestsCommon.AssertIEnumerablesHaveSameElements(types, starter.CommandsTypes);
