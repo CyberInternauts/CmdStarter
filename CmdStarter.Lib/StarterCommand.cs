@@ -8,6 +8,7 @@ using System.CommandLine.NamingConventionBinder;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
 using System.CommandLine.Invocation;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -25,11 +26,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
-            Name = ConvertToKebabCase(this.GetType().Name);
+            Name = this.GetType().Name.PascalToKebabCase()!;
         }
 
         protected StarterCommand(string name, string? description = null)
-            : base(ConvertToKebabCase(name), description)
+            : base(name.PascalToKebabCase() ?? string.Empty, description)
         {
         }
 
@@ -83,19 +84,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             //TODO: When doing options, enable this: CommandHandler.Create(HandleCommandOptions).Invoke(context);
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
-        }
-
-        private static string ConvertToKebabCase(string input)
-        {
-            var output = string.Empty;
-            for (var i = 0; i < input.Length; i++)
-            {
-                var c = input[i];
-                if (Char.IsUpper(c) && output != string.Empty) output += "-";
-                output += c;
-            }
-            output = output.ToLower();
-            return output;
         }
     }
 }
