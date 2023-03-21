@@ -159,7 +159,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             // Error case
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Erroneous.DuplicateNames.Same1).Namespace ?? string.Empty);
-            Assert.Throws<DuplicateCommandNameException>(starter.InstantiateCommands);
+            Assert.Throws<ArgumentException>(starter.InstantiateCommands);
         }
 
         [Test]
