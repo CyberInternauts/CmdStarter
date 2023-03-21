@@ -248,23 +248,26 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(starter.FindCommand<CommandType>(), Is.Not.Null);
         }
 
-        [Test]
-        public async Task IsPropertyFilledWithOption()
+        [TestCase(nameof(OptHandling.MyOptInt), OptHandling.MY_OPT_INT_KEBAB, 111, 999)]
+        [TestCase(nameof(OptHandling.MyOptBool), OptHandling.MY_OPT_BOOL_KEBAB, false, true)]
+        public async Task IsPropertyFilledWithOption(string propertyName, string optionName, object defaultValue, object expectedValue)
         {
+            var propertyTested = typeof(OptHandling).GetProperty(propertyName);
             starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
 
-            var defaultOptionValue = 111;
-            await starter.Start(new string[] { });
+            // Test without option for default value
+            await starter.Start(new string[] { nameof(OptHandling).PascalToKebabCase() });
             var optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
             Assert.That(optionCommand, Is.Not.Null);
-            Assert.That(optionCommand.MyOpt, Is.EqualTo(defaultOptionValue));
+            Assert.That(propertyTested!.GetValue(optionCommand), Is.EqualTo(defaultValue));
 
-            var expectedOptionValue = 999;
-            await starter.Start(new string[] { OptHandling.OPTION_PREFIX + OptHandling.MY_OPT_KEBAB + " " + expectedOptionValue });
+            // Test with option
+            var optionString = OptHandling.OPTION_PREFIX + optionName +  (expectedValue is not bool ? " " + expectedValue : string.Empty);
+            await starter.Start(new string[] { nameof(OptHandling).PascalToKebabCase(), optionString });
 
             optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
             Assert.That(optionCommand, Is.Not.Null);
-            Assert.That(optionCommand.MyOpt, Is.EqualTo(expectedOptionValue));
+            Assert.That(propertyTested!.GetValue(optionCommand), Is.EqualTo(expectedValue));
         }
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]

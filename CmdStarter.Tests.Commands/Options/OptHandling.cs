@@ -2,7 +2,10 @@
 {
     public class OptHandling : StarterCommand
     {
-        public int MyOpt { get; set; } = 111;
-        public const string MY_OPT_KEBAB = "my-opt";
+        public int MyOptInt { get; set; } = 111;
+        public const string MY_OPT_INT_KEBAB = "my-opt-int";
+
+        public bool MyOptBool { get; set; } = false;
+        public const string MY_OPT_BOOL_KEBAB = "my-opt-bool";
     }
 }
