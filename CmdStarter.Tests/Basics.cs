@@ -267,9 +267,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCaseSource(nameof(FilterClasses))]
         [Category("Classes")]
         [Category("Filters")]
-        public void UsesClassesInclusion_WithinNamespace_WithWildCardBefore(IEnumerable<Type> types)
+        public void UsesClassesInclusion_WithinNamespace_WithWildCardBefore(string namespaceFilter, IEnumerable<Type> types)
         {
-            const string MainNamespaceFilter = nameof(Commands.Filtering) + "**.";
             const string IncludedClassName = nameof(Commands.Filtering.Starter);
             const string includedNamespace = "NS";
             string finalFilter = $"{TestsCommon.MULTI_ANY_CHAR_SYMBOL}{includedNamespace}.{IncludedClassName}";
@@ -278,7 +277,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
 
-            starter.Classes = starter.Classes.Add(MainNamespaceFilter + finalFilter);
+            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
+            starter.Classes = starter.Classes.Add(finalFilter);
             starter.FindCommandsTypes();
 
             TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
