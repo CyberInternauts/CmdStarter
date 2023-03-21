@@ -206,16 +206,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCaseSource(nameof(FilterClasses))]
         [Category("Classes")]
         [Category("Filters")]
-        public void UsesClassesInclusion_AnyCharWildcard(IEnumerable<Type> types)
+        public void UsesClassesInclusion_AnyCharWildcard(string namespaceFilter, IEnumerable<Type> types)
         {
-            const string MainNamespaceFilter = nameof(Commands.Filtering) + "**.";
             const string IncludedClassName = nameof(Commands.Filtering.Starter);
 
             Regex matcher = new Regex(IncludedClassName + @"\w*$", RegexOptions.RightToLeft);
 
             IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.Name));
 
-            starter.Classes = starter.Classes.Add(MainNamespaceFilter + IncludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
+            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
+            starter.Classes = starter.Classes.Add(IncludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
             starter.FindCommandsTypes();
 
             TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
