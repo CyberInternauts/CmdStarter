@@ -126,7 +126,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             InstantiateCommands();
 
             var builder = new CommandLineBuilder(RootCommand);
-            //TODO: When calling more than once this method, calling twice UseDefaults adds more and more "version" option and it fails. Shall be skipped upon subsequent call.
+            //TODO: When calling more than once the Start method, calling twice UseDefaults adds more and more "version" option and it fails. Shall be skipped upon subsequent call.
             builder.UseDefaults();
             var parser = builder.Build();
 
