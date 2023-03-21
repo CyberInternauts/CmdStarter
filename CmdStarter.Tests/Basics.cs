@@ -364,19 +364,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             {
                 string namespaceFilter = typeof(Commands.Filtering.Starter).Namespace ?? string.Empty;
 
-                IList<Type> types = new List<Type>
-                {
-                    typeof(Commands.Filtering.Starter),
-                    typeof(Commands.Filtering.StarterA),
-                    typeof(Commands.Filtering.StarterB),
-                    typeof(Commands.Filtering.StarterOn),
-                    typeof(Commands.Filtering.StarterOff),
-                    typeof(Commands.Filtering.A.IO.Starter),
-                    typeof(Commands.Filtering.B.IO.Starter),
-                    typeof(Commands.Filtering.NorthS.Starter),
-                    typeof(Commands.Filtering.EastNS.Starter),
-                    typeof(Commands.Filtering.NSouth.Starter)
-                };
+                IList<Type> types = TestsCommon.CLASS_FILTERING_TYPES;
 
                 yield return new(namespaceFilter, types);
             }

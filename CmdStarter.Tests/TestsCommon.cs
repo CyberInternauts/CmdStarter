@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.Composition.Hosting;
+﻿using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -9,6 +10,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         public const string MULTI_ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.MULTI_ANY_CHAR_SYMBOL;
         public const string EXCLUSION_SYMBOL = CmdStarter.Lib.Starter.EXCLUSION_SYMBOL;
         public readonly static string ERRONEOUS_NAMESPACE = typeof(Commands.Erroneous.Boggus).Namespace ?? string.Empty;
+
+        public readonly static IList<Type> CLASS_FILTERING_TYPES = new List<Type>
+                {
+                    typeof(Commands.Filtering.Starter),
+                    typeof(Commands.Filtering.StarterA),
+                    typeof(Commands.Filtering.StarterB),
+                    typeof(Commands.Filtering.StarterOn),
+                    typeof(Commands.Filtering.StarterOff),
+                    typeof(Commands.Filtering.A.IO.Starter),
+                    typeof(Commands.Filtering.B.IO.Starter),
+                    typeof(Commands.Filtering.NorthS.Starter),
+                    typeof(Commands.Filtering.EastNS.Starter),
+                    typeof(Commands.Filtering.NSouth.Starter)
+                };
 
         public static void GlobalSetup()
         {
