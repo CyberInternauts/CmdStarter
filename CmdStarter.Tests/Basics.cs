@@ -309,7 +309,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCaseSource(nameof(FilterClasses))]
         [Category("Classes")]
         [Category("Filters")]
-        public void UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithin(IEnumerable<Type> types)
+        public void UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithin(string namespaceFilter, IEnumerable<Type> types)
         {
             const string NamespaceFilter = nameof(Commands.Filtering);
             string finalFilter = $"{NamespaceFilter}.*";
@@ -318,6 +318,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
 
+            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
             starter.Classes = starter.Classes.Add(finalFilter);
             starter.FindCommandsTypes();
 
