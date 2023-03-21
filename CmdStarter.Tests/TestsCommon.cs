@@ -64,7 +64,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> first, IEnumerable<T> second)
         {
-            Assert.IsEmpty(first.Except(second));
+            if(first.Count() == second.Count())
+            {
+                Assert.IsEmpty(first.Except(second));
+                return;
+            }
+
             Assert.IsEmpty(second.Except(first));
         }
     }
