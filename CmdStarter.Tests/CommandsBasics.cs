@@ -253,9 +253,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         public async Task IsPropertyFilledWithOption(string propertyName, string optionName, object defaultValue, object expectedValue)
         {
             var propertyTested = typeof(OptHandling).GetProperty(propertyName);
-            starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
 
             // Test without option for default value
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
             await starter.Start(new string[] { nameof(OptHandling).PascalToKebabCase() });
             var optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
             Assert.That(optionCommand, Is.Not.Null);
@@ -263,6 +263,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             // Test with option
             starter = TestsCommon.CreateCmdStarter();
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
 
             var optionString = OptHandling.OPTION_PREFIX + optionName +  (expectedValue is not bool ? " " + expectedValue : string.Empty);
             await starter.Start(new string[] { nameof(OptHandling).PascalToKebabCase(), optionString });

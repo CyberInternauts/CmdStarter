@@ -126,19 +126,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             InstantiateCommands();
 
             var builder = new CommandLineBuilder(RootCommand);
-            var builderWithDefaults = builder.UseDefaults();
-            var builderBuilt = builderWithDefaults.Build();
-            var commands = new List<Command>();
+            //TODO: When calling more than once this method, calling twice UseDefaults adds more and more "version" option and it fails. Shall be skipped upon subsequent call.
+            builder.UseDefaults();
+            var parser = builder.Build();
 
-            var c = VisitCommands(RootCommand, (c) =>
-            {
-                if (c.Name == "version") commands.Add(c);
-                if (c.Options.Any(o => o.Name == "version")) commands.Add(c);
-
-                return null;
-            });
-
-            return await builderBuilt.InvokeAsync(args);
+            return await parser.InvokeAsync(args);
         }
 
         /// <summary>
