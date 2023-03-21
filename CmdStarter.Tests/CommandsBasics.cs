@@ -248,6 +248,19 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(starter.FindCommand<CommandType>(), Is.Not.Null);
         }
 
+        [Test]
+        public async Task IsPropertyFilledWithOption()
+        {
+            var expectedOptionValue = 999;
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
+            await starter.Start(new string[] { OptHandling.OPTION_PREFIX + OptHandling.MY_OPT_KEBAB + " " + expectedOptionValue });
+
+            var optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
+            Assert.That(optionCommand, Is.Not.Null);
+
+            Assert.That(optionCommand.MyOpt, Is.EqualTo(expectedOptionValue));
+        }
+
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]
         [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, false)]
         public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : StarterCommand
@@ -286,6 +299,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<OptComplete>(OptComplete.READ_ONLY_OPT_KEBAB, false)]
         [TestCase<OptComplete>(OptComplete.WRITE_ONLY_OPT_KEBAB, false)]
         [TestCase<OptComplete>(OptComplete.STATIC_OPT_KEBAB, false)]
+        [TestCase<OptCompleteDerived>(OptComplete.INT_OPT_KEBAB, true)]
+        [TestCase<OptCompleteDerived>(OptComplete.STRING_OPT_KEBAB, true)]
+        [TestCase<OptCompleteDerived>(OptComplete.DATE_OPT_KEBAB, true)]
+        [TestCase<OptCompleteDerived>(OptCompleteDerived.NEW_INT_OPT_KEBAB, true)]
         public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
