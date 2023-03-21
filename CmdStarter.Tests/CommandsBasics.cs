@@ -262,6 +262,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(propertyTested!.GetValue(optionCommand), Is.EqualTo(defaultValue));
 
             // Test with option
+            starter = TestsCommon.CreateCmdStarter();
+
             var optionString = OptHandling.OPTION_PREFIX + optionName +  (expectedValue is not bool ? " " + expectedValue : string.Empty);
             await starter.Start(new string[] { nameof(OptHandling).PascalToKebabCase(), optionString });
 
