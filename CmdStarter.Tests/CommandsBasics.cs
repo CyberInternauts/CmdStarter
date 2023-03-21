@@ -251,13 +251,19 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public async Task IsPropertyFilledWithOption()
         {
-            var expectedOptionValue = 999;
             starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
-            await starter.Start(new string[] { OptHandling.OPTION_PREFIX + OptHandling.MY_OPT_KEBAB + " " + expectedOptionValue });
 
+            var defaultOptionValue = 111;
+            await starter.Start(new string[] { });
             var optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
             Assert.That(optionCommand, Is.Not.Null);
+            Assert.That(optionCommand.MyOpt, Is.EqualTo(defaultOptionValue));
 
+            var expectedOptionValue = 999;
+            await starter.Start(new string[] { OptHandling.OPTION_PREFIX + OptHandling.MY_OPT_KEBAB + " " + expectedOptionValue });
+
+            optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
+            Assert.That(optionCommand, Is.Not.Null);
             Assert.That(optionCommand.MyOpt, Is.EqualTo(expectedOptionValue));
         }
 
