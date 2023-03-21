@@ -167,7 +167,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        [TestCaseSource(nameof(FilterClasses))]
+        [TestCaseSource(nameof(ClassesFilter))]
         [Category("Classes")]
         [Category("Filters")]
         public void UsesClassesInclusion_WithoutWildcard(string namespaceFilter, IEnumerable<Type> types)
@@ -200,7 +200,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        [TestCaseSource(nameof(FilterClasses))]
+        [TestCaseSource(nameof(ClassesFilter))]
         public void UseClassesNoFilter(string namespaceFilter, IEnumerable<Type> types)
         {
             starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
@@ -299,7 +299,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             }
         }
 
-        private static IEnumerable<TestCaseData> FilterClasses
+        private static IEnumerable<TestCaseData> ClassesFilter
         {
             get
             {
