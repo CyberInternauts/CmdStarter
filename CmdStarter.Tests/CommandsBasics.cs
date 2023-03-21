@@ -6,6 +6,9 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+using Newtonsoft.Json;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -243,6 +246,62 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             starter.InstantiateCommands();
             Assert.That(starter.FindCommand<CommandType>(), Is.Not.Null);
+        }
+
+        [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]
+        [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, false)]
+        public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : StarterCommand
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
+            starter.InstantiateCommands();
+
+            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            Assert.That(optionCommand, Is.Not.Null);
+
+            var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
+            Assert.That(option, Is.Not.Null);
+            Assert.That(option.IsRequired, Is.EqualTo(isRequired));
+        }
+
+        [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, "")]
+        [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, OptComplete.STRING_OPT_DESC)]
+        public void HasOptionDescription<OptClass>(string optionName, string description) where OptClass : StarterCommand
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
+            starter.InstantiateCommands();
+
+            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            Assert.That(optionCommand, Is.Not.Null);
+
+            var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
+            Assert.That(option, Is.Not.Null);
+            Assert.That(option.Description, Is.EqualTo(description));
+        }
+
+        [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]
+        [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, true)]
+        [TestCase<OptComplete>(OptComplete.DATE_OPT_KEBAB, true)]
+        [TestCase<OptComplete>(OptComplete.PRIVATE_OPT_KEBAB, false)]
+        [TestCase<OptComplete>(OptComplete.PROTECTED_OPT_KEBAB, false)]
+        [TestCase<OptComplete>(OptComplete.READ_ONLY_OPT_KEBAB, false)]
+        [TestCase<OptComplete>(OptComplete.STATIC_OPT_KEBAB, false)]
+        public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : StarterCommand
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
+            starter.InstantiateCommands();
+
+            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            Assert.That(optionCommand, Is.Not.Null);
+
+            var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
+            if (shallBePresent)
+            {
+                Assert.That(option, Is.Not.Null);
+            } 
+            else
+            {
+                Assert.That(option, Is.Null);
+            }
         }
 
         [TestCase<FullArgs>]
