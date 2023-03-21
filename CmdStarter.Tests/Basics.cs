@@ -183,138 +183,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
         }
 
-        [Test]
-        [TestCaseSource(nameof(FilterClasses))]
+        [TestCaseSource(nameof(ClassesFilterRegexSource))]
         [Category("Classes")]
         [Category("Filters")]
-        public void UsesClassesInclusion_SingleCharWildcard(string namespaceFilter, IEnumerable<Type> types)
+        public void ClassesFilterRegexTest(string namespaceFilter, IEnumerable<Type> types, string regex, string finalFilter)
         {
-            const string IncludedClassName = nameof(Commands.Filtering.Starter);
-
-            Regex matcher = new Regex(IncludedClassName + @".$", RegexOptions.RightToLeft);
-
-            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.Name));
-
-            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
-            starter.Classes = starter.Classes.Add(IncludedClassName + TestsCommon.ANY_CHAR_SYMBOL);
-            starter.FindCommandsTypes();
-
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
-        }
-
-        [Test]
-        [TestCaseSource(nameof(FilterClasses))]
-        [Category("Classes")]
-        [Category("Filters")]
-        public void UsesClassesInclusion_AnyCharWildcard(string namespaceFilter, IEnumerable<Type> types)
-        {
-            const string IncludedClassName = nameof(Commands.Filtering.Starter);
-
-            Regex matcher = new Regex(IncludedClassName + @"\w*$", RegexOptions.RightToLeft);
-
-            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.Name));
-
-            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
-            starter.Classes = starter.Classes.Add(IncludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
-            starter.FindCommandsTypes();
-
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
-        }
-
-        [Test]
-        [TestCaseSource(nameof(FilterClasses))]
-        [Category("Classes")]
-        [Category("Filters")]
-        public void UsesClassesInclusion_WithinNamespace_WithoutWildCard(string namespaceFilter, IEnumerable<Type> types)
-        {
-            const string IncludedClassName = nameof(Commands.Filtering.Starter);
-            string includedNamespace = nameof(Commands.Filtering.A.IO).Split(".").Last();
-            string finalFilter = $"{includedNamespace}.{IncludedClassName}";
-
-            Regex matcher = new Regex(includedNamespace + @"\." + IncludedClassName, RegexOptions.RightToLeft);
-
-            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
-
-            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
-            starter.Classes = starter.Classes.Add(finalFilter);
-            starter.FindCommandsTypes();
-
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
-        }
-
-        [Test]
-        [TestCaseSource(nameof(FilterClasses))]
-        [Category("Classes")]
-        [Category("Filters")]
-        public void UsesClassesInclusion_WithinNamespace_WithWildCardAfter(string namespaceFilter, IEnumerable<Type> types)
-        {
-            const string IncludedClassName = nameof(Commands.Filtering.Starter);
-            const string includedNamespace = "NS";
-            string finalFilter = $"{includedNamespace}{TestsCommon.MULTI_ANY_CHAR_SYMBOL}.{IncludedClassName}";
-
-            Regex matcher = new Regex(@$"(\.|^){includedNamespace}.*\.{IncludedClassName}");
-
-            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
-
-            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
-            starter.Classes = starter.Classes.Add(finalFilter);
-            starter.FindCommandsTypes();
-
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
-        }
-
-        [Test]
-        [TestCaseSource(nameof(FilterClasses))]
-        [Category("Classes")]
-        [Category("Filters")]
-        public void UsesClassesInclusion_WithinNamespace_WithWildCardBefore(string namespaceFilter, IEnumerable<Type> types)
-        {
-            const string IncludedClassName = nameof(Commands.Filtering.Starter);
-            const string includedNamespace = "NS";
-            string finalFilter = $"{TestsCommon.MULTI_ANY_CHAR_SYMBOL}{includedNamespace}.{IncludedClassName}";
-
-            Regex matcher = new Regex(@$".*{includedNamespace}\.{IncludedClassName}");
-
-            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
-
-            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
-            starter.Classes = starter.Classes.Add(finalFilter);
-            starter.FindCommandsTypes();
-
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
-        }
-
-        [Test]
-        [TestCaseSource(nameof(FilterClasses))]
-        [Category("Classes")]
-        [Category("Filters")]
-        public void UsesClassesInclusion_WithinNamespace_WithWildCardWithin(string namespaceFilter, IEnumerable<Type> types)
-        {
-            const string IncludedClassName = nameof(Commands.Filtering.Starter);
-            const string includedNamespace = "NS";
-            string finalFilter = $"{includedNamespace[0]}{TestsCommon.MULTI_ANY_CHAR_SYMBOL}{includedNamespace[^1]}.{IncludedClassName}";
-
-            Regex matcher = new Regex(@$"(\.|^){includedNamespace[0]}.*{includedNamespace[^1]}\.{IncludedClassName}");
-
-            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
-
-            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
-            starter.Classes = starter.Classes.Add(finalFilter);
-            starter.FindCommandsTypes();
-
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
-        }
-
-        [Test]
-        [TestCaseSource(nameof(FilterClasses))]
-        [Category("Classes")]
-        [Category("Filters")]
-        public void UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithin(string namespaceFilter, IEnumerable<Type> types)
-        {
-            const string NamespaceFilter = nameof(Commands.Filtering);
-            string finalFilter = $"{NamespaceFilter}.*";
-
-            Regex matcher = new Regex(@$"(\.|^){NamespaceFilter}\.\w*$");
+            Regex matcher = new Regex(regex, RegexOptions.RightToLeft);
 
             IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
 
@@ -355,6 +229,73 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
                 yield return first;
                 yield return second;
+            }
+        }
+
+        private static IEnumerable<TestCaseData> ClassesFilterRegexSource
+        {
+            get
+            {
+                string namespaceFilter = typeof(Commands.Filtering.Starter).Namespace ?? string.Empty;
+                IList<Type> types = TestsCommon.CLASS_FILTERING_TYPES;
+
+                string nameofRootStarter = nameof(Commands.Filtering.Starter);
+
+                //FIRST = UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithinRegex
+                string firstRegex = @$"(\.|^){nameof(Commands.Filtering)}\.\w*$";
+                string firstFinalFilter = $"{nameof(Commands.Filtering)}.{TestsCommon.MULTI_ANY_CHAR_SYMBOL}";
+                TestCaseData firstCase = new(namespaceFilter, types, firstRegex, firstFinalFilter);
+                firstCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithinRegex");
+
+                yield return firstCase;
+
+                //SECOND = UsesClassesInclusion_WithinNamespace_WithWildCardWithinRegex
+                string secondRegex = @$"(\.|^)N.*S\.{nameofRootStarter}";
+                string secondFinalFilter = $"N{TestsCommon.MULTI_ANY_CHAR_SYMBOL}S.{nameofRootStarter}";
+                TestCaseData secondCase = new(namespaceFilter, types, secondRegex, secondFinalFilter);
+                secondCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardWithinRegex");
+
+                yield return secondCase;
+
+                //THIRD = UsesClassesInclusion_WithinNamespace_WithWildCardBefore
+                string thirdRegex = @$".*NS\.{nameofRootStarter}";
+                string thirdFinalFilter = $"{TestsCommon.MULTI_ANY_CHAR_SYMBOL}NS.{nameofRootStarter}";
+                TestCaseData thirdCase = new(namespaceFilter, types, thirdRegex, thirdFinalFilter);
+                thirdCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardBefore");
+
+                yield return thirdCase;
+
+                //FOURTH = UsesClassesInclusion_WithinNamespace_WithWildCardAfter
+                string fourthRegex = @$"(\.|^)NS.*\.{nameofRootStarter}";
+                string fourthFinalFilter = $"NS{TestsCommon.MULTI_ANY_CHAR_SYMBOL}.{nameofRootStarter}";
+                TestCaseData fourthCase = new(namespaceFilter, types, fourthRegex, fourthFinalFilter);
+                fourthCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardAfter");
+
+                yield return fourthCase;
+
+                //FIFTH = UsesClassesInclusion_WithinNamespace_WithoutWildCard
+                string fifthRegex = @$"IO\.{nameofRootStarter}";
+                string fifthFinalFilter = $"IO.{nameofRootStarter}";
+                TestCaseData fifthCase = new(namespaceFilter, types, fifthRegex, fifthFinalFilter);
+                fifthCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithoutWildCard");
+
+                yield return fifthCase;
+
+                //SIXTH = UsesClassesInclusion_AnyCharWildcard
+                string sixthRegex = @$"{nameofRootStarter}\w*$";
+                string sixthFinalFilter = $"{nameofRootStarter}{TestsCommon.MULTI_ANY_CHAR_SYMBOL}";
+                TestCaseData sixthCase = new(namespaceFilter, types, sixthRegex, sixthFinalFilter);
+                sixthCase.SetArgDisplayNames("UsesClassesInclusion_AnyCharWildcard");
+
+                yield return sixthCase;
+
+                //SEVENTH = UsesClassesInclusion_SingleCharWildcard
+                string seventhRegex = @$"{nameofRootStarter}.$";
+                string seventhFinalFilter = $"{nameofRootStarter}{TestsCommon.ANY_CHAR_SYMBOL}";
+                TestCaseData seventhCase = new(namespaceFilter, types, seventhRegex, seventhFinalFilter);
+                seventhCase.SetArgDisplayNames("UsesClassesInclusion_SingleCharWildcard");
+
+                yield return seventhCase;
             }
         }
 
