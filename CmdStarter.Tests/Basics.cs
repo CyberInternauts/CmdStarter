@@ -363,6 +363,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             get
             {
+                string namespaceFilter = typeof(Commands.Filtering.Starter).Namespace ?? string.Empty;
+
                 IList<Type> types = new List<Type>
                 {
                     typeof(Commands.Filtering.Starter),
@@ -377,7 +379,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                     typeof(Commands.Filtering.NSouth.Starter)
                 };
 
-                yield return new(types);
+                yield return new(namespaceFilter, types);
             }
         }
     }
