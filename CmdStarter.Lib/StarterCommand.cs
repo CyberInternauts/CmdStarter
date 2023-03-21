@@ -69,7 +69,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             var properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p =>
                     p.CanWrite && p.CanRead
-                    && p.DeclaringType!.IsSubclassOf(typeof(StarterCommand))
+                    && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand)) ?? false)
                 );
 
             foreach (var property in properties)
