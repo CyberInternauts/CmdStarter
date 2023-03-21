@@ -1,11 +1,4 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Filtering;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Naming.MultilevelSame;
-using System;
-using System.ComponentModel.Composition.Primitives;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests

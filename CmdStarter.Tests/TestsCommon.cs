@@ -1,10 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.Composition.Hosting;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
