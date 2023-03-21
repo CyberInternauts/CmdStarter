@@ -170,14 +170,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCaseSource(nameof(FilterClasses))]
         [Category("Classes")]
         [Category("Filters")]
-        public void UsesClassesInclusion_WithoutWildcard(IEnumerable<Type> types)
+        public void UsesClassesInclusion_WithoutWildcard(string namespaceFilter, IEnumerable<Type> types)
         {
-            const string MainNamespaceFilter = nameof(Commands.Filtering) + "**.";
             const string IncludedClassName = nameof(Commands.Filtering.Starter);
 
             IEnumerable<Type> expectedTypes = types.Where(t => t.Name.Equals(IncludedClassName));
 
-            starter.Classes = starter.Classes.Add($"{MainNamespaceFilter}{IncludedClassName}");
+            starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
+            starter.Classes = starter.Classes.Add(IncludedClassName);
             starter.FindCommandsTypes();
 
             TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
