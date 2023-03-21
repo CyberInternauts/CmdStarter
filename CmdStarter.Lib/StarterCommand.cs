@@ -9,6 +9,9 @@ using System.Runtime.CompilerServices;
 using System.ComponentModel;
 using System.CommandLine.Invocation;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -20,13 +23,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     /// 
     public abstract class StarterCommand : Command
     {
+        public const string OPTION_PREFIX = "--";
+
         private const string TEMPORARY_NAME = "temp";
 
         public virtual Delegate MethodForHandling { get; } = () => { };
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
-            Name = this.GetType().Name.PascalToKebabCase()!;
+            Name = this.GetType().Name.PascalToKebabCase();
         }
 
         protected StarterCommand(string name, string? description = null) : base(TEMPORARY_NAME, description)
@@ -42,7 +47,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
             else
             {
-                Name = name.PascalToKebabCase()!;
+                Name = name.PascalToKebabCase();
             }
         }
 
@@ -54,7 +59,32 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 LoadArguments();
             }
 
-            LoadDescription();
+            LoadOptions();
+
+            Description = GatherDescription(this.GetType());
+        }
+
+        private void LoadOptions()
+        {
+            var properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p =>
+                    p.CanWrite && p.CanRead
+                    && p.DeclaringType!.IsSubclassOf(typeof(StarterCommand))
+                );
+
+            foreach (var property in properties)
+            {
+                var isList = this.GetType().GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+
+                var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
+                var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
+                var optionName = OPTION_PREFIX + property.Name.PascalToKebabCase();
+                var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
+                option.Description = GatherDescription(property);
+                option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
+                option.AllowMultipleArgumentsPerToken = isList;
+                this.AddOption(option);
+            }
         }
 
         private void LoadArguments()
@@ -64,15 +94,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             {
                 if (parameter.Name == null) continue; // Skipping param without name
 
-                var description = (parameter.GetCustomAttributes(false)
-                        .FirstOrDefault(a => a is System.ComponentModel.DescriptionAttribute) as System.ComponentModel.DescriptionAttribute)
-                        ?.Description;
-
                 var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
                 var constructor = argumentType.GetConstructor(Type.EmptyTypes);
                 var argument = (Argument)constructor!.Invoke(null);
                 argument.Name = parameter.Name;
-                argument.Description = description;
+                argument.Description = GatherDescription(parameter);
                 if (parameter.DefaultValue is not System.DBNull)
                 {
                     argument.SetDefaultValue(parameter.DefaultValue);
@@ -81,15 +107,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
-        private void LoadDescription()
+        private static string GatherDescription(ICustomAttributeProvider provider)
         {
-            //TODO: Test was not written for this
-            var descriptions = this.GetType().GetCustomAttributes(false).Where(a => a is DescriptionAttribute)
+            //TODO: Test was not written for this (The command/class usage)
+            var descriptions = provider.GetCustomAttributes(false).Where(a => a is DescriptionAttribute)
                 .Select(a => (a as DescriptionAttribute)!.Description);
             var description = descriptions?.Aggregate(
                     new StringBuilder(), (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
-                ).ToString();
-            Description = descriptions?.Any() ?? false ? description : "Fake";
+                ).ToString() ?? string.Empty;
+            return description;
         }
 
         private int HandleCommand(InvocationContext context)

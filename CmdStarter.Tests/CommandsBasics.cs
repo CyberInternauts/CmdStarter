@@ -284,6 +284,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<OptComplete>(OptComplete.PRIVATE_OPT_KEBAB, false)]
         [TestCase<OptComplete>(OptComplete.PROTECTED_OPT_KEBAB, false)]
         [TestCase<OptComplete>(OptComplete.READ_ONLY_OPT_KEBAB, false)]
+        [TestCase<OptComplete>(OptComplete.WRITE_ONLY_OPT_KEBAB, false)]
         [TestCase<OptComplete>(OptComplete.STATIC_OPT_KEBAB, false)]
         public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : StarterCommand
         {

@@ -16,9 +16,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extensions
         /// </remarks>
         /// <param name="source"></param>
         /// <returns></returns>
-        public static string? PascalToKebabCase(this string source)
+        public static string PascalToKebabCase(this string source)
         {
-            if (source is null) return null;
+            if (source is null) return string.Empty;
 
             if (source.Length == 0) return string.Empty;
 
