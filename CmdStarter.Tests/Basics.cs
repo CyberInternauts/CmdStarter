@@ -235,7 +235,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 yield return secondCase;
 
                 //THIRD = UsesClassesInclusion_WithinNamespace_WithWildCardBefore
-                string thirdRegex = @$".*NS\.{nameofRootStarter}";
+                string thirdRegex = @$"(\.|^).*NS\.{nameofRootStarter}";
                 string thirdFinalFilter = $"{TestsCommon.MULTI_ANY_CHAR_SYMBOL}NS.{nameofRootStarter}";
                 TestCaseData thirdCase = new(namespaceFilter, types, thirdRegex, thirdFinalFilter);
                 thirdCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardBefore");
