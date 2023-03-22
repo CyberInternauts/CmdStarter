@@ -267,43 +267,37 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private IEnumerable<Type> FilterTypesByClasses(IEnumerable<Type> commandsTypes)
         {
             var nbCommands = commandsTypes.Count();
-            if (nbCommands != 0 && Classes.Any())
+
+            if (nbCommands == 0 || !Classes.Any()) return commandsTypes;
+
+            bool onlyExclude = classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
+
+            Regex dotRegex = new Regex(@"\\.");
+
+            Regex[] xcludes = classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
+                .Select(filter =>
+                {
+                    var pattern = WildcardsToRegex(filter[1..]);
+                    return new Regex(pattern, RegexOptions.RightToLeft);
+                }).ToArray();
+
+            Regex[] filters = classes.Where(filter => !filter.StartsWith(EXCLUSION_SYMBOL))
+                .Select(filter =>
+                {
+                    var pattern = WildcardsToRegex(filter);
+                    return new Regex(pattern, RegexOptions.RightToLeft);
+                }).ToArray();
+
+            commandsTypes = commandsTypes.Where(type =>
             {
-                if (classes.IsEmpty)
-                    classes.Add(MULTI_ANY_CHAR_SYMBOL);
+                bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
 
-                bool onlyExclude = classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
+                bool xcluded = xcludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
 
-                Regex dotRegex = new Regex(@"\\.");
+                return included && !xcluded;
+            });
 
-                Regex[] xcludes = classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
-                    .Select(filter =>
-                    {
-                        var pattern = WildcardsToRegex(filter[1..]);
-                        return new Regex(pattern, RegexOptions.RightToLeft);
-                    }).ToArray();
-
-                Regex[] filters = classes.Where(filter => !filter.StartsWith(EXCLUSION_SYMBOL))
-                    .Select(filter =>
-                    {
-                        var pattern = WildcardsToRegex(filter);
-                        return new Regex(pattern, RegexOptions.RightToLeft);
-                    }).ToArray();
-
-                commandsTypes = commandsTypes.Where(type =>
-                {
-                    bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
-
-                    bool xcluded = xcludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
-
-                    return included && !xcluded;
-                });
-
-                if (!commandsTypes.Any())
-                {
-                    throw new Exceptions.InvalidClassException();
-                }
-            }
+            if (!commandsTypes.Any()) throw new InvalidClassException();
 
             return commandsTypes;
         }
