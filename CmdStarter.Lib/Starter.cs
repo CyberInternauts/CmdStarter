@@ -272,7 +272,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             bool onlyExclude = classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
 
-            Regex dotRegex = new Regex(@"\\.");
+            Regex dotRegex = new(@"\\.");
 
             Regex[] excludes = classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
                 .Select(filter =>
