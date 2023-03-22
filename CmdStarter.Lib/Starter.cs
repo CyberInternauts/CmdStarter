@@ -242,23 +242,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private IEnumerable<Type> FilterTypesByNamespaces(IEnumerable<Type> commandsTypes)
         {
             var nbCommands = commandsTypes.Count();
-            if (nbCommands != 0 && Namespaces.Any())
+            if (nbCommands == 0 || !Namespaces.Any()) return commandsTypes;
+            
+            var namespacesIncluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && !n.StartsWith(EXCLUSION_SYMBOL));
+            var hasIncluded = namespacesIncluded.Any();
+            var namespacesExcluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(EXCLUSION_SYMBOL));
+
+            commandsTypes = commandsTypes.Where(c =>
             {
-                var namespacesIncluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && !n.StartsWith(EXCLUSION_SYMBOL));
-                var hasIncluded = namespacesIncluded.Any();
-                var namespacesExcluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(EXCLUSION_SYMBOL));
+                var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..]) ?? false);
+                var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n) ?? false);
 
-                commandsTypes = commandsTypes.Where(c =>
-                {
-                    var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..]) ?? false);
-                    var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n) ?? false);
-
-                    return !outNamespaces && inNamespaces;
-                });
-                if (!commandsTypes.Any())
-                {
-                    throw new Exceptions.InvalidNamespaceException();
-                }
+                return !outNamespaces && inNamespaces;
+            });
+            if (!commandsTypes.Any())
+            {
+                throw new Exceptions.InvalidNamespaceException();
             }
 
             return commandsTypes;
@@ -267,7 +266,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private IEnumerable<Type> FilterTypesByClasses(IEnumerable<Type> commandsTypes)
         {
             var nbCommands = commandsTypes.Count();
-
             if (nbCommands == 0 || !Classes.Any()) return commandsTypes;
 
             bool onlyExclude = classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
