@@ -201,6 +201,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [Test]
         [TestCaseSource(nameof(ClassesFilter))]
+        [Category("Classes")]
+        [Category("Filters")]
         public void UseClassesNoFilter(string namespaceFilter, IEnumerable<Type> types)
         {
             starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
