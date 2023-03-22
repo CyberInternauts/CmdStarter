@@ -187,7 +187,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Category("Filters")]
         public void ClassesFilterRegexTest(string namespaceFilter, IEnumerable<Type> types, string regex, string finalFilter)
         {
-            Regex matcher = new Regex(regex, RegexOptions.RightToLeft);
+            Regex matcher = new(regex, RegexOptions.RightToLeft);
 
             IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
 
