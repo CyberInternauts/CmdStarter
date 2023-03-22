@@ -211,29 +211,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertIEnumerablesHaveSameElements(types, starter.CommandsTypes);
         }
 
-        [TestCaseSource(nameof(FSource))]
-        [Category("Classes")]
-        public void TestingTest(Func<Type, bool> f)
-        {
-            var a = 1;
-        }
-
-        private static IEnumerable<TestCaseData> FSource
-        {
-            get
-            {
-                var first = new TestCaseData(new Func<Type, bool>(x => x.FullName?.Contains("Word1") ?? false));
-                first.SetArgDisplayNames("AAA1");
-                var second = new TestCaseData(new Func<Type, bool>(x => x.FullName?.Contains("Word2") ?? false));
-                second.SetArgDisplayNames("AAA2");
-
-                //return new List<TestCaseData>() { first, second};
-
-                yield return first;
-                yield return second;
-            }
-        }
-
         private static IEnumerable<TestCaseData> ClassesFilterRegexSource
         {
             get
