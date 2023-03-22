@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
+﻿using System.ComponentModel.Composition.Hosting;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -79,13 +78,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> first, IEnumerable<T> second)
         {
-            if(first.Count() == second.Count())
-            {
-                Assert.IsEmpty(first.Except(second));
-                return;
-            }
-
-            Assert.IsEmpty(second.Except(first));
+            Assert.That(second.Count(), Is.EqualTo(first.Count()));
+            Assert.IsEmpty(first.Except(second));
         }
     }
 }
