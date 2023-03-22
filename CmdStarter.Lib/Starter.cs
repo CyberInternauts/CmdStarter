@@ -274,7 +274,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             Regex dotRegex = new Regex(@"\\.");
 
-            Regex[] xcludes = classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
+            Regex[] excludes = classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
                 .Select(filter =>
                 {
                     var pattern = WildcardsToRegex(filter[1..]);
@@ -292,7 +292,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             {
                 bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
 
-                bool xcluded = xcludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
+                bool xcluded = excludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
 
                 return included && !xcluded;
             });
