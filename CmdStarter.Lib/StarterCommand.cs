@@ -15,19 +15,29 @@ using System.Reflection.Metadata;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
+    /// <summary>
+    /// Internal library class only. Not intented to be used outside and cannot be.
+    /// </summary>
+    public abstract class StarterCommand : Command 
+    {
+        protected StarterCommand(string name, string? description = null) : base(name, description) { }
+
+        public virtual Delegate MethodForHandling { get; } = () => { };
+
+        internal abstract void Initialize();
+    }
+
     //TODO: Is it the best idea to use a Class instead of an Interface? Have both: ...
     ///     - When Interface, and not a StarterCommand, create one using a new sealed class in the Lib with the ClassFound as parameter
     ///         - It will redirect the Handle method from the ClassFound
     ///         - Copy attributes
     ///     - Detect Options with OptionAttribute on public Property|Field
     /// 
-    public abstract class StarterCommand : Command
+    public abstract class StarterCommand<Self> : StarterCommand where Self : StarterCommand<Self>
     {
         public const string OPTION_PREFIX = "--";
 
         private const string TEMPORARY_NAME = "temp";
-
-        public virtual Delegate MethodForHandling { get; } = () => { };
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
@@ -51,7 +61,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
-        internal void Initialize()
+        internal override void Initialize()
         {
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
@@ -66,11 +76,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private void LoadOptions()
         {
-            var properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p =>
-                    p.CanWrite && p.CanRead
-                    && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand)) ?? false)
-                );
+            var properties = GetProperties(this);
 
             foreach (var property in properties)
             {
@@ -122,6 +128,34 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             //TODO: When doing options, enable this: CommandHandler.Create(HandleCommandOptions).Invoke(context);
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
+        }
+
+        private void HandleCommandOptions(Self self)
+        {
+            var selfProperties = GetProperties(self);
+            var thisProperties = GetProperties(this);
+
+            foreach ( var selfProperty in selfProperties )
+            {
+                var thisProperty = thisProperties.FirstOrDefault(selfProperty);
+                if (thisProperty == null) continue;
+
+                var listProperty = thisProperty.PropertyType;
+
+                var value = selfProperty.GetValue(self);
+                thisProperty.SetValue(this, value);
+            }
+        }
+
+        private static IEnumerable<PropertyInfo> GetProperties(object obj)
+        {
+            var properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p =>
+                    p.CanWrite && p.CanRead
+                    && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand<>)) ?? false)
+                );
+
+            return properties;
         }
     }
 }

@@ -2,7 +2,11 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options
 {
-    public class OptComplete : StarterCommand
+    public class OptComplete : OptComplete<OptComplete>
+    {
+    }
+
+    public abstract class OptComplete<SelfClass> : StarterCommand<SelfClass> where SelfClass : StarterCommand<SelfClass>
     {
 
         [Required]

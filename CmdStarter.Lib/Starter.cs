@@ -167,7 +167,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             hasToFindCommands = false;
 
             var commandsTypes = AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => a.GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(StarterCommand)) && t.Namespace != null));
+                        .SelectMany(a => a.GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(StarterCommand<>)) && t.Namespace != null));
 
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes);

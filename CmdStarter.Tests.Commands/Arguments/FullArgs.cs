@@ -2,7 +2,7 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments
 {
-    public class FullArgs : StarterCommand
+    public class FullArgs : StarterCommand<FullArgs>
     {
         public override Delegate MethodForHandling => HandleExecution;
 

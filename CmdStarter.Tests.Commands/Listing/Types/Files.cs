@@ -1,7 +1,4 @@
-﻿using System.CommandLine.Invocation;
-using System.ComponentModel;
-using System.Reflection.Metadata;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.ComponentModel;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 {
@@ -9,7 +6,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
     [TestParent(ClassesBuildingMode.Both, typeof(List))]
     [TestParent(ClassesBuildingMode.OnlyAttributes, null)]
     [TestParent(ClassesBuildingMode.OnlyNamespaces, typeof(List))]
-    public class Files : StarterCommand
+    public class Files : StarterCommand<Files>
     {
         public override Delegate MethodForHandling => Execute;
 

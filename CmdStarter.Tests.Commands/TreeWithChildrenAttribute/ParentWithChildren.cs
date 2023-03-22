@@ -2,7 +2,7 @@
 {
     [Parent(null)]
     [Children<ChildrenOfParent.ChildNoParent>]
-    public class ParentWithChildren : StarterCommand
+    public class ParentWithChildren : StarterCommand<ParentWithChildren>
     {
     }
 }

@@ -4,7 +4,7 @@
     [TestParent(ClassesBuildingMode.OnlyAttributes, null)]
     [TestParent(ClassesBuildingMode.OnlyNamespaces, typeof(Main))]
     [Parent(null)]
-    public class List : StarterCommand
+    public class List : StarterCommand<List>
     {
     }
 }
