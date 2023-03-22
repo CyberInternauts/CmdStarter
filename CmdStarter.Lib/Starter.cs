@@ -308,10 +308,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             return (@$"(.|^){wildcard}$")
                 .Replace(".", @"\.")
-                .Replace("??", ".")
-                .Replace("?", @"\w")
-                .Replace("**", @$".{STAR_PLACEHOLDER}")
-                .Replace("*", @"\w*")
+                .Replace(ANY_CHAR_SYMBOL_INCLUDE_DOTS, ".")
+                .Replace(ANY_CHAR_SYMBOL, @"\w")
+                .Replace(MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS, @$".{STAR_PLACEHOLDER}")
+                .Replace(MULTI_ANY_CHAR_SYMBOL, @"\w*")
                 .Replace(STAR_PLACEHOLDER, "*");
         }
     }
