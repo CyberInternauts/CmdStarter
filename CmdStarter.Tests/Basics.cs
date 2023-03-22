@@ -166,7 +166,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(!starter.CommandsTypes.Any(x => x.Name.StartsWith(ExcludedClassName)));
         }
 
-        [Test]
         [TestCaseSource(nameof(ClassesFilter))]
         [Category("Classes")]
         [Category("Filters")]
@@ -199,7 +198,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
         }
 
-        [Test]
         [TestCaseSource(nameof(ClassesFilter))]
         [Category("Classes")]
         [Category("Filters")]
