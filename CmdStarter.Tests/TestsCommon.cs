@@ -76,10 +76,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             });
         }
 
-        public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> first, IEnumerable<T> second)
+        public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> actual, IEnumerable<T> expected)
         {
-            Assert.That(second.Count(), Is.EqualTo(first.Count()));
-            Assert.IsEmpty(first.Except(second));
+            Assert.That(actual.Count(), Is.EqualTo(expected.Count()));
+            Assert.IsEmpty(actual.Except(expected));
         }
     }
 }

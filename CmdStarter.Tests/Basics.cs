@@ -179,7 +179,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Classes = starter.Classes.Add(IncludedClassName);
             starter.FindCommandsTypes();
 
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
+            TestsCommon.AssertIEnumerablesHaveSameElements(starter.CommandsTypes, expectedTypes);
         }
 
         [TestCaseSource(nameof(ClassesFilterRegexSource))]
@@ -195,7 +195,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Classes = starter.Classes.Add(finalFilter);
             starter.FindCommandsTypes();
 
-            TestsCommon.AssertIEnumerablesHaveSameElements(expectedTypes, starter.CommandsTypes);
+            TestsCommon.AssertIEnumerablesHaveSameElements(starter.CommandsTypes, expectedTypes);
         }
 
         [TestCaseSource(nameof(ClassesFilter))]
@@ -206,7 +206,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
             starter.FindCommandsTypes();
 
-            TestsCommon.AssertIEnumerablesHaveSameElements(types, starter.CommandsTypes);
+            TestsCommon.AssertIEnumerablesHaveSameElements(starter.CommandsTypes, types);
         }
 
         private static IEnumerable<TestCaseData> ClassesFilterRegexSource
