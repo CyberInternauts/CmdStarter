@@ -116,24 +116,33 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private int HandleCommand(InvocationContext context)
         {
-            //TODO: When doing options, enable this: CommandHandler.Create(HandleCommandOptions).Invoke(context);
+            var handleCommandOptionsMethod = this.GetType() //typeof(StarterCommand)
+                .GetMethod(nameof(HandleCommandOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
+                .MakeGenericMethod(this.GetType());
+            CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
-        private void HandleCommandOptions<Self>(Self self) where Self : class
+        /// <summary>
+        /// Copy the properties to the command
+        /// </summary>
+        /// <typeparam name="Self">Type of the command</typeparam>
+        /// <param name="context">Parsing context</param>
+        /// <param name="self">Filled command provided by System.CommandLine</param>
+        /// <remarks>This method has to have "protected" visibility, otherwise it doesn't work</remarks>
+        protected void HandleCommandOptions<Self>(InvocationContext context, Self self) where Self : Command
         {
+            var currentCommand = context.BindingContext.ParseResult.CommandResult.Command; // Using "this" is not the same object
             var selfProperties = GetProperties(self);
-            var thisProperties = GetProperties(this);
+            var thisProperties = GetProperties(currentCommand);
 
             foreach ( var selfProperty in selfProperties )
             {
-                var thisProperty = thisProperties.FirstOrDefault(selfProperty);
+                var thisProperty = thisProperties.FirstOrDefault(p => p.Equals(selfProperty));
                 if (thisProperty == null) continue;
 
-                var listProperty = thisProperty.PropertyType;
-
                 var value = selfProperty.GetValue(self);
-                thisProperty.SetValue(this, value);
+                thisProperty.SetValue(currentCommand, value);
             }
         }
 

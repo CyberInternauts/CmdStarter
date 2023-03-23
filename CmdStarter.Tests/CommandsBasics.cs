@@ -265,8 +265,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter = TestsCommon.CreateCmdStarter();
             starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
 
-            var optionString = OptHandling.OPTION_PREFIX + optionName +  (expectedValue is not bool ? " " + expectedValue : string.Empty);
-            await starter.Start(new string[] { nameof(OptHandling).PascalToKebabCase(), optionString });
+            var argsString = nameof(OptHandling).PascalToKebabCase() + " "
+                + OptHandling.OPTION_PREFIX + optionName +  (expectedValue is not bool ? " " + expectedValue : string.Empty);
+            await starter.Start(argsString.Split(" "));
 
             optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
             Assert.That(optionCommand, Is.Not.Null);
