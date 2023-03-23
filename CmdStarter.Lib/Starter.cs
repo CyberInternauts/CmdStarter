@@ -268,18 +268,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             var nbCommands = commandsTypes.Count();
             if (nbCommands == 0 || !Classes.Any()) return commandsTypes;
 
-            bool onlyExclude = classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
+            bool onlyExclude = Classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
 
             Regex dotRegex = new(@"\\.");
 
-            Regex[] excludes = classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
+            Regex[] excludes = Classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
                 .Select(filter =>
                 {
                     var pattern = WildcardsToRegex(filter[1..]);
                     return new Regex(pattern, RegexOptions.RightToLeft);
                 }).ToArray();
 
-            Regex[] filters = classes.Where(filter => !filter.StartsWith(EXCLUSION_SYMBOL))
+            Regex[] filters = Classes.Where(filter => !filter.StartsWith(EXCLUSION_SYMBOL))
                 .Select(filter =>
                 {
                     var pattern = WildcardsToRegex(filter);
