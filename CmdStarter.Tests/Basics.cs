@@ -275,6 +275,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 seventhCase.SetArgDisplayNames("UsesClassesInclusion_SingleCharWildcard");
 
                 yield return seventhCase;
+
+                //EIGTH = UsesClassesInclusion_MultiAnyCharIncludeDots
+                string eigthRegex = @$"(\.|^)Filtering.*\.IO\.\w*$";
+                string eigthFinalFilter = $"Filtering{TestsCommon.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS}.IO.{TestsCommon.MULTI_ANY_CHAR_SYMBOL}";
+                TestCaseData eigthCase = new(namespaceFilter, types, eigthRegex, eigthFinalFilter);
+                eigthCase.SetArgDisplayNames("8 - UsesClassesInclusion_MultiCharWithDotsWildcard");
+
+                yield return eigthCase;
+
+                //NINTH = UsesClassesInclusion_AnyCharIncludeDots
+                string ninthRegex = @$"(\.|^)Filtering\...IO\.{nameofRootStarter}$";
+                string ninthFinalFilter = $"Filtering.{TestsCommon.ANY_CHAR_SYMBOL_INCLUDE_DOTS}{TestsCommon.ANY_CHAR_SYMBOL_INCLUDE_DOTS}IO.{nameofRootStarter}";
+                TestCaseData ninthCase = new(namespaceFilter, types, ninthRegex, ninthFinalFilter);
+                ninthCase.SetArgDisplayNames("9 - UsesClassesInclusion_CharWithDotsWildcard");
+
+                yield return ninthCase;
             }
         }
 
