@@ -21,8 +21,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
         public List<int> MultipleOption { get; set; } = new();
 
         //TODO: Make a generic version that resides in the base class|interface
-        protected void HandleCommandOptions(InvocationContext context, Files me)
+        protected void HandleCommandOptions<T>(InvocationContext context, T me)
         {
+            /*
             //TODO: Copy all properties
             this.MyOpt = me.MyOpt;
             this.MultipleOption = me.MultipleOption;
@@ -35,13 +36,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
                 dynamic convertedValue = Convert.ChangeType(value, typeof(int));
                 this.MultipleOption.Add(convertedValue);
             }
+            */
             var a = 1;
         }
 
         protected int HandleCommand(InvocationContext context)
         {
+            var c = this.GetType()
+                .GetMethod(nameof(HandleCommandOptions), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .MakeGenericMethod(typeof(Files));
+
             //context.ParseResult.FindResultFor(this.Options[1]).Tokens
-            CommandHandler.Create(HandleCommandOptions).Invoke(context);
+            CommandHandler.Create(c).Invoke(context);
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
