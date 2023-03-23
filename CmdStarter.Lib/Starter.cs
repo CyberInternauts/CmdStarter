@@ -290,9 +290,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             {
                 bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
 
-                bool xcluded = excludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
+                bool excluded = excludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
 
-                return included && !xcluded;
+                return included && !excluded;
             });
 
             if (!commandsTypes.Any()) throw new InvalidClassException();
