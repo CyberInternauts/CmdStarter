@@ -191,7 +191,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             Regex matcher = new(regex, RegexOptions.RightToLeft);
 
-            IEnumerable<Type> expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
+            var expectedTypes = types.Where(t => matcher.IsMatch(t.FullName ?? string.Empty));
 
             starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
             starter.Classes = starter.Classes.Add(finalFilter);
