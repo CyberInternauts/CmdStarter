@@ -19,8 +19,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                     typeof(Commands.Filtering.StarterB),
                     typeof(Commands.Filtering.StarterOn),
                     typeof(Commands.Filtering.StarterOff),
+                    typeof(Commands.Filtering.IO.Starter),
                     typeof(Commands.Filtering.A.IO.Starter),
                     typeof(Commands.Filtering.B.IO.Starter),
+                    typeof(Commands.Filtering.AB.IO.Starter),
                     typeof(Commands.Filtering.NorthS.Starter),
                     typeof(Commands.Filtering.EastNS.Starter),
                     typeof(Commands.Filtering.NSouth.Starter)
