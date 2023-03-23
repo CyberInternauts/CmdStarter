@@ -150,6 +150,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + ExcludedClassName);
             starter.FindCommandsTypes();
 
+            Assert.That(starter.CommandsTypes, Is.Not.Empty);
             Assert.That(!starter.CommandsTypes.Any(x => x.Name.Equals(ExcludedClassName)));
         }
 
@@ -163,6 +164,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + ExcludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
             starter.FindCommandsTypes();
 
+            Assert.That(starter.CommandsTypes, Is.Not.Empty);
             Assert.That(!starter.CommandsTypes.Any(x => x.Name.StartsWith(ExcludedClassName)));
         }
 
