@@ -237,12 +237,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(starter.CommandsTypes, Has.None.EqualTo(typeof(WrongTypeForChidlren)));
             Assert.That(starter.CommandsTypes, Has.None.EqualTo(typeof(WrongTypeForGlobalOption)));
 
-            Assert.That(starter.CommandsTypes.Where(t => !t.IsSubclassOf(typeof(StarterCommand<>))), Is.Empty); // Generic validation
+            Assert.That(starter.CommandsTypes.Where(t => !t.IsSubclassOf(typeof(StarterCommand))), Is.Empty); // Generic validation
         }
 
         [TestCase<ArgParent>]
         [TestCase<ArgChild>]
-        public void FindsCommand<CommandType>() where CommandType : StarterCommand<CommandType>
+        public void FindsCommand<CommandType>() where CommandType : StarterCommand
         {
             starter.InstantiateCommands();
             Assert.That(starter.FindCommand<CommandType>(), Is.Not.Null);
@@ -275,7 +275,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]
         [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, false)]
-        public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : StarterCommand<OptClass>
+        public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
@@ -290,7 +290,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, "")]
         [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, OptComplete.STRING_OPT_DESC)]
-        public void HasOptionDescription<OptClass>(string optionName, string description) where OptClass : StarterCommand<OptClass>
+        public void HasOptionDescription<OptClass>(string optionName, string description) where OptClass : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
@@ -315,7 +315,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<OptCompleteDerived>(OptComplete.STRING_OPT_KEBAB, true)]
         [TestCase<OptCompleteDerived>(OptComplete.DATE_OPT_KEBAB, true)]
         [TestCase<OptCompleteDerived>(OptCompleteDerived.NEW_INT_OPT_KEBAB, true)]
-        public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : StarterCommand<OptClass>
+        public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
@@ -338,7 +338,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NoArgs>]
         [TestCase<ArgParent>]
         [TestCase<ArgChild>]
-        public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : StarterCommand<CommandType>
+        public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
             starter.InstantiateCommands();

@@ -14,26 +14,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
-{
-    /// <summary>
-    /// Internal library class only. Not intented to be used outside and cannot be.
-    /// </summary>
-    public abstract class StarterCommand : Command 
-    {
-        protected StarterCommand(string name, string? description = null) : base(name, description) { }
-
-        public virtual Delegate MethodForHandling { get; } = () => { };
-
-        internal abstract void Initialize();
-    }
-
+{ 
     //TODO: Is it the best idea to use a Class instead of an Interface? Have both: ...
     ///     - When Interface, and not a StarterCommand, create one using a new sealed class in the Lib with the ClassFound as parameter
     ///         - It will redirect the Handle method from the ClassFound
     ///         - Copy attributes
     ///     - Detect Options with OptionAttribute on public Property|Field
     /// 
-    public abstract class StarterCommand<Self> : StarterCommand where Self : StarterCommand<Self>
+    public abstract class StarterCommand : Command
     {
         public const string OPTION_PREFIX = "--";
 
@@ -61,7 +49,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
-        internal override void Initialize()
+        public virtual Delegate MethodForHandling { get; } = () => { };
+
+        internal void Initialize()
         {
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
@@ -130,7 +120,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
-        private void HandleCommandOptions(Self self)
+        private void HandleCommandOptions<Self>(Self self) where Self : class
         {
             var selfProperties = GetProperties(self);
             var thisProperties = GetProperties(this);
@@ -152,7 +142,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             var properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p =>
                     p.CanWrite && p.CanRead
-                    && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand<>)) ?? false)
+                    && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand)) ?? false)
                 );
 
             return properties;

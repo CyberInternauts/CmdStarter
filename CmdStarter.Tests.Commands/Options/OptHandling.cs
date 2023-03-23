@@ -1,6 +1,6 @@
 ﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options
 {
-    public class OptHandling : StarterCommand<OptHandling>
+    public class OptHandling : StarterCommand
     {
         public int MyOptInt { get; set; } = 111;
         public const string MY_OPT_INT_KEBAB = "my-opt-int";

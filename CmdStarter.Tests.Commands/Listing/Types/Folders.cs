@@ -4,7 +4,7 @@
     [TestParent(ClassesBuildingMode.OnlyAttributes, typeof(List))]
     [TestParent(ClassesBuildingMode.OnlyNamespaces, typeof(List))]
     [Parent<List>]
-    public class Folders : StarterCommand<Folders>
+    public class Folders : StarterCommand
     {
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.DuplicateNames
 {
-    public class Same2 : StarterCommand<Same2>
+    public class Same2 : StarterCommand
     {
         public Same2() : base("Same") { }
     }

@@ -6,7 +6,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
     [TestParent(ClassesBuildingMode.Both, typeof(List))]
     [TestParent(ClassesBuildingMode.OnlyAttributes, null)]
     [TestParent(ClassesBuildingMode.OnlyNamespaces, typeof(List))]
-    public class Files : StarterCommand<Files>
+    public class Files : StarterCommand
     {
         public override Delegate MethodForHandling => Execute;
 

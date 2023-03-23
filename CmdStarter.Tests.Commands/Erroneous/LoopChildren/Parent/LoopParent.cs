@@ -3,7 +3,7 @@
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.LoopChildren.Parent
 {
     [Parent<LoopChild>]
-    public class LoopParent : StarterCommand<LoopParent>
+    public class LoopParent : StarterCommand
     {
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.TreeWithChildrenAttribute.ChildrenOfParent
 {
-    public class ChildNoParent : StarterCommand<ChildNoParent>
+    public class ChildNoParent : StarterCommand
     {
     }
 }

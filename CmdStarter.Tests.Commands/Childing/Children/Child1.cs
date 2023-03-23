@@ -1,6 +1,6 @@
 ﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Childing.Children
 {
-    public class Child1 : StarterCommand<Child1>
+    public class Child1 : StarterCommand
     {
     }
 }
