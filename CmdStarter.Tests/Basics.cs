@@ -229,7 +229,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 yield return firstCase;
 
                 //SECOND = UsesClassesInclusion_WithinNamespace_WithWildCardWithinRegex
-                string secondRegex = @$"(\.|^)N.*S\.{nameofRootStarter}";
+                string secondRegex = @$"(\.|^)N\w*S\.{nameofRootStarter}";
                 string secondFinalFilter = $"N{TestsCommon.MULTI_ANY_CHAR_SYMBOL}S.{nameofRootStarter}";
                 TestCaseData secondCase = new(namespaceFilter, types, secondRegex, secondFinalFilter);
                 secondCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardWithinRegex");
@@ -237,7 +237,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 yield return secondCase;
 
                 //THIRD = UsesClassesInclusion_WithinNamespace_WithWildCardBefore
-                string thirdRegex = @$"(\.|^).*NS\.{nameofRootStarter}";
+                string thirdRegex = @$"(\.|^)\w*NS\.{nameofRootStarter}";
                 string thirdFinalFilter = $"{TestsCommon.MULTI_ANY_CHAR_SYMBOL}NS.{nameofRootStarter}";
                 TestCaseData thirdCase = new(namespaceFilter, types, thirdRegex, thirdFinalFilter);
                 thirdCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardBefore");
@@ -245,7 +245,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 yield return thirdCase;
 
                 //FOURTH = UsesClassesInclusion_WithinNamespace_WithWildCardAfter
-                string fourthRegex = @$"(\.|^)NS.*\.{nameofRootStarter}";
+                string fourthRegex = @$"(\.|^)NS\w*\.{nameofRootStarter}";
                 string fourthFinalFilter = $"NS{TestsCommon.MULTI_ANY_CHAR_SYMBOL}.{nameofRootStarter}";
                 TestCaseData fourthCase = new(namespaceFilter, types, fourthRegex, fourthFinalFilter);
                 fourthCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardAfter");
