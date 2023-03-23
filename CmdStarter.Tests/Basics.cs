@@ -224,7 +224,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 string firstRegex = @$"(\.|^){nameof(Commands.Filtering)}\.\w*$";
                 string firstFinalFilter = $"{nameof(Commands.Filtering)}.{TestsCommon.MULTI_ANY_CHAR_SYMBOL}";
                 TestCaseData firstCase = new(namespaceFilter, types, firstRegex, firstFinalFilter);
-                firstCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithinRegex");
+                firstCase.SetArgDisplayNames("1 - UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithinRegex");
 
                 yield return firstCase;
 
@@ -232,7 +232,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 string secondRegex = @$"(\.|^)N\w*S\.{nameofRootStarter}";
                 string secondFinalFilter = $"N{TestsCommon.MULTI_ANY_CHAR_SYMBOL}S.{nameofRootStarter}";
                 TestCaseData secondCase = new(namespaceFilter, types, secondRegex, secondFinalFilter);
-                secondCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardWithinRegex");
+                secondCase.SetArgDisplayNames("2 - UsesClassesInclusion_WithinNamespace_WithWildCardWithinRegex");
 
                 yield return secondCase;
 
@@ -240,7 +240,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 string thirdRegex = @$"(\.|^)\w*NS\.{nameofRootStarter}";
                 string thirdFinalFilter = $"{TestsCommon.MULTI_ANY_CHAR_SYMBOL}NS.{nameofRootStarter}";
                 TestCaseData thirdCase = new(namespaceFilter, types, thirdRegex, thirdFinalFilter);
-                thirdCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardBefore");
+                thirdCase.SetArgDisplayNames("3 - UsesClassesInclusion_WithinNamespace_WithWildCardBefore");
 
                 yield return thirdCase;
 
@@ -248,7 +248,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 string fourthRegex = @$"(\.|^)NS\w*\.{nameofRootStarter}";
                 string fourthFinalFilter = $"NS{TestsCommon.MULTI_ANY_CHAR_SYMBOL}.{nameofRootStarter}";
                 TestCaseData fourthCase = new(namespaceFilter, types, fourthRegex, fourthFinalFilter);
-                fourthCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithWildCardAfter");
+                fourthCase.SetArgDisplayNames("4 - UsesClassesInclusion_WithinNamespace_WithWildCardAfter");
 
                 yield return fourthCase;
 
@@ -256,7 +256,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 string fifthRegex = @$"IO\.{nameofRootStarter}";
                 string fifthFinalFilter = $"IO.{nameofRootStarter}";
                 TestCaseData fifthCase = new(namespaceFilter, types, fifthRegex, fifthFinalFilter);
-                fifthCase.SetArgDisplayNames("UsesClassesInclusion_WithinNamespace_WithoutWildCard");
+                fifthCase.SetArgDisplayNames("5 - UsesClassesInclusion_WithinNamespace_WithoutWildCard");
 
                 yield return fifthCase;
 
@@ -264,7 +264,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 string sixthRegex = @$"{nameofRootStarter}\w*$";
                 string sixthFinalFilter = $"{nameofRootStarter}{TestsCommon.MULTI_ANY_CHAR_SYMBOL}";
                 TestCaseData sixthCase = new(namespaceFilter, types, sixthRegex, sixthFinalFilter);
-                sixthCase.SetArgDisplayNames("UsesClassesInclusion_AnyCharWildcard");
+                sixthCase.SetArgDisplayNames("6 - UsesClassesInclusion_AnyCharWildcard");
 
                 yield return sixthCase;
 
@@ -272,7 +272,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 string seventhRegex = @$"{nameofRootStarter}.$";
                 string seventhFinalFilter = $"{nameofRootStarter}{TestsCommon.ANY_CHAR_SYMBOL}";
                 TestCaseData seventhCase = new(namespaceFilter, types, seventhRegex, seventhFinalFilter);
-                seventhCase.SetArgDisplayNames("UsesClassesInclusion_SingleCharWildcard");
+                seventhCase.SetArgDisplayNames("7 - UsesClassesInclusion_SingleCharWildcard");
 
                 yield return seventhCase;
 
