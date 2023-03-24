@@ -2,5 +2,8 @@
 {
     public sealed class Starter : StarterCommand
     {
+        public Starter() : base("io-starter")
+        {
+        }
     }
 }
