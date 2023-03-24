@@ -1,6 +1,7 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
@@ -80,7 +81,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                     if (expectedValue.GetType().IsArray)
                     {
                         var optionString = string.Empty;
-                        dynamic values = expectedValue;
+                        IEnumerable values = (IEnumerable)expectedValue;
                         foreach (var curValue in values)
                         {
                             optionString += " " + OptHandling.OPTION_PREFIX + optionName + " " + curValue;
