@@ -107,7 +107,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             //TODO: Test was not written for this (The command/class usage)
             var descriptions = provider.GetCustomAttributes(false).Where(a => a is DescriptionAttribute)
-                .Select(a => (a as DescriptionAttribute)!.Description);
+                .Select(a => ((DescriptionAttribute)a).Description);
             var description = descriptions?.Aggregate(
                     new StringBuilder(), (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
                 ).ToString() ?? string.Empty;
