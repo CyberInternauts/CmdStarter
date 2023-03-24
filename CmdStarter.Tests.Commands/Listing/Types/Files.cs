@@ -18,6 +18,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
         [Description("Option description")]
         public int MyOpt { get; set; } = 987;
 
+        public DirectoryInfo? Folder { get; set; }
+
         public List<int> MultipleOption { get; set; } = new();
 
         //TODO: Make a generic version that resides in the base class|interface
@@ -28,7 +30,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
             this.MyOpt = me.MyOpt;
             this.MultipleOption = me.MultipleOption;
 
-            // Fill AllowMultiple options
+            // Fill AllowMultiple options ==> NOT NEEDED. I had made a mistake because I didn't change the option to List<int> instead of int. Now, the list is filled
             var results = context.ParseResult.FindResultFor(this.Options[1]);
             var values = results!.Tokens.Select(t => t.Value);
             foreach (var value in values)
@@ -82,12 +84,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 
             //Test for AllowMultiple true
             //Usage: CmdStarter.Tester.exe list files mypath -mm 321 -mm 456
-            opt = new Option<int>("--multiple-option");
-            opt.Description = "get desc from attribute3"; //TODO: Take from attribute
-            opt.IsRequired = false; //TODO: Take from attribute
-            opt.AllowMultipleArgumentsPerToken = true; //TODO: Set to true if type implements IList
-            opt.AddAlias("-mm"); //TODO: Take from attribute
-            this.AddOption(opt);
+            var optMultiple = new Option<List<int>>("--multiple-option");
+            optMultiple.Description = "get desc from attribute3"; //TODO: Take from attribute
+            optMultiple.IsRequired = false; //TODO: Take from attribute
+            optMultiple.AllowMultipleArgumentsPerToken = true; //TODO: Set to true if type implements IList
+            optMultiple.AddAlias("-mm"); //TODO: Take from attribute
+            this.AddOption(optMultiple);
+
+            // Test for DirectoryInfo
+            var optFolder = new Option<DirectoryInfo>("--folder");
+            this.AddOption(optFolder);
 
             Handler = CommandHandler.Create(HandleCommand);
         }
