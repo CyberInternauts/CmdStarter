@@ -70,7 +70,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             foreach (var property in properties)
             {
-                var isList = this.GetType().GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+                var isList = this.GetType()
+                    .GetInterfaces()
+                    .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
 
                 var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
                 var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
