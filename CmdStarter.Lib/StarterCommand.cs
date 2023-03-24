@@ -108,10 +108,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private static string GatherDescription(ICustomAttributeProvider provider)
         {
             //TODO: Test was not written for this (The command/class usage)
-            var descriptions = provider.GetCustomAttributes(false).Where(a => a is DescriptionAttribute)
+            var descriptions = provider.GetCustomAttributes(false)
+                .Where(a => a is DescriptionAttribute)
                 .Select(a => ((DescriptionAttribute)a).Description);
             var description = descriptions?.Aggregate(
-                    new StringBuilder(), (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
+                    new StringBuilder(), 
+                    (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
                 ).ToString() ?? string.Empty;
             return description;
         }
@@ -150,7 +152,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private static IEnumerable<PropertyInfo> GetProperties(object obj)
         {
-            var properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            var properties = obj.GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p =>
                     p.CanWrite && p.CanRead
                     && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand)) ?? false)
