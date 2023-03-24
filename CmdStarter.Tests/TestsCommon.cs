@@ -81,7 +81,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                     if (expectedValue.GetType().IsArray)
                     {
                         var optionString = string.Empty;
-                        IEnumerable values = (IEnumerable)expectedValue;
+                        var values = (IEnumerable)expectedValue;
                         foreach (var curValue in values)
                         {
                             optionString += " " + OptHandling.OPTION_PREFIX + optionName + " " + curValue;
