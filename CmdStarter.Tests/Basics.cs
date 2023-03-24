@@ -124,7 +124,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             starter.InstantiateCommands();
             TestsCommon.AssertCommandsExists(starter);
-            starter.Classes = starter.Classes.Add(this.GetType().Name);
+            starter.Classes = starter.Classes.Add(nameof(Commands.Main));
             TestsCommon.AssertCommandsAreEmpty(starter);
 
             starter.InstantiateCommands();
