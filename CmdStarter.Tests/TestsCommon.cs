@@ -79,7 +79,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 default:
                     if (expectedValue.GetType().IsArray)
                     {
-                        var optionString = "";
+                        var optionString = string.Empty;
                         dynamic values = expectedValue;
                         foreach (var curValue in values)
                         {
