@@ -250,6 +250,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase(nameof(OptHandling.MyOptInt), OptHandling.MY_OPT_INT_KEBAB, 111, 999)]
         [TestCase(nameof(OptHandling.MyOptBool), OptHandling.MY_OPT_BOOL_KEBAB, false, true)]
+        [TestCase(nameof(OptHandling.MyOptListInt), OptHandling.MY_OPT_LIST_INT_KEBAB, null, new int[] {11, 22})] 
         public async Task IsPropertyFilledWithOption(string propertyName, string optionName, object defaultValue, object expectedValue)
         {
             var propertyTested = typeof(OptHandling).GetProperty(propertyName);
@@ -265,8 +266,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter = TestsCommon.CreateCmdStarter();
             starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
 
-            var argsString = nameof(OptHandling).PascalToKebabCase() + " "
-                + OptHandling.OPTION_PREFIX + optionName +  (expectedValue is not bool ? " " + expectedValue : string.Empty);
+            var argsString = nameof(OptHandling).PascalToKebabCase() + " " + TestsCommon.PrintOption(optionName, expectedValue);
             await starter.Start(argsString.Split(" "));
 
             optionCommand = starter.FindCommand<OptHandling>() as OptHandling;

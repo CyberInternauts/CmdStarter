@@ -1,4 +1,5 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Hosting;
@@ -66,6 +67,32 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 Assert.That(starter.CommandsTypesTree.Children, Is.Not.Empty);
                 Assert.That(starter.RootCommand.Subcommands, Is.Not.Empty);
             });
+        }
+
+        public static string PrintOption(string optionName, object expectedValue)
+        {
+            switch (Type.GetTypeCode(expectedValue.GetType()))
+            {
+                case TypeCode.Boolean:
+                    return OptHandling.OPTION_PREFIX + optionName;
+
+                default:
+                    if (expectedValue.GetType().IsArray)
+                    {
+                        var optionString = "";
+                        dynamic values = expectedValue;
+                        foreach (var curValue in values)
+                        {
+                            optionString += " " + OptHandling.OPTION_PREFIX + optionName + " " + curValue;
+                        }
+                        optionString = optionString.Trim();
+                        return optionString;
+                    }
+                    else
+                    {
+                        return OptHandling.OPTION_PREFIX + optionName + " " + expectedValue;
+                    }
+            }
         }
     }
 }

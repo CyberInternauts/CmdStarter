@@ -6,6 +6,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options
     public class OptComplete : StarterCommand
     {
 
+        public List<int>? ListIntOpt { get; set; }
+        public const string LIST_INT_OPT_KEBAB = "list-int-opt";
+
         [Required]
         public int IntOpt { get; set; }
         public const string INT_OPT_KEBAB = "int-opt";
