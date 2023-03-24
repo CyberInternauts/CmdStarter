@@ -5,6 +5,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
+using System.Text.RegularExpressions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -19,7 +20,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     {
         public const string EXCLUSION_SYMBOL = "~";
         public const string ANY_CHAR_SYMBOL = "?";
+        public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = "??";
         public const string MULTI_ANY_CHAR_SYMBOL = "*";
+        public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = "**";
 
         private RootCommand rootCommand = new ();
         private ImmutableList<string> namespaces = ImmutableList<string>.Empty;
@@ -64,10 +67,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// Filter by classes.<br/><br/>
         /// 
         /// - Wildcard "*" and "?" can be used<br/>
+        /// - Wildcard "**" and "??" can also be used<br/>
         /// - Can include partial namespace<br/>
         /// - Using "~" in front of a class means to exclude this class
         /// </summary>
         /// <remarks>
+        /// "*" and "?" do not include dots<br/>
+        /// "**" and "??" do include dots<br/><br/>
+        /// 
         /// An empty list means no filter.<br/><br/>
         /// 
         /// Changing classes empty the commands.
@@ -169,6 +176,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes);
 
+            // Filter by namespaces
+            commandsTypes = FilterTypesByClasses(commandsTypes);
+
             this.commandsTypes = CommandsTypes.Clear();
             if (commandsTypes != null)
             {
@@ -176,6 +186,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 this.commandsTypes = CommandsTypes.AddRange(commandsToAdd);
             }
         }
+
         public void BuildTree()
         {
             if (!hasToBuildTree) return;
@@ -216,8 +227,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var command = Activator.CreateInstance(childNode.Value!) as StarterCommand; // childNode.Value can't be null, because only the root has a null Value
                 if (command != null)
                 {
-                    if (namesAdded.Contains(command.Name)) throw new DuplicateCommandNameException();
-
                     namesAdded.Add(command.Name);
                     currentParent.AddCommand(command);
                     AddLevel(currentParent.Subcommands.Last(), childNode);
@@ -253,24 +262,60 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private IEnumerable<Type> FilterTypesByNamespaces(IEnumerable<Type> commandsTypes)
         {
             var nbCommands = commandsTypes.Count();
-            if (nbCommands != 0 && Namespaces.Any())
+            if (nbCommands == 0 || !Namespaces.Any()) return commandsTypes;
+            
+            var namespacesIncluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && !n.StartsWith(EXCLUSION_SYMBOL));
+            var hasIncluded = namespacesIncluded.Any();
+            var namespacesExcluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(EXCLUSION_SYMBOL));
+
+            commandsTypes = commandsTypes.Where(c =>
             {
-                var namespacesIncluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && !n.StartsWith(EXCLUSION_SYMBOL));
-                var hasIncluded = namespacesIncluded.Any();
-                var namespacesExcluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(EXCLUSION_SYMBOL));
+                var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..]) ?? false);
+                var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n) ?? false);
 
-                commandsTypes = commandsTypes.Where(c =>
-                {
-                    var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..]) ?? false);
-                    var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n) ?? false);
-
-                    return !outNamespaces && inNamespaces;
-                });
-                if (!commandsTypes.Any())
-                {
-                    throw new Exceptions.InvalidNamespaceException();
-                }
+                return !outNamespaces && inNamespaces;
+            });
+            if (!commandsTypes.Any())
+            {
+                throw new Exceptions.InvalidNamespaceException();
             }
+
+            return commandsTypes;
+        }
+
+        private IEnumerable<Type> FilterTypesByClasses(IEnumerable<Type> commandsTypes)
+        {
+            var nbCommands = commandsTypes.Count();
+            if (nbCommands == 0 || !Classes.Any()) return commandsTypes;
+
+            bool onlyExclude = Classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
+
+            Regex dotRegex = new(@"\\.");
+
+            Regex[] excludes = Classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
+                .Select(filter =>
+                {
+                    var pattern = WildcardsToRegex(filter[1..]);
+                    return new Regex(pattern, RegexOptions.RightToLeft);
+                }).ToArray();
+
+            Regex[] filters = Classes.Where(filter => !filter.StartsWith(EXCLUSION_SYMBOL))
+                .Select(filter =>
+                {
+                    var pattern = WildcardsToRegex(filter);
+                    return new Regex(pattern, RegexOptions.RightToLeft);
+                }).ToArray();
+
+            commandsTypes = commandsTypes.Where(type =>
+            {
+                bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
+
+                bool excluded = excludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
+
+                return included && !excluded;
+            });
+
+            if (!commandsTypes.Any()) throw new InvalidClassException();
 
             return commandsTypes;
         }
@@ -296,6 +341,19 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
 
             return null;
+        }
+
+        private static string WildcardsToRegex(string wildcard)
+        {
+            const string STAR_PLACEHOLDER = "<-starplaceholder->";
+
+            return (@$"(.|^){wildcard}$")
+                .Replace(".", @"\.")
+                .Replace(ANY_CHAR_SYMBOL_INCLUDE_DOTS, ".")
+                .Replace(ANY_CHAR_SYMBOL, @"\w")
+                .Replace(MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS, @$".{STAR_PLACEHOLDER}")
+                .Replace(MULTI_ANY_CHAR_SYMBOL, @"\w*")
+                .Replace(STAR_PLACEHOLDER, "*");
         }
     }
 }

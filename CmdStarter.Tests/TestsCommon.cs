@@ -1,10 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.Composition.Hosting;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -12,9 +6,27 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
     {
         public const int NUMBER_OF_COMMANDS_IN_LISTING = 3; // Using a hardcoded value otherwise the test would be about the same code as the tested one.
         public const string ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL;
+        public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS;
         public const string MULTI_ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.MULTI_ANY_CHAR_SYMBOL;
+        public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Lib.Starter.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS;
         public const string EXCLUSION_SYMBOL = CmdStarter.Lib.Starter.EXCLUSION_SYMBOL;
         public readonly static string ERRONEOUS_NAMESPACE = typeof(Commands.Erroneous.Boggus).Namespace ?? string.Empty;
+
+        public readonly static IList<Type> CLASS_FILTERING_TYPES = new List<Type>
+                {
+                    typeof(Commands.Filtering.Starter),
+                    typeof(Commands.Filtering.StarterA),
+                    typeof(Commands.Filtering.StarterB),
+                    typeof(Commands.Filtering.StarterOn),
+                    typeof(Commands.Filtering.StarterOff),
+                    typeof(Commands.Filtering.IO.Starter),
+                    typeof(Commands.Filtering.A.IO.Starter),
+                    typeof(Commands.Filtering.B.IO.Starter),
+                    typeof(Commands.Filtering.AB.IO.Starter),
+                    typeof(Commands.Filtering.NorthS.Starter),
+                    typeof(Commands.Filtering.EastNS.Starter),
+                    typeof(Commands.Filtering.NSouth.Starter)
+                };
 
         public static void GlobalSetup()
         {
@@ -66,6 +78,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 Assert.That(starter.CommandsTypesTree.Children, Is.Not.Empty);
                 Assert.That(starter.RootCommand.Subcommands, Is.Not.Empty);
             });
+        }
+
+        public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> actual, IEnumerable<T> expected)
+        {
+            Assert.That(actual.Count(), Is.EqualTo(expected.Count()));
+            Assert.That(actual.Except(expected), Is.Empty);
         }
     }
 }

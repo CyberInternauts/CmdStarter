@@ -154,14 +154,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void ThrowsOnDuplicateNames([Values]ClassesBuildingMode mode)
         {
+            TestDelegate testDelegate = () => starter.Start(new string[0]).Wait();
+
             starter.ClassesBuildingMode = mode;
             // Normal case
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Naming.MultilevelSame.Do).Namespace ?? string.Empty);
-            Assert.DoesNotThrow(starter.InstantiateCommands);
+            Assert.DoesNotThrow(testDelegate);
 
             // Error case
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Erroneous.DuplicateNames.Same1).Namespace ?? string.Empty);
-            Assert.Throws<DuplicateCommandNameException>(starter.InstantiateCommands);
+            Assert.Throws<AggregateException>(testDelegate);
         }
 
         [Test]
