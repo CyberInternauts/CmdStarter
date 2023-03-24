@@ -8,9 +8,13 @@ using System.CommandLine.NamingConventionBinder;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
 using System.CommandLine.Invocation;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
-{
+{ 
     //TODO: Is it the best idea to use a Class instead of an Interface? Have both: ...
     ///     - When Interface, and not a StarterCommand, create one using a new sealed class in the Lib with the ClassFound as parameter
     ///         - It will redirect the Handle method from the ClassFound
@@ -19,19 +23,33 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     /// 
     public abstract class StarterCommand : Command
     {
-        private const string TEMPORARY_NAME = "temp";
+        public const string OPTION_PREFIX = "--";
 
-        public virtual Delegate MethodForHandling { get; } = () => { };
+        private const string TEMPORARY_NAME = "temp";
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
-            Name = ConvertToKebabCase(this.GetType().Name);
+            Name = this.GetType().Name.PascalToKebabCase();
         }
 
-        protected StarterCommand(string name, string? description = null)
-            : base(ConvertToKebabCase(name), description)
+        protected StarterCommand(string name, string? description = null) : base(TEMPORARY_NAME, description)
         {
+            if (String.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException(nameof(name) + " parameter can't be null or white spaces");
+            }
+
+            if (name.Contains('-'))
+            {
+                Name = name.ToLower();
+            }
+            else
+            {
+                Name = name.PascalToKebabCase();
+            }
         }
+
+        public virtual Delegate MethodForHandling { get; } = () => { };
 
         internal void Initialize()
         {
@@ -41,7 +59,30 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 LoadArguments();
             }
 
-            LoadDescription();
+            LoadOptions();
+
+            Description = GatherDescription(this.GetType());
+        }
+
+        private void LoadOptions()
+        {
+            var properties = GetProperties(this);
+
+            foreach (var property in properties)
+            {
+                var isList = this.GetType()
+                    .GetInterfaces()
+                    .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+
+                var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
+                var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
+                var optionName = OPTION_PREFIX + property.Name.PascalToKebabCase();
+                var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
+                option.Description = GatherDescription(property);
+                option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
+                option.AllowMultipleArgumentsPerToken = isList;
+                this.AddOption(option);
+            }
         }
 
         private void LoadArguments()
@@ -51,15 +92,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             {
                 if (parameter.Name == null) continue; // Skipping param without name
 
-                var description = (parameter.GetCustomAttributes(false)
-                        .FirstOrDefault(a => a is System.ComponentModel.DescriptionAttribute) as System.ComponentModel.DescriptionAttribute)
-                        ?.Description;
-
                 var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
                 var constructor = argumentType.GetConstructor(Type.EmptyTypes);
                 var argument = (Argument)constructor!.Invoke(null);
                 argument.Name = parameter.Name;
-                argument.Description = description;
+                argument.Description = GatherDescription(parameter);
                 if (parameter.DefaultValue is not System.DBNull)
                 {
                     argument.SetDefaultValue(parameter.DefaultValue);
@@ -68,34 +105,61 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
-        private void LoadDescription()
+        private static string GatherDescription(ICustomAttributeProvider provider)
         {
-            //TODO: Test was not written for this
-            var descriptions = this.GetType().GetCustomAttributes(false).Where(a => a is DescriptionAttribute)
-                .Select(a => (a as DescriptionAttribute)!.Description);
+            //TODO: Test was not written for this (The command/class usage)
+            var descriptions = provider.GetCustomAttributes(false)
+                .Where(a => a is DescriptionAttribute)
+                .Select(a => ((DescriptionAttribute)a).Description);
             var description = descriptions?.Aggregate(
-                    new StringBuilder(), (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
-                ).ToString();
-            Description = descriptions?.Any() ?? false ? description : "Fake";
+                    new StringBuilder(), 
+                    (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
+                ).ToString() ?? string.Empty;
+            return description;
         }
 
         private int HandleCommand(InvocationContext context)
         {
-            //TODO: When doing options, enable this: CommandHandler.Create(HandleCommandOptions).Invoke(context);
+            var handleCommandOptionsMethod = this.GetType() //typeof(StarterCommand)
+                .GetMethod(nameof(HandleCommandOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
+                .MakeGenericMethod(this.GetType());
+            CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
-        private static string ConvertToKebabCase(string input)
+        /// <summary>
+        /// Copy the properties to the command
+        /// </summary>
+        /// <typeparam name="Self">Type of the command</typeparam>
+        /// <param name="context">Parsing context</param>
+        /// <param name="self">Filled command provided by System.CommandLine</param>
+        /// <remarks>This method has to have "protected" visibility, otherwise it doesn't work</remarks>
+        protected void HandleCommandOptions<Self>(InvocationContext context, Self self) where Self : Command
         {
-            var output = string.Empty;
-            for (var i = 0; i < input.Length; i++)
+            var currentCommand = context.BindingContext.ParseResult.CommandResult.Command; // Using "this" is not the same object
+            var selfProperties = GetProperties(self);
+            var thisProperties = GetProperties(currentCommand);
+
+            foreach ( var selfProperty in selfProperties )
             {
-                var c = input[i];
-                if (Char.IsUpper(c) && output != string.Empty) output += "-";
-                output += c;
+                var thisProperty = thisProperties.FirstOrDefault(p => p.Equals(selfProperty));
+                if (thisProperty == null) continue;
+
+                var value = selfProperty.GetValue(self);
+                thisProperty.SetValue(currentCommand, value);
             }
-            output = output.ToLower();
-            return output;
+        }
+
+        private static IEnumerable<PropertyInfo> GetProperties(object obj)
+        {
+            var properties = obj.GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p =>
+                    p.CanWrite && p.CanRead
+                    && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand)) ?? false)
+                );
+
+            return properties;
         }
     }
 }

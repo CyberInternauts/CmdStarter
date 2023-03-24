@@ -1,4 +1,12 @@
-﻿using System.ComponentModel.Composition.Hosting;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -84,6 +92,32 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             Assert.That(actual.Count(), Is.EqualTo(expected.Count()));
             Assert.That(actual.Except(expected), Is.Empty);
+        }
+
+        public static string PrintOption(string optionName, object expectedValue)
+        {
+            switch (Type.GetTypeCode(expectedValue.GetType()))
+            {
+                case TypeCode.Boolean:
+                    return OptHandling.OPTION_PREFIX + optionName;
+
+                default:
+                    if (expectedValue.GetType().IsArray)
+                    {
+                        var optionString = string.Empty;
+                        var values = (IEnumerable)expectedValue;
+                        foreach (var curValue in values)
+                        {
+                            optionString += " " + OptHandling.OPTION_PREFIX + optionName + " " + curValue;
+                        }
+                        optionString = optionString.Trim();
+                        return optionString;
+                    }
+                    else
+                    {
+                        return OptHandling.OPTION_PREFIX + optionName + " " + expectedValue;
+                    }
+            }
         }
     }
 }

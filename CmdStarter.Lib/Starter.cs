@@ -132,9 +132,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            var b = new CommandLineBuilder(RootCommand);
+            var builder = new CommandLineBuilder(RootCommand);
+            //TODO: When calling more than once the Start method, calling twice UseDefaults adds more and more "version" option and it fails. Shall be skipped upon subsequent call.
+            builder.UseDefaults();
+            var parser = builder.Build();
 
-            return await b.UseDefaults().Build().InvokeAsync(args);
+            return await parser.InvokeAsync(args);
         }
 
         /// <summary>
