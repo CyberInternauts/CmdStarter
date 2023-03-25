@@ -135,6 +135,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             var b = new CommandLineBuilder(RootCommand);
 
+
+
+
+
             if (hasToUseDefaults)
             {
                 hasToUseDefaults = false;
@@ -142,6 +146,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
 
             var parser = b.Build();
+
+
             return await parser.InvokeAsync(args);
         }
 
