@@ -161,7 +161,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 if (command is StarterCommand starterCommand)
                 {
                     var cmdString = starterCommand.GetFullCommandString();
-                    Console.WriteLine(cmdString);
                     Assert.DoesNotThrow(
                         () => {
                             try
