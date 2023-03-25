@@ -1,4 +1,6 @@
+using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.Text.RegularExpressions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
@@ -209,6 +211,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.FindCommandsTypes();
 
             TestsCommon.AssertIEnumerablesHaveSameElements(starter.CommandsTypes, types);
+        }
+
+        [TestCase<Commands.Listing.Types.Folders>("list folders")]
+        public void EnsuresFullCommand<CommandType>(string expected) where CommandType : StarterCommand
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
+            starter.InstantiateCommands();
+
+            var command = starter.FindCommand<CommandType>() as CommandType;
+            Assert.That(command, Is.Not.Null);
+            Assert.That(command.GetFullCommandString(), Is.EqualTo(expected));
         }
 
         private static IEnumerable<TestCaseData> ClassesFilterRegexSource

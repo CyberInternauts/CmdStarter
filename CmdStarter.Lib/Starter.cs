@@ -31,6 +31,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private bool hasToFindCommands = true;
         private bool hasToBuildTree = true;
         private bool hasToInstantiate = true;
+        private bool hasToUseDefaults = true;
         private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
 
         public Starter() { }
@@ -132,10 +133,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            var builder = new CommandLineBuilder(RootCommand);
-            //TODO: When calling more than once the Start method, calling twice UseDefaults adds more and more "version" option and it fails. Shall be skipped upon subsequent call.
-            builder.UseDefaults();
-            var parser = builder.Build();
+            var b = new CommandLineBuilder(RootCommand);
+
+
+
+
+
+            if (hasToUseDefaults)
+            {
+                hasToUseDefaults = false;
+                b.UseDefaults();
+            }
+
+            var parser = b.Build();
+
 
             return await parser.InvokeAsync(args);
         }
@@ -145,6 +156,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// </summary>
         public async Task<int> Start(IServiceCollection provider, string[] args)
         {
+            //TODO: Copy changes in Start(args)
             provider.AddTransient<string, string>();
             InstantiateCommands();
             var b = new CommandLineBuilder(RootCommand);
@@ -217,8 +229,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 {
                     command.Initialize();
                 }
-                return null;
             });
+        }
+
+        public void VisitCommands(Action<Command> action)
+        {
+            VisitCommands(RootCommand, action);
+        }
+
+        public void VisitCommands(Command currentParent, Action<Command> action)
+        {
+            Command? loopBody(Command command)
+            {
+                action(command);
+                return null;
+            }
+            VisitCommands(currentParent, loopBody);
         }
 
         private void AddLevel(Command currentParent, TreeNode<Type> currentNode)
@@ -246,6 +272,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private void ResetTrees()
         {
+            hasToUseDefaults = true;
             hasToBuildTree = true;
             hasToInstantiate = true;
             this.CommandsTypesTree = new TreeNode<Type>(null);

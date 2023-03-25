@@ -49,7 +49,25 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
+
+        public string GetFullCommandString()
+        {
+            var parentsName = new List<string>();
+            var currentCommand = (Symbol)this;
+            
+            while (currentCommand != null)
+            {
+                parentsName.Add(currentCommand.Name);
+                currentCommand = currentCommand.Parents.FirstOrDefault();
+            }
+            parentsName.Reverse();
+            parentsName = parentsName.Skip(1).ToList();
+
+            return String.Join(" ", parentsName);
+        }
+
         public virtual Delegate MethodForHandling { get; } = () => { };
+
 
         internal void Initialize()
         {

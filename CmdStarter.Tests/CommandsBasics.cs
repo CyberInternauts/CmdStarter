@@ -157,16 +157,44 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void ThrowsOnDuplicateNames([Values]ClassesBuildingMode mode)
         {
-            TestDelegate testDelegate = () => starter.Start(new string[0]).Wait();
-
             starter.ClassesBuildingMode = mode;
             // Normal case
-            starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Naming.MultilevelSame.Do).Namespace ?? string.Empty);
-            Assert.DoesNotThrow(testDelegate);
+            starter.InstantiateCommands();
+            starter.VisitCommands(command => {
+                if (command is StarterCommand starterCommand)
+                {
+                    var cmdString = starterCommand.GetFullCommandString();
+                    Assert.DoesNotThrow(
+                        () => {
+                            try
+                            {
+                                starter.Start(cmdString.Split(" ")).Wait();
+                            }
+                            catch (Exception ex)
+                            {
+                                // Missing required argument, normal as the cmdString doesn't include those
+                                var parent = ex;
+                                var isMissingArgumentException = false;
+                                while (!isMissingArgumentException && parent != null)
+                                {
+                                    isMissingArgumentException = parent is InvalidOperationException;
+                                    parent = parent.InnerException;
+                                }
+                                if (!isMissingArgumentException)
+                                {
+                                    throw new Exception("Command: " + starterCommand.GetType().FullName, ex);
+                                }
+                            }
+                        }
+                    );;
+                }
+            });
 
             // Error case
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Erroneous.DuplicateNames.Same1).Namespace ?? string.Empty);
-            Assert.Throws<AggregateException>(testDelegate);
+            Assert.Throws<AggregateException>(
+                () => starter.Start(Array.Empty<string>()).Wait()
+            );
         }
 
         [Test]
