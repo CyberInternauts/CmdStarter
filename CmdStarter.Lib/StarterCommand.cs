@@ -33,6 +33,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
         }
 
+        public string GetFullCommandString()
+        {
+            var parentsName = new List<string>();
+            var currentCommand = (Symbol)this;
+            
+            while (currentCommand != null)
+            {
+                parentsName.Add(currentCommand.Name);
+                currentCommand = currentCommand.Parents.FirstOrDefault();
+            }
+            parentsName.Reverse();
+            parentsName = parentsName.Skip(1).ToList();
+
+            return String.Join(" ", parentsName);
+        }
+
         internal void Initialize()
         {
             if (this.Subcommands.Count == 0) // Only leaves can execute code
