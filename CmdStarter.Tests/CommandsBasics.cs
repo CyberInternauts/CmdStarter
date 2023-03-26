@@ -9,6 +9,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using Newtonsoft.Json;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using System.CommandLine;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -383,9 +384,29 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 return;
             }
 
-            var parameters = command.MethodForHandling.Method.GetParameters();
+            AssertArguments(command, command);
+        }
+
+        [Test]
+        public void IsLonelyCommandRooted()
+        {
+            starter.Classes = starter.Classes.Add(typeof(FullArgs).FullName!);
+            starter.InstantiateCommands();
+
+            Assert.That(starter.RootCommand.Subcommands, Has.Count.EqualTo(0));
+
+            var command = starter.FindCommand<FullArgs>() as StarterCommand;
+            Assert.That(command, Is.Not.Null);
+            Assert.That(command.Subcommands, Has.Count.EqualTo(0));
+
+            AssertArguments(command, starter.RootCommand);
+        }
+
+        private static void AssertArguments(StarterCommand commandToGetHandler, Command commandToGetArguments)
+        {
+            var parameters = commandToGetHandler.MethodForHandling.Method.GetParameters();
             Assert.That(parameters, Is.Not.Null);
-            Assert.That(command.Arguments, Has.Count.EqualTo(parameters.Length));
+            Assert.That(commandToGetArguments.Arguments, Has.Count.EqualTo(parameters.Length));
 
             Assert.Multiple(() =>
             {
@@ -397,7 +418,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                         ?.Description;
 
                     var message = () => "Error for parameter:" + parameter.Name;
-                    var arg = command.Arguments[index];
+                    var arg = commandToGetArguments.Arguments[index];
                     Assert.That(arg.Name, Is.EqualTo(parameter.Name), message);
                     if (description != null)
                     {
@@ -421,7 +442,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 }
             });
         }
-
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
         {
