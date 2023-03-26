@@ -167,11 +167,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 if (command is StarterCommand starterCommand)
                 {
                     var cmdString = starterCommand.GetFullCommandString();
-                    Assert.DoesNotThrow(
-                        () => {
+                    Assert.DoesNotThrowAsync(
+                        async () => {
                             try
                             {
-                                starter.Start(cmdString.Split(" ")).Wait();
+                                await starter.Start(cmdString.Split(" "));
                             }
                             catch (Exception ex)
                             {
@@ -195,8 +195,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             // Error case
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Erroneous.DuplicateNames.Same1).Namespace ?? string.Empty);
-            Assert.Throws<AggregateException>(
-                () => starter.Start(Array.Empty<string>()).Wait()
+            Assert.ThrowsAsync<AggregateException>(
+                async () => await starter.Start(Array.Empty<string>())
             );
         }
 
