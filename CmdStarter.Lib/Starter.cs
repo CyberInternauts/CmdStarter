@@ -264,14 +264,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private void AddLevel(Command currentParent, TreeNode<Type> currentNode)
         {
-            var namesAdded = new List<string>();
-
             foreach (var childNode in currentNode.Children)
             {
                 var command = Activator.CreateInstance(childNode.Value!) as StarterCommand; // childNode.Value can't be null, because only the root has a null Value
                 if (command != null)
                 {
-                    namesAdded.Add(command.Name);
                     currentParent.AddCommand(command);
                     AddLevel(currentParent.Subcommands.Last(), childNode);
                 }
