@@ -10,6 +10,8 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using Newtonsoft.Json;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.CommandLine;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+using System.Reflection;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -372,7 +374,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<ArgChild>]
         public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : StarterCommand
         {
-            starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
+            // Using NoArgs instead of CommandType, otherwise with ArgChild, it finds only one command and now the behavior is to root options/arguments
+            starter.Namespaces = starter.Namespaces.Clear().Add(typeof(NoArgs).Namespace!);
             starter.InstantiateCommands();
 
             var command = starter.FindCommand<CommandType>() as StarterCommand;
@@ -393,13 +396,47 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Classes = starter.Classes.Add(typeof(FullArgs).FullName!);
             starter.InstantiateCommands();
 
-            Assert.That(starter.RootCommand.Subcommands, Has.Count.EqualTo(0));
+            Assert.That(starter.RootCommand.Subcommands, Has.Count.EqualTo(1));
 
-            var command = starter.FindCommand<FullArgs>() as StarterCommand;
+            var command = starter.FindCommand<FullArgs>() as FullArgs;
             Assert.That(command, Is.Not.Null);
-            Assert.That(command.Subcommands, Has.Count.EqualTo(0));
 
+            // Ensure arguments
             AssertArguments(command, starter.RootCommand);
+
+            // Ensure options
+            AssertOptionsPresence(command, starter.RootCommand);
+
+            // Ensure handle
+            var optionValue = command.MyOpt + 1;
+            var args = "--my-opt " + optionValue + " my 222"; // FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
+            Assert.DoesNotThrowAsync(async () => await starter.Start(args.Split(" ")));
+            Assert.That(command.MyOpt, Is.EqualTo(optionValue));
+            Assert.That(async () => await starter.Start(Array.Empty<string>()), Throws.Exception);
+        }
+
+        /// <summary>
+        /// This method use reflexion and thus shall not be used to test reflexion of a method
+        /// </summary>
+        /// <param name="commandToGetProperties"></param>
+        /// <param name="commandToGetOptions"></param>
+        private static void AssertOptionsPresence(Command commandToGetProperties, Command commandToGetOptions)
+        {
+            var properties = Helper.GetProperties(commandToGetProperties);
+            if (properties == null || !properties.Any())
+            {
+                Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(0));
+                return;
+            }
+
+            Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(properties.Count()));
+            var index = 0;
+            foreach(var property in properties)
+            {
+                var option = commandToGetOptions.Options[index];
+                Assert.That(option.Name, Is.EqualTo(property.Name.PascalToKebabCase()));
+                index++;
+            }
         }
 
         private static void AssertArguments(StarterCommand commandToGetHandler, Command commandToGetArguments)

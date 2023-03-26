@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Text.RegularExpressions;
+using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -221,15 +223,28 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             BuildTree();
 
-            AddLevel(RootCommand, CommandsTypesTree);
-
-            VisitCommands(RootCommand, (child) =>
+            // Lonely command
+            if (CommandsTypes.Count == 1)
             {
-                if (child is StarterCommand command)
+                var command = (StarterCommand)Activator.CreateInstance(CommandsTypes[0])!;
+                command.IsHidden = true;
+                command.Initialize(RootCommand);
+                RootCommand.Add(command);
+                RootCommand.Handler = CommandHandler.Create((InvocationContext context) => {
+                    command.Handler?.Invoke(context);
+                });
+            } else
+            {
+                AddLevel(RootCommand, CommandsTypesTree);
+
+                VisitCommands(RootCommand, (child) =>
                 {
-                    command.Initialize();
-                }
-            });
+                    if (child is StarterCommand command)
+                    {
+                        command.Initialize();
+                    }
+                });
+            }
         }
 
         public void VisitCommands(Action<Command> action)
