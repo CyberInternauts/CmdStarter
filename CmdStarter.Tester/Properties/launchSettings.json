@@ -15,6 +15,10 @@
     "TesterWithFolder": {
       "commandName": "Project",
       "commandLineArgs": "list files mypath --folder c:\\temp"
+    },
+    "TesterWithGlobalOption": {
+      "commandName": "Project",
+      "commandLineArgs": "--my-global-int 222 list files mypath -mm 321 -mm 456 -mo 123"
     }
   }
 }

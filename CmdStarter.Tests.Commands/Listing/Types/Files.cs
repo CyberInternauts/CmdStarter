@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Security.Cryptography.X509Certificates;
 using System.Runtime.CompilerServices;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 {
@@ -42,8 +43,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
             var a = 1;
         }
 
+        private AllGlobalOptions? globalOptions;
+
+        private void HandleGlobalOptions<T>(InvocationContext context, T globalOptions)
+        {
+            var currentCommand = (Files)context.BindingContext.ParseResult.CommandResult.Command!;
+            currentCommand.globalOptions = globalOptions as AllGlobalOptions;
+        }
+
         protected int HandleCommand(InvocationContext context)
         {
+            var hgo = this.GetType()
+                .GetMethod(nameof(HandleGlobalOptions), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .MakeGenericMethod(typeof(AllGlobalOptions));
+            CommandHandler.Create(hgo).Invoke(context);
+
+
             var c = this.GetType()
                 .GetMethod(nameof(HandleCommandOptions), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
                 .MakeGenericMethod(typeof(Files));

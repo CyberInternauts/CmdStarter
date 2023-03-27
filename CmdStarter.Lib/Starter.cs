@@ -184,6 +184,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             BuildTree();
 
             AddLevel(RootCommand, CommandsTypesTree);
+
+            RootCommand.AddGlobalOption(new Option<int>("--my-global-int"));
         }
 
         private void AddLevel(Command currentParent, TreeNode<Type> currentNode)
