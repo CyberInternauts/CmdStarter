@@ -3,11 +3,15 @@
     [Hidden]
     public sealed class HiddenCommand : StarterCommand
     {
-        public override Delegate MethodForHandling => ([Hidden] int hiddenParameter) => { };
-        public const string NAME_OF_HIDDEN_PARAMETER = "hiddenParameter";
+        public const bool COMMAND_IS_HIDDEN = true;
+
+        public override Delegate MethodForHandling => ([Hidden] int parameter) => { };
+        public const string NAME_OF_PARAMETER = "parameter";
+        public const bool PARAMETER_IS_HIDDEN = true;
 
         [Hidden]
-        public bool HiddenOption { get; set; }
-        public const string NAME_OF_HIDDEN_OPTION = "hidden-option";
+        public bool Option { get; set; }
+        public const string NAME_OF_OPTION = "option";
+        public const bool OPTION_IS_HIDDEN = true;
     }
 }
