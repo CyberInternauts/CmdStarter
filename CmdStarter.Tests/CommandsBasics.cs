@@ -9,6 +9,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using Newtonsoft.Json;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -422,6 +423,28 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             });
         }
 
+        [TestCase<HiddenCommand>(HiddenCommand.NAME_OF_HIDDEN_OPTION, HiddenCommand.NAME_OF_HIDDEN_PARAMETER, true)]
+        [TestCase<VisibleCommand>(VisibleCommand.NAME_OF_VISIBLE_OPTION, VisibleCommand.NAME_OF_VISIBLE_PARAMETER, true)]
+        public void EnsureIsHiddenAttribute<CommandType>(string optionName, string argumentName, bool shouldBeHidden) where CommandType : StarterCommand
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
+            starter.InstantiateCommands();
+
+            //Test command
+            var command = starter.FindCommand<CommandType>() as CommandType;
+            Assert.That(command, Is.Not.Null);
+            Assert.That(command.IsHidden, Is.EqualTo(shouldBeHidden));
+
+            //Test argument
+            var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
+            Assert.That(argument, Is.Not.Null);
+            Assert.That(argument.IsHidden, Is.EqualTo(shouldBeHidden));
+
+            //Test option
+            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
+            Assert.That(option, Is.Not.Null);
+            Assert.That(option.IsHidden, Is.EqualTo(shouldBeHidden));
+        }
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
         {
