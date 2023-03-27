@@ -231,7 +231,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 command.Initialize(RootCommand);
                 RootCommand.Add(command);
                 RootCommand.Handler = CommandHandler.Create((InvocationContext context) => {
-                    command.Handler?.Invoke(context);
+                    return command.Handler?.Invoke(context);
                 });
             } else
             {
