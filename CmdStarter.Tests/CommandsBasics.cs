@@ -424,7 +424,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [TestCase<HiddenCommand>(HiddenCommand.NAME_OF_HIDDEN_OPTION, HiddenCommand.NAME_OF_HIDDEN_PARAMETER, true)]
-        [TestCase<VisibleCommand>(VisibleCommand.NAME_OF_VISIBLE_OPTION, VisibleCommand.NAME_OF_VISIBLE_PARAMETER, true)]
+        [TestCase<VisibleCommand>(VisibleCommand.NAME_OF_VISIBLE_OPTION, VisibleCommand.NAME_OF_VISIBLE_PARAMETER, false)]
         public void EnsureIsHiddenAttribute<CommandType>(string optionName, string argumentName, bool shouldBeHidden) where CommandType : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
