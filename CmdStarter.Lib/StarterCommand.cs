@@ -24,6 +24,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     public abstract class StarterCommand : Command
     {
         public const string OPTION_PREFIX = "--";
+        public const string DESCRIPTION_JOINER = "\n";
 
         private const string TEMPORARY_NAME = "temp";
 
@@ -131,7 +132,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 .Select(a => ((DescriptionAttribute)a).Description);
             var description = descriptions?.Aggregate(
                     new StringBuilder(), 
-                    (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
+                    (current, next) => current.Append(current.Length == 0 ? "" : DESCRIPTION_JOINER).Append(next)
                 ).ToString() ?? string.Empty;
             return description;
         }

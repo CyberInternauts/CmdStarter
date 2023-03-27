@@ -9,6 +9,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using Newtonsoft.Json;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -420,6 +421,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                     index++;
                 }
             });
+        }
+
+        [TestCase<NoDesc>("")]
+        [TestCase<SingleDesc>(SingleDesc.DESC)]
+        [TestCase<MultipleDesc>(MultipleDesc.FIRST_DESC + StarterCommand.DESCRIPTION_JOINER + MultipleDesc.SECOND_DESC)]
+        public void HasCommandDescription<DescClass>(string description) where DescClass : StarterCommand
+        {
+            starter.InstantiateCommands();
+
+            var command = starter.FindCommand<DescClass>() as DescClass;
+            Assert.That(command, Is.Not.Null);
+            Assert.That(command.Description, Is.EqualTo(description));
         }
 
 
