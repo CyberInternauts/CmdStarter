@@ -195,7 +195,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             // Error case
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Erroneous.DuplicateNames.Same1).Namespace ?? string.Empty);
-            Assert.ThrowsAsync<AggregateException>(
+            Assert.ThrowsAsync<ArgumentException>(
                 async () => await starter.Start(Array.Empty<string>())
             );
         }
