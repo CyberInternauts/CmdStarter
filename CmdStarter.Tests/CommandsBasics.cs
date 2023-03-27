@@ -7,7 +7,6 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassT
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
-using Newtonsoft.Json;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 
