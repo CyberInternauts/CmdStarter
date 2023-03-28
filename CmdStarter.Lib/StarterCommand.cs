@@ -96,11 +96,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
                 var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
                 var optionName = OPTION_PREFIX + property.Name.PascalToKebabCase();
+                var aliases = property.GetCustomAttributes<AliasAttribute>();
                 var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
+
                 option.Description = GatherDescription(property);
                 option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
                 option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
                 option.AllowMultipleArgumentsPerToken = isList;
+
+                foreach (var alias in aliases)
+                    option.AddAlias(alias.Alias);
+
                 receptacle.AddOption(option);
             }
         }
