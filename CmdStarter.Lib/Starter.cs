@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Text.RegularExpressions;
+using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -221,15 +223,28 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             BuildTree();
 
-            AddLevel(RootCommand, CommandsTypesTree);
-
-            VisitCommands(RootCommand, (child) =>
+            // Lonely command
+            if (CommandsTypes.Count == 1)
             {
-                if (child is StarterCommand command)
+                var command = (StarterCommand)Activator.CreateInstance(CommandsTypes[0])!;
+                command.IsHidden = true;
+                command.Initialize(RootCommand);
+                RootCommand.Add(command);
+                RootCommand.Handler = CommandHandler.Create((InvocationContext context) => {
+                    return command.Handler?.Invoke(context);
+                });
+            } else
+            {
+                AddLevel(RootCommand, CommandsTypesTree);
+
+                VisitCommands(RootCommand, (child) =>
                 {
-                    command.Initialize();
-                }
-            });
+                    if (child is StarterCommand command)
+                    {
+                        command.Initialize();
+                    }
+                });
+            }
         }
 
         public void VisitCommands(Action<Command> action)
@@ -249,14 +264,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private void AddLevel(Command currentParent, TreeNode<Type> currentNode)
         {
-            var namesAdded = new List<string>();
-
             foreach (var childNode in currentNode.Children)
             {
                 var command = Activator.CreateInstance(childNode.Value!) as StarterCommand; // childNode.Value can't be null, because only the root has a null Value
                 if (command != null)
                 {
-                    namesAdded.Add(command.Name);
                     currentParent.AddCommand(command);
                     AddLevel(currentParent.Subcommands.Last(), childNode);
                 }

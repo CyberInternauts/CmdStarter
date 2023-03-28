@@ -1,4 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using Erroneous = com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous;
 using System.Data;
@@ -8,6 +8,9 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using System.CommandLine;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+using System.Reflection;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 
@@ -165,11 +168,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 if (command is StarterCommand starterCommand)
                 {
                     var cmdString = starterCommand.GetFullCommandString();
-                    Assert.DoesNotThrow(
-                        () => {
+                    Assert.DoesNotThrowAsync(
+                        async () => {
                             try
                             {
-                                starter.Start(cmdString.Split(" ")).Wait();
+                                await starter.Start(cmdString.Split(" "));
                             }
                             catch (Exception ex)
                             {
@@ -193,8 +196,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             // Error case
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Erroneous.DuplicateNames.Same1).Namespace ?? string.Empty);
-            Assert.Throws<AggregateException>(
-                () => starter.Start(Array.Empty<string>()).Wait()
+            Assert.ThrowsAsync<ArgumentException>(
+                async () => await starter.Start(Array.Empty<string>())
             );
         }
 
@@ -372,7 +375,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<ArgChild>]
         public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : StarterCommand
         {
-            starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
+            // Using NoArgs instead of CommandType, otherwise with ArgChild, it finds only one command and now the behavior is to root options/arguments
+            starter.Namespaces = starter.Namespaces.Clear().Add(typeof(NoArgs).Namespace!);
             starter.InstantiateCommands();
 
             var command = starter.FindCommand<CommandType>() as StarterCommand;
@@ -384,9 +388,63 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 return;
             }
 
-            var parameters = command.MethodForHandling.Method.GetParameters();
+            AssertArguments(command, command);
+        }
+
+        [Test]
+        public void IsLonelyCommandRooted()
+        {
+            starter.Classes = starter.Classes.Add(typeof(FullArgs).FullName!);
+            starter.InstantiateCommands();
+
+            Assert.That(starter.RootCommand.Subcommands, Has.Count.EqualTo(1));
+
+            var command = starter.FindCommand<FullArgs>() as FullArgs;
+            Assert.That(command, Is.Not.Null);
+
+            // Ensure arguments
+            AssertArguments(command, starter.RootCommand);
+
+            // Ensure options
+            AssertOptionsPresence(command, starter.RootCommand);
+
+            // Ensure handle
+            var optionValue = command.MyOpt + 1;
+            var args = "--my-opt " + optionValue + " my 222"; // FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
+            Assert.DoesNotThrowAsync(async () => await starter.Start(args.Split(" ")));
+            Assert.That(command.MyOpt, Is.EqualTo(optionValue));
+            Assert.That(async () => await starter.Start(Array.Empty<string>()), Throws.Exception);
+        }
+
+        /// <summary>
+        /// This method use reflexion and thus shall not be used to test reflexion of a method
+        /// </summary>
+        /// <param name="commandToGetProperties"></param>
+        /// <param name="commandToGetOptions"></param>
+        private static void AssertOptionsPresence(Command commandToGetProperties, Command commandToGetOptions)
+        {
+            var properties = Helper.GetProperties(commandToGetProperties);
+            if (properties == null || !properties.Any())
+            {
+                Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(0));
+                return;
+            }
+
+            Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(properties.Count()));
+            var index = 0;
+            foreach(var property in properties)
+            {
+                var option = commandToGetOptions.Options[index];
+                Assert.That(option.Name, Is.EqualTo(property.Name.PascalToKebabCase()));
+                index++;
+            }
+        }
+
+        private static void AssertArguments(StarterCommand commandToGetHandler, Command commandToGetArguments)
+        {
+            var parameters = commandToGetHandler.MethodForHandling.Method.GetParameters();
             Assert.That(parameters, Is.Not.Null);
-            Assert.That(command.Arguments, Has.Count.EqualTo(parameters.Length));
+            Assert.That(commandToGetArguments.Arguments, Has.Count.EqualTo(parameters.Length));
 
             Assert.Multiple(() =>
             {
@@ -398,7 +456,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                         ?.Description;
 
                     var message = () => "Error for parameter:" + parameter.Name;
-                    var arg = command.Arguments[index];
+                    var arg = commandToGetArguments.Arguments[index];
                     Assert.That(arg.Name, Is.EqualTo(parameter.Name), message);
                     if (description != null)
                     {

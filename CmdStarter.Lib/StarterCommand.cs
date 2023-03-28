@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.ComponentModel;
@@ -6,6 +6,8 @@ using System.CommandLine.Invocation;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.Reflection;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata;
+using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
@@ -65,21 +67,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         public virtual Delegate MethodForHandling { get; } = () => { };
 
 
-        internal void Initialize()
+        internal void Initialize(Command? receptacle = null)
         {
+            receptacle ??= this;
+
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
                 Handler = CommandHandler.Create(HandleCommand);
-                LoadArguments();
+                LoadArguments(receptacle);
             }
 
-            LoadOptions();
+            LoadOptions(receptacle);
 
             Description = GatherDescription(this.GetType());
             IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
         }
 
-        private void LoadOptions()
+        private void LoadOptions(Command receptacle)
         {
             var properties = GetProperties(this);
 
@@ -97,11 +101,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
                 option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
                 option.AllowMultipleArgumentsPerToken = isList;
-                this.AddOption(option);
+                receptacle.AddOption(option);
             }
         }
 
-        private void LoadArguments()
+        private void LoadArguments(Command receptacle)
         {
             var parameters = MethodForHandling.Method.GetParameters();
             foreach (var parameter in parameters)
@@ -118,7 +122,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 {
                     argument.SetDefaultValue(parameter.DefaultValue);
                 }
-                this.Add(argument);
+                receptacle.Add(argument);
             }
         }
 
@@ -154,6 +158,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         protected void HandleCommandOptions<Self>(InvocationContext context, Self self) where Self : Command
         {
             var currentCommand = context.BindingContext.ParseResult.CommandResult.Command; // Using "this" is not the same object
+            if (currentCommand is RootCommand)
+            {
+                currentCommand = currentCommand.Subcommands[0];
+            }
             var selfProperties = GetProperties(self);
             var thisProperties = GetProperties(currentCommand);
 
@@ -165,18 +173,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var value = selfProperty.GetValue(self);
                 thisProperty.SetValue(currentCommand, value);
             }
-        }
-
-        private static IEnumerable<PropertyInfo> GetProperties(object obj)
-        {
-            var properties = obj.GetType()
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p =>
-                    p.CanWrite && p.CanRead
-                    && (p.DeclaringType?.IsSubclassOf(typeof(StarterCommand)) ?? false)
-                );
-
-            return properties;
         }
     }
 }
