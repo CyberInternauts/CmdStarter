@@ -8,11 +8,13 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
 using System.Reflection;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -518,6 +520,24 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var option = command.Options.FirstOrDefault(option => option.Name == optionName);
             Assert.That(option, Is.Not.Null);
             Assert.That(option.IsHidden, Is.EqualTo(isOptionHidden));
+        }
+
+        [TestCase<NoAlias>(NoAlias.OptionName)]
+        [TestCase<OneAlias>(OneAlias.OptionName)]
+        [TestCase<MultiAlias>(MultiAlias.OptionName)]
+        [TestCase<AliasWithCustomPrefix>(AliasWithCustomPrefix.OptionName)]
+        public void EnsureAliasAttribute<CommandType>(string optionName)
+            where CommandType : StarterCommand, IHasAliases
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
+            starter.InstantiateCommands();
+
+            var command = starter.FindCommand<CommandType>() as CommandType;
+            Assert.That(command, Is.Not.Null);
+
+            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
+            Assert.That(option, Is.Not.Null);
+            TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, command.ExpectedAliases);
         }
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
