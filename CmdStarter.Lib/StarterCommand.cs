@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
-using System.Runtime.CompilerServices;
 using System.ComponentModel;
 using System.CommandLine.Invocation;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
@@ -13,6 +8,7 @@ using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 { 
@@ -25,6 +21,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     public abstract class StarterCommand : Command
     {
         public const string OPTION_PREFIX = "--";
+        public const string DESCRIPTION_JOINER = "\n";
 
         private const string TEMPORARY_NAME = "temp";
 
@@ -83,6 +80,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             LoadOptions(receptacle);
 
             Description = GatherDescription(this.GetType());
+            IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
         }
 
         private void LoadOptions(Command receptacle)
@@ -101,6 +99,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
                 option.Description = GatherDescription(property);
                 option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
+                option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
                 option.AllowMultipleArgumentsPerToken = isList;
                 receptacle.AddOption(option);
             }
@@ -118,6 +117,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var argument = (Argument)constructor!.Invoke(null);
                 argument.Name = parameter.Name;
                 argument.Description = GatherDescription(parameter);
+                argument.IsHidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
                 if (parameter.DefaultValue is not System.DBNull)
                 {
                     argument.SetDefaultValue(parameter.DefaultValue);
@@ -134,7 +134,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 .Select(a => ((DescriptionAttribute)a).Description);
             var description = descriptions?.Aggregate(
                     new StringBuilder(), 
-                    (current, next) => current.Append(current.Length == 0 ? "" : ", ").Append(next)
+                    (current, next) => current.Append(current.Length == 0 ? "" : DESCRIPTION_JOINER).Append(next)
                 ).ToString() ?? string.Empty;
             return description;
         }
