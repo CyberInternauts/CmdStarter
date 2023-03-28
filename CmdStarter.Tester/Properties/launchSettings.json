@@ -18,7 +18,7 @@
     },
     "TesterWithGlobalOption": {
       "commandName": "Project",
-      "commandLineArgs": "--my-global-int 222 list files mypath -mm 321 -mm 456 -mo 123"
+      "commandLineArgs": "--my-global-int 222 --my-static-int 223 list files mypath -mm 321 -mm 456 -mo 123"
     }
   }
 }

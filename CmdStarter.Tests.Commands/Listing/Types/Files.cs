@@ -7,6 +7,7 @@ using System.Reflection.Metadata;
 using System.Security.Cryptography.X509Certificates;
 using System.Runtime.CompilerServices;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+using System.CommandLine.Binding;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 {
@@ -43,12 +44,33 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
             var a = 1;
         }
 
-        private AllGlobalOptions? globalOptions;
+        private static Dictionary<Type, object?> gos = new();
+        private T? GetGO<T>() where T : class
+        {
+            if (gos.ContainsKey(typeof(T))) return (T?)gos[typeof(T)];
 
-        private void HandleGlobalOptions<T>(InvocationContext context, T globalOptions)
+            return null;
+        }
+
+        //private AllGlobalOptions? globalOptions;
+
+        private class StaticBinder<T> : ModelBinder
+        {
+            public StaticBinder() : base(typeof(T))
+            {
+            }
+        }
+
+        private void HandleGlobalOptions<T>(InvocationContext context, T globalOptions) where T : class
         {
             var currentCommand = (Files)context.BindingContext.ParseResult.CommandResult.Command!;
-            currentCommand.globalOptions = globalOptions as AllGlobalOptions;
+            if (gos.ContainsKey(typeof(T))) {
+                gos[typeof(T)] = globalOptions as T;
+            }
+            else
+            {
+                gos.Add(typeof(T), globalOptions as T);
+            }
         }
 
         protected int HandleCommand(InvocationContext context)
@@ -58,6 +80,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
                 .MakeGenericMethod(typeof(AllGlobalOptions));
             CommandHandler.Create(hgo).Invoke(context);
 
+            var hgo2 = this.GetType()
+                .GetMethod(nameof(HandleGlobalOptions), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .MakeGenericMethod(typeof(TestingStatic));
+            CommandHandler.Create(hgo2).Invoke(context);
 
             var c = this.GetType()
                 .GetMethod(nameof(HandleCommandOptions), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
@@ -72,6 +98,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 
         private void HandleInvoke([Description("Param1")] string path = "default_path")
         {
+            var go = GetGO<AllGlobalOptions>()?.MyGlobalInt;
             // Here the properties are filled from main args
             var a = 1;
             Console.WriteLine("path=" + path + "; MyOpt=" + MyOpt);
@@ -111,6 +138,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
             this.AddOption(optFolder);
 
             Handler = CommandHandler.Create(HandleCommand);
+        }
+
+        private class GOAttribute : Attribute
+        {
+
+        }
+
+        [GOAttribute]
+        private static class TestingStatic
+        {
+            public static int MyStaticInt { get; set; } = 888;
         }
     }
 }

@@ -186,6 +186,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             AddLevel(RootCommand, CommandsTypesTree);
 
             RootCommand.AddGlobalOption(new Option<int>("--my-global-int"));
+            RootCommand.AddGlobalOption(new Option<int>("--my-static-int"));
         }
 
         private void AddLevel(Command currentParent, TreeNode<Type> currentNode)
