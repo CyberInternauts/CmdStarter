@@ -7,7 +7,13 @@
         private const string Alias3 = "opt";
 
 
-        public string[] ExpectedAliases => new string[] { OPTION_PREFIX + OptionName, Alias1, Alias2, Alias3 };
+        public string[] ExpectedAliases => new string[]
+        {
+            OPTION_PREFIX + OptionName,
+            AliasAttribute.DEFAULT_PREFIX + Alias1,
+            AliasAttribute.DEFAULT_PREFIX + Alias2,
+            AliasAttribute.DEFAULT_PREFIX + Alias3
+        };
 
         [Alias(Alias1)]
         [Alias(Alias2)]

@@ -4,7 +4,7 @@
     {
         private const string Alias = "o";
 
-        public string[] ExpectedAliases => new string[] { OPTION_PREFIX + OptionName, Alias };
+        public string[] ExpectedAliases => new string[] { OPTION_PREFIX + OptionName, AliasAttribute.DEFAULT_PREFIX + Alias };
 
         [Alias(Alias)]
         public int Option { get; set; }
