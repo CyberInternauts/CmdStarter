@@ -198,6 +198,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var command = Activator.CreateInstance(childNode.Value!) as StarterCommand; // childNode.Value can't be null, because only the root has a null Value
                 if (command != null)
                 {
+                    ((IStarterCommand)command).GlobalOptionsManager = 2; // Can be changed within library
+
                     if (namesAdded.Contains(command.Name)) throw new DuplicateCommandNameException();
 
                     namesAdded.Add(command.Name);

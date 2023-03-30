@@ -98,6 +98,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 
         private void HandleInvoke([Description("Param1")] string path = "default_path")
         {
+            // ((IStarterCommand)this).GlobalOptionsManager = 111; // NOT ACCESSIBLE ==> PERFECT!
+            var gom = ((IStarterCommand)this).GlobalOptionsManager;
+
             var go = GetGO<AllGlobalOptions>()?.MyGlobalInt;
             // Here the properties are filled from main args
             var a = 1;

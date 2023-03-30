@@ -16,7 +16,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     ///         - Copy attributes
     ///     - Detect Options with OptionAttribute on public Property|Field
     /// 
-    public abstract class StarterCommand : Command
+    public abstract class StarterCommand : Command, IStarterCommand
     {
         private const string TEMPORARY_NAME = "temp";
 
@@ -34,6 +34,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         protected virtual Delegate MethodForHandling { get; } = () => { };
 
+        int IStarterCommand.GlobalOptionsManager { get; set; }
 
         private void Initialize()
         {
