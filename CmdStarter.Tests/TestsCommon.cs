@@ -96,7 +96,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var joinedActual = actual.Any() ? string.Join(",", actual) : EMPTY_STRING;
             var errorMessage = $"Expected: <{joinedExpected}> but was <{joinedActual}>";
 
-            Assert.That(actual.Count(), Is.EqualTo(expected.Count()));
+            Assert.That(actual.Count(), Is.EqualTo(expected.Count()), errorMessage);
             Assert.That(actual.Except(expected), Is.Empty, errorMessage);
         }
 
