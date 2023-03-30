@@ -7,7 +7,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     /// <summary>
     /// Defines aliases for a command or an option.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = true)]
     public sealed class AliasAttribute : Attribute, IEnumerable<string>
     {
         private const bool USE_PREFIX_BY_DEFAULT = false;
