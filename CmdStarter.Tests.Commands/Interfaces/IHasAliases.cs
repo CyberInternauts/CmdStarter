@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces
 {
     public interface IHasAliases
     {
