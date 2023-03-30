@@ -527,6 +527,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<OneAlias>(OneAlias.OPTION_NAME)]
         [TestCase<MultiAlias>(MultiAlias.OPTION_NAME)]
         [TestCase<AliasWithCustomPrefix>(AliasWithCustomPrefix.OPTION_NAME)]
+        [TestCase<AliasWithPartlyCustomPrefix>(AliasWithPartlyCustomPrefix.OPTION_NAME)]
         public void EnsureAliasAttribute<CommandType>(string optionName)
             where CommandType : StarterCommand, IHasAliases
         {
