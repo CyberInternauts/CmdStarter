@@ -38,7 +38,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// <summary>
         /// Gets the prefix used.
         /// </summary>
-        public string? Prefix
+        public string Prefix
         {
             get => _prefix ?? DEFAULT_PREFIX;
             init => _prefix = value;
