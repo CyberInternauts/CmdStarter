@@ -77,10 +77,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 LoadArguments(receptacle);
             }
 
+            LoadCommandAliases(receptacle);
             LoadOptions(receptacle);
 
             Description = GatherDescription(this.GetType());
             IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
+        }
+
+        private void LoadCommandAliases(Command receptacle)
+        {
+            var aliases = this.GetType().GetCustomAttribute<AliasAttribute>();
+
+            if (aliases is null) return;
+
+            foreach (var alias in aliases)
+            {
+                receptacle.AddAlias(alias);
+            }
         }
 
         private void LoadOptions(Command receptacle)
