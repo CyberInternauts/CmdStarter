@@ -83,21 +83,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             if (_wasPrefixed || !UsePrefix || Prefix is null) return;
             _wasPrefixed = true;
 
-            Span<char> buffer;
+            StringBuilder builder = new();
             for (int i = 0; i < _aliases.Length; i++)
             {
-                var aliasLength = (Prefix is not null ? Prefix.Length : 0) + _aliases[i].Length;
-                var bufferLocation = 0;
+                builder.Append(Prefix);
+                builder.Append(_aliases[i]);
 
-                buffer = new char[aliasLength];
+                _aliases[i] = builder.ToString();
 
-                Prefix!.CopyTo(buffer[bufferLocation..]);
-                bufferLocation += Prefix.Length;
-
-                _aliases[i].CopyTo(buffer[bufferLocation..]);
-                bufferLocation += _aliases.Length;
-
-                _aliases[i] = buffer.ToString();
+                builder.Clear();
             }
         }
     }
