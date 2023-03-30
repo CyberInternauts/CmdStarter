@@ -2,7 +2,8 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias
 {
-    [Alias(COMMAND_ALIAS_1, COMMAND_ALIAS_2, COMMAND_ALIAS_3)]
+    [Alias(COMMAND_ALIAS_1, COMMAND_ALIAS_2)]
+    [Alias(COMMAND_ALIAS_3)]
     public sealed class MultiAlias : StarterCommand, IHasAliases
     {
         private const string COMMAND_NAME = "multi-alias";
@@ -31,7 +32,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias
             COMMAND_ALIAS_3
         };
 
-        [Alias(true, OPTION_ALIAS_1, OPTION_ALIAS_2, OPTION_ALIAS_3)]
+        [Alias(true, OPTION_ALIAS_1, OPTION_ALIAS_3)]
+        [Alias(true, OPTION_ALIAS_2)]
         public int Option { get; set; }
         public const string OPTION_NAME = "option";
     }
