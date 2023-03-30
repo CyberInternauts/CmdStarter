@@ -2,6 +2,6 @@
 {
     public interface IHasAliases
     {
-        string[] ExpectedAliases { get; }
+        string[] ExpectedOptionAliases { get; }
     }
 }
