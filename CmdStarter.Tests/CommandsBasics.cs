@@ -15,6 +15,7 @@ using System.Reflection;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -522,10 +523,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(option.IsHidden, Is.EqualTo(isOptionHidden));
         }
 
-        [TestCase<NoAlias>(NoAlias.OptionName)]
-        [TestCase<OneAlias>(OneAlias.OptionName)]
-        [TestCase<MultiAlias>(MultiAlias.OptionName)]
-        [TestCase<AliasWithCustomPrefix>(AliasWithCustomPrefix.OptionName)]
+        [TestCase<NoAlias>(NoAlias.OPTION_NAME)]
+        [TestCase<OneAlias>(OneAlias.OPTION_NAME)]
+        [TestCase<MultiAlias>(MultiAlias.OPTION_NAME)]
+        [TestCase<AliasWithCustomPrefix>(AliasWithCustomPrefix.OPTION_NAME)]
         public void EnsureAliasAttribute<CommandType>(string optionName)
             where CommandType : StarterCommand, IHasAliases
         {
@@ -534,10 +535,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             var command = starter.FindCommand<CommandType>() as CommandType;
             Assert.That(command, Is.Not.Null);
+            TestsCommon.AssertIEnumerablesHaveSameElements(command.Aliases, command.ExpectedCommandAliases);
 
             var option = command.Options.FirstOrDefault(option => option.Name == optionName);
             Assert.That(option, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, command.ExpectedAliases);
+            TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, command.ExpectedOptionAliases);
         }
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
