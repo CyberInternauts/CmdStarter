@@ -3,5 +3,6 @@
     public interface IHasAliases
     {
         string[] ExpectedOptionAliases { get; }
+        string[] ExpectedCommandAliases { get; }
     }
 }
