@@ -77,10 +77,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 LoadArguments(receptacle);
             }
 
+            LoadAliases(receptacle, this.GetType().GetCustomAttributes<AliasAttribute>());
             LoadOptions(receptacle);
 
             Description = GatherDescription(this.GetType());
             IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
+        }
+
+        private void LoadAliases(IdentifierSymbol receptacle, IEnumerable<AliasAttribute> attributes)
+        {
+            var aliases = attributes.SelectMany(attribute => attribute.Aliases);
+            foreach (var alias in aliases)
+            {
+                receptacle.AddAlias(alias);
+            }
         }
 
         private void LoadOptions(Command receptacle)
@@ -97,10 +107,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
                 var optionName = OPTION_PREFIX + property.Name.PascalToKebabCase();
                 var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
+                var aliasAttributes = property.GetCustomAttributes<AliasAttribute>();
+
                 option.Description = GatherDescription(property);
                 option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
                 option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
                 option.AllowMultipleArgumentsPerToken = isList;
+
+                LoadAliases(option, aliasAttributes);
+
                 receptacle.AddOption(option);
             }
         }
