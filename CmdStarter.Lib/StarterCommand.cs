@@ -119,7 +119,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
                 if(aliases is not null)
                 {
-                    foreach (var alias in aliases.Aliases) option.AddAlias(alias);
+                    foreach (var alias in aliases) option.AddAlias(alias);
                 }
 
                 receptacle.AddOption(option);
