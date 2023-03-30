@@ -90,8 +90,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public static void AssertIEnumerablesHaveSameElements<T>(IEnumerable<T> actual, IEnumerable<T> expected)
         {
+            const string EMPTY_STRING = "empty";
+
+            var joinedExpected = expected.Any() ? string.Join(",", expected) : EMPTY_STRING;
+            var joinedActual = actual.Any() ? string.Join(",", actual) : EMPTY_STRING;
+            var errorMessage = $"Expected: <{joinedExpected}> but was <{joinedActual}>";
+
             Assert.That(actual.Count(), Is.EqualTo(expected.Count()));
-            Assert.That(actual.Except(expected), Is.Empty);
+            Assert.That(actual.Except(expected), Is.Empty, errorMessage);
         }
 
         public static string PrintOption(string optionName, object expectedValue)
