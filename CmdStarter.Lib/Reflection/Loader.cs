@@ -9,10 +9,10 @@ using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 {
-    public static class CommandLineHelper
+    internal static class Loader
     {
 
-        public static void LoadOptions(Type from, Command receptacle)
+        internal static void LoadOptions(Type from, Command receptacle)
         {
             var properties = GetProperties(from);
 
@@ -26,15 +26,36 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
                 var optionName = StarterCommand.OPTION_PREFIX + property.Name.PascalToKebabCase();
                 var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
-                option.Description = GatherDescription(property);
                 option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
                 option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
                 option.AllowMultipleArgumentsPerToken = isList;
+                LoadDescription(property, option);
                 receptacle.AddOption(option);
             }
         }
 
-        public static string GatherDescription(ICustomAttributeProvider provider)
+        internal static void LoadArguments(MethodInfo method, Command receptacle)
+        {
+            var parameters = method.GetParameters();
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Name == null) continue; // Skipping param without name
+
+                var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
+                var constructor = argumentType.GetConstructor(Type.EmptyTypes);
+                var argument = (Argument)constructor!.Invoke(null);
+                argument.Name = parameter.Name;
+                argument.IsHidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
+                if (parameter.DefaultValue is not System.DBNull)
+                {
+                    argument.SetDefaultValue(parameter.DefaultValue);
+                }
+                LoadDescription(parameter, argument);
+                receptacle.Add(argument);
+            }
+        }
+
+        internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)
         {
             var descriptions = provider.GetCustomAttributes(false)
                 .Where(a => a is DescriptionAttribute)
@@ -43,7 +64,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                     new StringBuilder(),
                     (current, next) => current.Append(current.Length == 0 ? "" : StarterCommand.DESCRIPTION_JOINER).Append(next)
                 ).ToString() ?? string.Empty;
-            return description;
+
+            receptacle.Description = description;
         }
     }
 }

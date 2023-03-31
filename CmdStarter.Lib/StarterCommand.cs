@@ -8,7 +8,7 @@ using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
-using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.CommandLineHelper;
+using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Loader;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
@@ -84,34 +84,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
                 Handler = CommandHandler.Create(HandleCommand);
-                LoadArguments(receptacle);
+                LoadArguments(MethodForHandling.Method, receptacle);
             }
 
             LoadOptions(this.GetType(), receptacle);
+            LoadDescription(this.GetType(), this);
 
-            Description = GatherDescription(this.GetType());
             IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
-        }
-
-        private void LoadArguments(Command receptacle)
-        {
-            var parameters = MethodForHandling.Method.GetParameters();
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Name == null) continue; // Skipping param without name
-
-                var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
-                var constructor = argumentType.GetConstructor(Type.EmptyTypes);
-                var argument = (Argument)constructor!.Invoke(null);
-                argument.Name = parameter.Name;
-                argument.Description = GatherDescription(parameter);
-                argument.IsHidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
-                if (parameter.DefaultValue is not System.DBNull)
-                {
-                    argument.SetDefaultValue(parameter.DefaultValue);
-                }
-                receptacle.Add(argument);
-            }
         }
 
         private int HandleCommand(InvocationContext context)

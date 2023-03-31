@@ -55,7 +55,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             foreach(var type in GlobalOptionsTypes)
             {
-                CommandLineHelper.LoadOptions(type, receptacle);
+                Loader.LoadOptions(type, receptacle);
             }
         }
 
