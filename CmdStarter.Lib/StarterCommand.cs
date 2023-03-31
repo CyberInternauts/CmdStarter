@@ -123,10 +123,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             // Handle global options
             foreach(var globalOptionsType in GlobalOptionsManager.GlobalOptionsTypes)
             {
-                var handleGlobalOptions = this.GetType()
-                    .GetMethod(nameof(HandleGlobalOptions), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                var handleGlobalOptions = GlobalOptionsManager.GetType()
+                    .GetMethod(nameof(GlobalOptionsManager.SetGlobalOptions), System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)!
                     .MakeGenericMethod(globalOptionsType);
-                CommandHandler.Create(handleGlobalOptions).Invoke(context);
+                CommandHandler.Create(handleGlobalOptions, GlobalOptionsManager).Invoke(context);
             }
 
             // Handle options
@@ -164,10 +164,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var value = selfProperty.GetValue(self);
                 thisProperty.SetValue(currentCommand, value);
             }
-        }
-        protected void HandleGlobalOptions<GlobalOptionsType>(InvocationContext context, GlobalOptionsType globalOptions) where GlobalOptionsType : class, IGlobalOptionsContainer
-        {
-            GlobalOptionsManager.SetGlobalOptions<GlobalOptionsType>(globalOptions);
         }
     }
 }
