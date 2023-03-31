@@ -10,11 +10,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private static IEnumerable<Type>? foundTypes;
         private readonly Dictionary<Type, object> globalOptions = new();
-        private Starter Starter { get; set; }
+        private readonly Starter starter;
 
         internal GlobalOptionsManager(Starter starter) 
         {
-            Starter = starter;
+            this.starter = starter;
             FindTypes();
         }
 
@@ -45,8 +45,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             GlobalOptionsTypes.Clear();
 
-            var filteredTypes = FilterTypesByNamespaces(foundTypes!, Starter.Namespaces.ToList()); // foundTypes can't be null as initialized in constructor
-            filteredTypes = FilterTypesByClasses(filteredTypes, Starter.Classes.ToList());
+            var filteredTypes = FilterTypesByNamespaces(foundTypes!, starter.Namespaces.ToList()); // foundTypes can't be null as initialized in constructor
+            filteredTypes = FilterTypesByClasses(filteredTypes, starter.Classes.ToList());
 
             GlobalOptionsTypes.AddRange(filteredTypes);
         }
