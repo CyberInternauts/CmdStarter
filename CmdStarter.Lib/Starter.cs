@@ -1,13 +1,13 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
-using System.Text.RegularExpressions;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
+using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -36,7 +36,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private bool hasToUseDefaults = true;
         private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
 
-        public Starter() { }
+        public Starter() : this(Array.Empty<string>())
+        {
+        }
 
         public Starter(string[] namespaces) : this(new List<string>(namespaces))
         {
@@ -44,8 +46,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         public Starter(List<string> namespaces)
         {
+            GlobalOptionsManager = new(this);
             Namespaces = Namespaces.AddRange(namespaces);
         }
+
+        public GlobalOptionsManager GlobalOptionsManager { get; init; }
 
         /// <summary>
         /// Filter by namespaces (includes child namespaces).<br/><br/>
@@ -191,10 +196,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                         .SelectMany(a => a.GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(StarterCommand)) && t.Namespace != null));
 
             // Filter by namespaces
-            commandsTypes = FilterTypesByNamespaces(commandsTypes);
+            commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
+            if (!commandsTypes.Any()) throw new Exceptions.InvalidNamespaceException();
 
             // Filter by namespaces
-            commandsTypes = FilterTypesByClasses(commandsTypes);
+            commandsTypes = FilterTypesByClasses(commandsTypes, Classes.ToList());
+            if (!commandsTypes.Any()) throw new InvalidClassException();
 
             this.commandsTypes = CommandsTypes.Clear();
             if (commandsTypes != null)
@@ -226,7 +233,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             // Lonely command
             if (CommandsTypes.Count == 1)
             {
-                var command = (StarterCommand)Activator.CreateInstance(CommandsTypes[0])!;
+                var command = CreateCommand(CommandsTypes[0])!;
                 command.IsHidden = true;
                 command.Initialize(RootCommand);
                 RootCommand.Add(command);
@@ -237,6 +244,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             {
                 AddLevel(RootCommand, CommandsTypesTree);
 
+                // Doing Initialize after having created all because the command may act differently if it has children or not
                 VisitCommands(RootCommand, (child) =>
                 {
                     if (child is StarterCommand command)
@@ -245,6 +253,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                     }
                 });
             }
+
+            // Global options
+            GlobalOptionsManager.FilterTypes();
+            GlobalOptionsManager.LoadOptions(RootCommand);
         }
 
         public void VisitCommands(Action<Command> action)
@@ -266,13 +278,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             foreach (var childNode in currentNode.Children)
             {
-                var command = Activator.CreateInstance(childNode.Value!) as StarterCommand; // childNode.Value can't be null, because only the root has a null Value
+                var command = CreateCommand(childNode.Value!); // childNode.Value can't be null, because only the root has a null Value
                 if (command != null)
                 {
                     currentParent.AddCommand(command);
-                    AddLevel(currentParent.Subcommands.Last(), childNode);
+                    AddLevel(currentParent.Subcommands[currentParent.Subcommands.Count - 1], childNode);
                 }
             }
+        }
+
+        private StarterCommand? CreateCommand(Type commandType)
+        {
+            var command = Activator.CreateInstance(commandType) as StarterCommand;
+            if (command != null) command.GlobalOptionsManager = GlobalOptionsManager;
+            return command;
         }
 
         private void ResetCommands()
@@ -301,67 +320,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return namespaceToCut[..dotIndex];
         }
 
-        private IEnumerable<Type> FilterTypesByNamespaces(IEnumerable<Type> commandsTypes)
-        {
-            var nbCommands = commandsTypes.Count();
-            if (nbCommands == 0 || !Namespaces.Any()) return commandsTypes;
-            
-            var namespacesIncluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && !n.StartsWith(EXCLUSION_SYMBOL));
-            var hasIncluded = namespacesIncluded.Any();
-            var namespacesExcluded = Namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(EXCLUSION_SYMBOL));
-
-            commandsTypes = commandsTypes.Where(c =>
-            {
-                var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..]) ?? false);
-                var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n) ?? false);
-
-                return !outNamespaces && inNamespaces;
-            });
-            if (!commandsTypes.Any())
-            {
-                throw new Exceptions.InvalidNamespaceException();
-            }
-
-            return commandsTypes;
-        }
-
-        private IEnumerable<Type> FilterTypesByClasses(IEnumerable<Type> commandsTypes)
-        {
-            var nbCommands = commandsTypes.Count();
-            if (nbCommands == 0 || !Classes.Any()) return commandsTypes;
-
-            bool onlyExclude = Classes.All(filter => filter.StartsWith(EXCLUSION_SYMBOL));
-
-            Regex dotRegex = new(@"\\.");
-
-            Regex[] excludes = Classes.Where(filter => filter.StartsWith(EXCLUSION_SYMBOL))
-                .Select(filter =>
-                {
-                    var pattern = WildcardsToRegex(filter[1..]);
-                    return new Regex(pattern, RegexOptions.RightToLeft);
-                }).ToArray();
-
-            Regex[] filters = Classes.Where(filter => !filter.StartsWith(EXCLUSION_SYMBOL))
-                .Select(filter =>
-                {
-                    var pattern = WildcardsToRegex(filter);
-                    return new Regex(pattern, RegexOptions.RightToLeft);
-                }).ToArray();
-
-            commandsTypes = commandsTypes.Where(type =>
-            {
-                bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
-
-                bool excluded = excludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
-
-                return included && !excluded;
-            });
-
-            if (!commandsTypes.Any()) throw new InvalidClassException();
-
-            return commandsTypes;
-        }
-
         /// <summary>
         /// Visit commands from a specific command until not null is returned
         /// </summary>
@@ -383,19 +341,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
 
             return null;
-        }
-
-        private static string WildcardsToRegex(string wildcard)
-        {
-            const string STAR_PLACEHOLDER = "<-starplaceholder->";
-
-            return (@$"(.|^){wildcard}$")
-                .Replace(".", @"\.")
-                .Replace(ANY_CHAR_SYMBOL_INCLUDE_DOTS, ".")
-                .Replace(ANY_CHAR_SYMBOL, @"\w")
-                .Replace(MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS, @$".{STAR_PLACEHOLDER}")
-                .Replace(MULTI_ANY_CHAR_SYMBOL, @"\w*")
-                .Replace(STAR_PLACEHOLDER, "*");
         }
     }
 }

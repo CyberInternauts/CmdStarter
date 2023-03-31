@@ -8,7 +8,9 @@ using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.CommandLineHelper;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 { 
@@ -24,6 +26,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         public const string DESCRIPTION_JOINER = "\n";
 
         private const string TEMPORARY_NAME = "temp";
+
+
+        //TODO: Transfer to IStarterCommand what's below
+        public virtual Delegate MethodForHandling { get; } = () => { };
+
+        public GlobalOptionsManager GlobalOptionsManager { get; internal set; } = default!; // Usage of default because this property is set by Starter class and the object is shared among multiple classes, but I don't want to add it to the constructor.
+        public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
+        {
+            return GlobalOptionsManager.GetGlobalOptions<GlobalOptionsType>();
+        }
+        public GlobalOptionsType? GO<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
+        {
+            return GetGlobalOptions<GlobalOptionsType>();
+        }
+        //TODO: Transfer to IStarterCommand what's above
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
@@ -64,9 +81,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return String.Join(" ", parentsName);
         }
 
-        public virtual Delegate MethodForHandling { get; } = () => { };
-
-
         internal void Initialize(Command? receptacle = null)
         {
             receptacle ??= this;
@@ -77,32 +91,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 LoadArguments(receptacle);
             }
 
-            LoadOptions(receptacle);
+            LoadOptions(this.GetType(), receptacle);
 
             Description = GatherDescription(this.GetType());
             IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
-        }
-
-        private void LoadOptions(Command receptacle)
-        {
-            var properties = GetProperties(this);
-
-            foreach (var property in properties)
-            {
-                var isList = this.GetType()
-                    .GetInterfaces()
-                    .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
-
-                var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
-                var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
-                var optionName = OPTION_PREFIX + property.Name.PascalToKebabCase();
-                var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
-                option.Description = GatherDescription(property);
-                option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
-                option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
-                option.AllowMultipleArgumentsPerToken = isList;
-                receptacle.AddOption(option);
-            }
         }
 
         private void LoadArguments(Command receptacle)
@@ -126,25 +118,24 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
-        private static string GatherDescription(ICustomAttributeProvider provider)
-        {
-            //TODO: Test was not written for this (The command/class usage)
-            var descriptions = provider.GetCustomAttributes(false)
-                .Where(a => a is DescriptionAttribute)
-                .Select(a => ((DescriptionAttribute)a).Description);
-            var description = descriptions?.Aggregate(
-                    new StringBuilder(), 
-                    (current, next) => current.Append(current.Length == 0 ? "" : DESCRIPTION_JOINER).Append(next)
-                ).ToString() ?? string.Empty;
-            return description;
-        }
-
         private int HandleCommand(InvocationContext context)
         {
+            // Handle global options
+            foreach(var globalOptionsType in GlobalOptionsManager.GlobalOptionsTypes)
+            {
+                var handleGlobalOptions = this.GetType()
+                    .GetMethod(nameof(HandleGlobalOptions), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                    .MakeGenericMethod(globalOptionsType);
+                CommandHandler.Create(handleGlobalOptions).Invoke(context);
+            }
+
+            // Handle options
             var handleCommandOptionsMethod = this.GetType() //typeof(StarterCommand)
                 .GetMethod(nameof(HandleCommandOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
                 .MakeGenericMethod(this.GetType());
             CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
+
+            // Handle command execution
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
@@ -173,6 +164,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var value = selfProperty.GetValue(self);
                 thisProperty.SetValue(currentCommand, value);
             }
+        }
+        protected void HandleGlobalOptions<GlobalOptionsType>(InvocationContext context, GlobalOptionsType globalOptions) where GlobalOptionsType : class, IGlobalOptionsContainer
+        {
+            GlobalOptionsManager.SetGlobalOptions<GlobalOptionsType>(globalOptions);
         }
     }
 }
