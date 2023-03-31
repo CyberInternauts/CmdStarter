@@ -36,10 +36,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             return GlobalOptionsManager.GetGlobalOptions<GlobalOptionsType>();
         }
-        public GlobalOptionsType? GO<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
-        {
-            return GetGlobalOptions<GlobalOptionsType>();
-        }
         //TODO: Transfer to IStarterCommand what's above
 
         protected StarterCommand() : base(TEMPORARY_NAME) 

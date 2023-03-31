@@ -12,7 +12,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types
 
         private void Execute()
         {
-            var globalInt = this.GO<MainGlobalOptions>()?.IntGlobalOption;
+            var globalInt = this.GetGlobalOptions<MainGlobalOptions>()?.IntGlobalOption;
             var a = 1;
         }
     }
