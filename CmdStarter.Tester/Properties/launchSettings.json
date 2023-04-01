@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CmdStarter.Tester": {
+      "commandName": "Project",
+      "commandLineArgs": "--int-global-option 101 list folders"
+    }
+  }
+}
