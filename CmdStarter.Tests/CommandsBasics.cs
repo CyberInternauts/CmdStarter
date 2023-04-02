@@ -546,6 +546,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<NoAutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
         [TestCase<NonGenericSingleAutoComplete>(NonGenericSingleAutoComplete.OPTION_NAME, NonGenericSingleAutoComplete.ARGUMENT_NAME)]
+        [TestCase<NonGenericMultiAutoComplete>(NonGenericMultiAutoComplete.OPTION_NAME, NonGenericMultiAutoComplete.ARGUMENT_NAME)]
+        [TestCase<NonGenericMultiSingleAutoComplete>(NonGenericMultiSingleAutoComplete.OPTION_NAME, NonGenericMultiSingleAutoComplete.ARGUMENT_NAME)]
+        [TestCase<NonGenericMultiMultiAutoComplete>(NonGenericMultiMultiAutoComplete.OPTION_NAME, NonGenericMultiMultiAutoComplete.ARGUMENT_NAME)]
         public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {
