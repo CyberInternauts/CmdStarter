@@ -16,6 +16,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -542,6 +543,27 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(option, Is.Not.Null);
             TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, command.ExpectedOptionAliases);
         }
+
+        [TestCase<NoAutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
+        [TestCase<AutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
+        public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
+            where CommandType : StarterCommand, IHasAutoComplete
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
+            starter.InstantiateCommands();
+
+            var command = starter.FindCommand<CommandType>() as CommandType;
+            Assert.That(command, Is.Not.Null);
+
+            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
+            Assert.That(option, Is.Not.Null);
+            TestsCommon.AssertIEnumerablesHaveSameElements(option.GetCompletions(), command.OptionExpected());
+
+            var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
+            Assert.That(argument, Is.Not.Null);
+            TestsCommon.AssertIEnumerablesHaveSameElements(argument.GetCompletions(), command.OptionExpected());
+        }
+
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
         {
