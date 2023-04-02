@@ -108,6 +108,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var optionName = OPTION_PREFIX + property.Name.PascalToKebabCase();
                 var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
                 var aliasAttributes = property.GetCustomAttributes<AliasAttribute>();
+                var autoCompletions = property.GetCustomAttributes<AutoCompleteAttribute>();
 
                 option.Description = GatherDescription(property);
                 option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
@@ -115,6 +116,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 option.AllowMultipleArgumentsPerToken = isList;
 
                 LoadAliases(option, aliasAttributes);
+
+                foreach (var completion in autoCompletions)
+                {
+                    option.AddCompletions(completion.Context);
+                }
 
                 receptacle.AddOption(option);
             }
@@ -130,6 +136,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
                 var constructor = argumentType.GetConstructor(Type.EmptyTypes);
                 var argument = (Argument)constructor!.Invoke(null);
+                var autoCompletions = parameter.GetCustomAttributes<AutoCompleteAttribute>();
+
                 argument.Name = parameter.Name;
                 argument.Description = GatherDescription(parameter);
                 argument.IsHidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
@@ -137,6 +145,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 {
                     argument.SetDefaultValue(parameter.DefaultValue);
                 }
+
+                foreach (var completion in autoCompletions)
+                {
+                    argument.AddCompletions(completion.Context);
+                }
+
                 receptacle.Add(argument);
             }
         }
