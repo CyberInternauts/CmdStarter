@@ -545,7 +545,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [TestCase<NoAutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
-        [TestCase<AutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
+        [TestCase<NonGenericSingleAutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
         public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {
@@ -561,7 +561,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
             Assert.That(argument, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(argument.GetCompletions(), command.OptionExpected());
+            TestsCommon.AssertIEnumerablesHaveSameElements(argument.GetCompletions(), command.ArgumentExpected());
         }
 
 
