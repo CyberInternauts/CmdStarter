@@ -265,6 +265,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void ThrowsOnDuplicateParentAttribute()
         {
+            // Normal case
+            Assert.DoesNotThrow(starter.BuildTree);
+
+            // Erroneous case
+            starter = TestsCommon.CreateCmdStarter();
             starter.Namespaces = starter.Namespaces.Clear(); // Allow Erroneous namespace
             starter.Classes = starter.Classes.AddRange(new string[] {
                 typeof(MultiParent).FullName!,
