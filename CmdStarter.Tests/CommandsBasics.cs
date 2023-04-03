@@ -16,6 +16,10 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes;
+using System.Net.Mail;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -261,7 +265,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void ThrowsOnDuplicateParentAttribute()
         {
-            Assert.Fail("NOT DONE");
+            starter.Namespaces = starter.Namespaces.AddRange(new string[] {
+                typeof(MultiParent).Namespace!,
+                typeof(Main).Namespace!,
+                typeof(Folders).Namespace!
+            });
+
+            Assert.Throws<InvalidAttributeException>(starter.BuildTree);
         }
 
         [Test]
