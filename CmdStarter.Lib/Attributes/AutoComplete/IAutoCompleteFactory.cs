@@ -5,7 +5,7 @@
         /// <summary>
         /// Generates the label value, which is the text displayed to users and, unless <see cref="InsertTextFactory"/> is set, is also used to populate the <see cref="CompletionItem.InsertText"/> property.
         /// </summary>
-        Func<T, string> LabelFactory { get; init; }
+        Func<T, string> LabelFactory { get; }
 
         /// <summary>
         /// Genetares the value used to sort the completion item in a list. If this is not provided, then <see cref="LabelFactory"/> is used.
