@@ -11,7 +11,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
         public Func<string, string?> DetailFactory => (str) => DETAIL;
 
-        public Func<string, string?> InsertFactory => (str) => str.ToUpper();
+        public Func<string, string?> InsertTextFactory => (str) => str.ToUpper();
 
         public static IAutoCompleteFactory<string> GetDefault() => new AutoCompleteOptionFactory();
     }
