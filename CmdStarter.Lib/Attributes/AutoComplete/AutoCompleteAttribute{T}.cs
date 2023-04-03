@@ -1,9 +1,8 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AutoComplete;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
-    public sealed class AutoCompleteAttribute<T> : AutoCompleteAttribute
+    public class AutoCompleteAttribute<T> : AutoCompleteAttribute
     {
         internal static readonly Func<T, string?> NullFactory = (obj) => null;
 
