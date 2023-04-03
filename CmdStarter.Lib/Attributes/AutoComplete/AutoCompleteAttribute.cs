@@ -5,10 +5,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = true)]
     public class AutoCompleteAttribute : Attribute
     {
-        internal static readonly Func<object, string?> NullFactory = (obj) => null;
-
-        private readonly object[] _objects;
-        private CompletionItem[]? _items;
+        protected readonly object[] _objects;
+        protected CompletionItem[]? _items;
 
         public CompletionDelegate Context
         {
