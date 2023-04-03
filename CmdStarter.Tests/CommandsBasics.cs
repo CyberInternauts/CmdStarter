@@ -20,6 +20,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultiplePar
 using System.Net.Mail;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -259,7 +260,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void EnsuresTwoChildrenAttributeWithSameNamespace()
         {
-            Assert.Fail("NOT DONE - Should not fail");
+            starter.Namespaces = starter.Namespaces.Add(typeof(DuplicateOnSame).Namespace!);
+            Assert.DoesNotThrow(starter.InstantiateCommands);
         }
 
         [Test]
