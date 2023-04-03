@@ -16,6 +16,11 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes;
+using System.Net.Mail;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -255,13 +260,26 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void EnsuresTwoChildrenAttributeWithSameNamespace()
         {
-            Assert.Fail("NOT DONE - Should not fail");
+            starter.Namespaces = starter.Namespaces.Add(typeof(DuplicateOnSame).Namespace!);
+            Assert.DoesNotThrow(starter.InstantiateCommands);
         }
 
         [Test]
         public void ThrowsOnDuplicateParentAttribute()
         {
-            Assert.Fail("NOT DONE");
+            // Normal case
+            Assert.DoesNotThrow(starter.BuildTree);
+
+            // Erroneous case
+            starter = TestsCommon.CreateCmdStarter();
+            starter.Namespaces = starter.Namespaces.Clear(); // Allow Erroneous namespace
+            starter.Classes = starter.Classes.AddRange(new string[] {
+                typeof(MultiParent).FullName!,
+                typeof(Main).FullName!,
+                typeof(Folders).FullName!
+            });
+
+            Assert.Throws<InvalidAttributeException>(starter.BuildTree);
         }
 
         [Test]
