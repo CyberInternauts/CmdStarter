@@ -34,25 +34,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             }
         }
 
-        private void CacheItems()
+        protected virtual void CacheItems()
         {
             _items = new CompletionItem[_objects.Length];
 
             for (int i = 0; i < _items.Length; i++)
             {
-                var label = LabelFactory(_objects[i]);
-                var sortText = SortTextFactory(_objects[i]);
-                var insertText = InsertTextFactory(_objects[i]);
-                var documentation = DocumentationFactory(_objects[i]);
-                var detail = DetailFactory(_objects[i]);
-
-                var completionItem = new CompletionItem(
-                    label,
-                    sortText: sortText,
-                    insertText: insertText,
-                    documentation: documentation,
-                    detail: detail
-                    );
+                var label = _objects[i].ToString() ?? string.Empty;
+                var completionItem = new CompletionItem(label);
 
                 _items[i] = completionItem;
             }
