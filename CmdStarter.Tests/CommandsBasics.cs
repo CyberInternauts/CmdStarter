@@ -265,7 +265,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void ThrowsOnDuplicateParentAttribute()
         {
-            starter.Namespaces = starter.Namespaces.Clear();
+            starter.Namespaces = starter.Namespaces.Clear(); // Allow Erroneous namespace
             starter.Classes = starter.Classes.AddRange(new string[] {
                 typeof(MultiParent).FullName!,
                 typeof(Main).FullName!,
