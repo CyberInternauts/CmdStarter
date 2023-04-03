@@ -17,6 +17,8 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.SimpleConstructor;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Factories;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -553,6 +555,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<GenericMultiAutoComplete>(GenericMultiAutoComplete.OPTION_NAME, GenericMultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<GenericMultiSingleAutoComplete>(GenericMultiSingleAutoComplete.OPTION_NAME, GenericMultiSingleAutoComplete.ARGUMENT_NAME)]
         [TestCase<GenericMultiMultiAutoComplete>(GenericMultiMultiAutoComplete.OPTION_NAME, GenericMultiMultiAutoComplete.ARGUMENT_NAME)]
+        [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
         public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {
