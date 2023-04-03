@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="GlobalOptions\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
     <ProjectReference Include="..\CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj" />
   </ItemGroup>

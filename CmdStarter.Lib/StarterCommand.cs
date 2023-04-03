@@ -8,7 +8,9 @@ using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Loader;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 { 
@@ -24,6 +26,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         public const string DESCRIPTION_JOINER = "\n";
 
         private const string TEMPORARY_NAME = "temp";
+
+
+        //TODO: Transfer to IStarterCommand what's below
+        public virtual Delegate MethodForHandling { get; } = () => { };
+
+        public GlobalOptionsManager GlobalOptionsManager { get; internal set; } = default!; // Usage of default because this property is set by Starter class and the object is shared among multiple classes, but I don't want to add it to the constructor.
+        public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
+        {
+            return GlobalOptionsManager.GetGlobalOptions<GlobalOptionsType>();
+        }
+        //TODO: Transfer to IStarterCommand what's above
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
@@ -64,9 +77,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return String.Join(" ", parentsName);
         }
 
-        public virtual Delegate MethodForHandling { get; } = () => { };
-
-
         internal void Initialize(Command? receptacle = null)
         {
             receptacle ??= this;
@@ -74,106 +84,35 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
                 Handler = CommandHandler.Create(HandleCommand);
-                LoadArguments(receptacle);
+                LoadArguments(MethodForHandling.Method, receptacle);
             }
 
-            LoadAliases(receptacle, this.GetType().GetCustomAttributes<AliasAttribute>());
-            LoadOptions(receptacle);
+            var commandType = this.GetType();
+            LoadOptions(commandType, receptacle);
+            LoadDescription(commandType, receptacle);
+            LoadAliases(commandType, receptacle);
 
-            Description = GatherDescription(this.GetType());
             IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
-        }
-
-        private void LoadAliases(IdentifierSymbol receptacle, IEnumerable<AliasAttribute> attributes)
-        {
-            var aliases = attributes.SelectMany(attribute => attribute.Aliases);
-            foreach (var alias in aliases)
-            {
-                receptacle.AddAlias(alias);
-            }
-        }
-
-        private void LoadOptions(Command receptacle)
-        {
-            var properties = GetProperties(this);
-
-            foreach (var property in properties)
-            {
-                var isList = this.GetType()
-                    .GetInterfaces()
-                    .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
-
-                var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
-                var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
-                var optionName = OPTION_PREFIX + property.Name.PascalToKebabCase();
-                var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
-                var aliasAttributes = property.GetCustomAttributes<AliasAttribute>();
-                var autoCompletions = property.GetCustomAttributes<AutoCompleteAttribute>();
-
-                option.Description = GatherDescription(property);
-                option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
-                option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
-                option.AllowMultipleArgumentsPerToken = isList;
-
-                LoadAliases(option, aliasAttributes);
-
-                foreach (var completion in autoCompletions)
-                {
-                    option.AddCompletions(completion.Context);
-                }
-
-                receptacle.AddOption(option);
-            }
-        }
-
-        private void LoadArguments(Command receptacle)
-        {
-            var parameters = MethodForHandling.Method.GetParameters();
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Name == null) continue; // Skipping param without name
-
-                var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
-                var constructor = argumentType.GetConstructor(Type.EmptyTypes);
-                var argument = (Argument)constructor!.Invoke(null);
-                var autoCompletions = parameter.GetCustomAttributes<AutoCompleteAttribute>();
-
-                argument.Name = parameter.Name;
-                argument.Description = GatherDescription(parameter);
-                argument.IsHidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
-                if (parameter.DefaultValue is not System.DBNull)
-                {
-                    argument.SetDefaultValue(parameter.DefaultValue);
-                }
-
-                foreach (var completion in autoCompletions)
-                {
-                    argument.AddCompletions(completion.Context);
-                }
-
-                receptacle.Add(argument);
-            }
-        }
-
-        private static string GatherDescription(ICustomAttributeProvider provider)
-        {
-            //TODO: Test was not written for this (The command/class usage)
-            var descriptions = provider.GetCustomAttributes(false)
-                .Where(a => a is DescriptionAttribute)
-                .Select(a => ((DescriptionAttribute)a).Description);
-            var description = descriptions?.Aggregate(
-                    new StringBuilder(), 
-                    (current, next) => current.Append(current.Length == 0 ? "" : DESCRIPTION_JOINER).Append(next)
-                ).ToString() ?? string.Empty;
-            return description;
         }
 
         private int HandleCommand(InvocationContext context)
         {
+            // Handle global options
+            foreach(var globalOptionsType in GlobalOptionsManager.GlobalOptionsTypes)
+            {
+                var handleGlobalOptions = GlobalOptionsManager.GetType()
+                    .GetMethod(nameof(GlobalOptionsManager.SetGlobalOptions), BindingFlags.Public | BindingFlags.Instance)!
+                    .MakeGenericMethod(globalOptionsType);
+                CommandHandler.Create(handleGlobalOptions, GlobalOptionsManager).Invoke(context);
+            }
+
+            // Handle options
             var handleCommandOptionsMethod = this.GetType() //typeof(StarterCommand)
                 .GetMethod(nameof(HandleCommandOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
                 .MakeGenericMethod(this.GetType());
             CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
+
+            // Handle command execution
             return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
         }
 
