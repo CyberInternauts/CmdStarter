@@ -549,6 +549,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NonGenericMultiAutoComplete>(NonGenericMultiAutoComplete.OPTION_NAME, NonGenericMultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<NonGenericMultiSingleAutoComplete>(NonGenericMultiSingleAutoComplete.OPTION_NAME, NonGenericMultiSingleAutoComplete.ARGUMENT_NAME)]
         [TestCase<NonGenericMultiMultiAutoComplete>(NonGenericMultiMultiAutoComplete.OPTION_NAME, NonGenericMultiMultiAutoComplete.ARGUMENT_NAME)]
+        [TestCase<GenericSingleAutoComplete>(GenericSingleAutoComplete.OPTION_NAME, GenericSingleAutoComplete.ARGUMENT_NAME)]
+        [TestCase<GenericMultiAutoComplete>(GenericMultiAutoComplete.OPTION_NAME, GenericMultiAutoComplete.ARGUMENT_NAME)]
+        [TestCase<GenericMultiSingleAutoComplete>(GenericMultiSingleAutoComplete.OPTION_NAME, GenericMultiSingleAutoComplete.ARGUMENT_NAME)]
+        [TestCase<GenericMultiMultiAutoComplete>(GenericMultiMultiAutoComplete.OPTION_NAME, GenericMultiMultiAutoComplete.ARGUMENT_NAME)]
         public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {
@@ -566,7 +570,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(argument, Is.Not.Null);
             TestsCommon.AssertIEnumerablesHaveSameElements(argument.GetCompletions(), command.ArgumentExpected());
         }
-
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
         {
