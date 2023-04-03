@@ -4,6 +4,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComple
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using System.CommandLine.Completions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -95,11 +96,32 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             var option = command.Options.FirstOrDefault(option => option.Name == optionName);
             Assert.That(option, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(option.GetCompletions(), command.OptionExpected());
+            AssertCompletionItemsEqual(option.GetCompletions(), command.OptionExpected());
 
             var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
             Assert.That(argument, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(argument.GetCompletions(), command.ArgumentExpected());
+            AssertCompletionItemsEqual(argument.GetCompletions(), command.ArgumentExpected());
+        }
+
+        public static void AssertCompletionItemsEqual(IEnumerable<CompletionItem> actual, IEnumerable<CompletionItem> expected)
+        {
+            TestsCommon.AssertIEnumerablesHaveSameElements(actual, expected);
+
+            foreach (var expectedValue in expected)
+            {
+                var hasMatch = actual.Any(actualValue =>
+                {
+                    Assert.That(actualValue, Is.Not.Null);
+
+                    return actualValue.Label == expectedValue.Label
+                        && actualValue.SortText == expectedValue.SortText
+                        && actualValue.InsertText == expectedValue.InsertText
+                        && actualValue.Documentation == expectedValue.Documentation
+                        && actualValue.Detail == expectedValue.Detail;
+                });
+
+                Assert.IsTrue(hasMatch);
+            }
         }
     }
 }
