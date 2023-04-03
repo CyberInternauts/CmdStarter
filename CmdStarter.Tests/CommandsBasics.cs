@@ -555,6 +555,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<GenericMultiSingleAutoComplete>(GenericMultiSingleAutoComplete.OPTION_NAME, GenericMultiSingleAutoComplete.ARGUMENT_NAME)]
         [TestCase<GenericMultiMultiAutoComplete>(GenericMultiMultiAutoComplete.OPTION_NAME, GenericMultiMultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
+        [TestCase<GenericEnumAutoComplete>(GenericEnumAutoComplete.OPTION_NAME, GenericEnumAutoComplete.ARGUMENT_NAME)]
         public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {
