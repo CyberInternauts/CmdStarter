@@ -1,4 +1,5 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AutoComplete;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
@@ -47,7 +48,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         { }
 
         public AutoCompleteAttribute(params T[] completions)
-            : base(completions)
+            : base(completions.ToObjectArray())
         { }
 
         private static object[] HandleGenericConstructor(Type type)
