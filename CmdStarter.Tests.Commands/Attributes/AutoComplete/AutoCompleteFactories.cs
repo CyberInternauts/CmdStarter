@@ -1,7 +1,7 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Factories
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
     internal sealed class AutoCompleteOptionFactory : IAutoCompleteFactory<string>
     {

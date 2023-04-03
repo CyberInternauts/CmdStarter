@@ -3,7 +3,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Factories
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
     public sealed class FactoryAutoComplete : StarterCommand, IHasAutoComplete
     {

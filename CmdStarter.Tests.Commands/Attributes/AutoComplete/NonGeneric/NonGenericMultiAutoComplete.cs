@@ -2,7 +2,7 @@
 using System.CommandLine;
 using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.SimpleConstructor
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
     public sealed class NonGenericMultiAutoComplete : StarterCommand, IHasAutoComplete
     {

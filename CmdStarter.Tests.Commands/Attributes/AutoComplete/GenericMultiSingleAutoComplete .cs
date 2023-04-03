@@ -2,21 +2,27 @@
 using System.CommandLine;
 using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.SimpleConstructor
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
-    public sealed class GenericSingleAutoComplete : StarterCommand, IHasAutoComplete
+    public sealed class GenericMultiSingleAutoComplete : StarterCommand, IHasAutoComplete
     {
         private const string OPTION_COMPLETION_1 = "Bob";
+        private const string OPTION_COMPLETION_2 = "Robert";
 
         private const int ARGUMENT_COMPLETION_1 = 18;
+        private const int ARGUMENT_COMPLETION_2 = 60;
 
         [AutoComplete<string>(OPTION_COMPLETION_1)]
+        [AutoComplete<string>(OPTION_COMPLETION_2)]
         public string PersonName { get; set; } = null!;
         public const string OPTION_NAME = "person-name";
 
         public override Delegate MethodForHandling => Execute;
 
-        private void Execute([AutoComplete<int>(ARGUMENT_COMPLETION_1)] int age = 18)
+        private void Execute(
+            [AutoComplete<int>(ARGUMENT_COMPLETION_1)]
+            [AutoComplete<int>(ARGUMENT_COMPLETION_2)]
+            int age = 18)
         { }
         public const string ARGUMENT_NAME = "age";
 
@@ -24,7 +30,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Option<string> expected = new(OPTION_NAME);
 
-            expected.AddCompletions(OPTION_COMPLETION_1);
+            expected.AddCompletions(OPTION_COMPLETION_1, OPTION_COMPLETION_2);
 
             return expected.GetCompletions();
         }
@@ -33,7 +39,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Argument<int> expected = new();
 
-            expected.AddCompletions(ARGUMENT_COMPLETION_1.ToString());
+            expected.AddCompletions(ARGUMENT_COMPLETION_1.ToString(), ARGUMENT_COMPLETION_2.ToString());
 
             return expected.GetCompletions();
         }

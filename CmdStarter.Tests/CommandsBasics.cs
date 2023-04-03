@@ -16,9 +16,8 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.SimpleConstructor;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Factories;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
