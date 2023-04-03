@@ -8,16 +8,9 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
-using System.Reflection;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -149,7 +142,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             AssertTreeWithChildrenAttribute(mainCommand);
             AssertChilding(mainCommand, true);
         }
-
 
         [TestCase(typeof(Commands.Naming.Word), "Word", "word")]
         [TestCase(typeof(Commands.Naming.NameFor), "NameFor", "name-for")]
@@ -497,8 +489,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(command, Is.Not.Null);
             Assert.That(command.Description, Is.EqualTo(description));
         }
-
-        
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
         {

@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using System.CommandLine.Completions;
+﻿using System.CommandLine.Completions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces
 {
