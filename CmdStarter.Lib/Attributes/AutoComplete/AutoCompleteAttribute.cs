@@ -28,7 +28,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             {
                 var autoCompleteValue = completions[i];
 
-                if (autoCompleteValue is null) continue;
+                if (autoCompleteValue is null) throw new ArgumentNullException(autoCompleteValue?.ToString());
 
                 _objects[i] = autoCompleteValue;
             }
