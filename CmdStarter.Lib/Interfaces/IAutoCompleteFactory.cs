@@ -1,4 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AutoComplete
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces
 {
     public interface IAutoCompleteFactory<T>
     {
