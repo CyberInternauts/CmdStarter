@@ -2,5 +2,8 @@
 {
     public class InvalidAttributeException : Exception
     {
+        public InvalidAttributeException() { }
+
+        public InvalidAttributeException(string message) : base(message) { }
     }
 }

@@ -265,10 +265,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void ThrowsOnDuplicateParentAttribute()
         {
-            starter.Namespaces = starter.Namespaces.AddRange(new string[] {
-                typeof(MultiParent).Namespace!,
-                typeof(Main).Namespace!,
-                typeof(Folders).Namespace!
+            starter.Namespaces = starter.Namespaces.Clear();
+            starter.Classes = starter.Classes.AddRange(new string[] {
+                typeof(MultiParent).FullName!,
+                typeof(Main).FullName!,
+                typeof(Folders).FullName!
             });
 
             Assert.Throws<InvalidAttributeException>(starter.BuildTree);
