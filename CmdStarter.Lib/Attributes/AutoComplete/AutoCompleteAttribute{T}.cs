@@ -5,6 +5,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
     public sealed class AutoCompleteAttribute<T> : AutoCompleteAttribute
     {
+        internal static readonly Func<T, string?> NullFactory = (obj) => null;
 
         /// <summary>
         /// Creates autocompletion for all values of an <see cref="Enum"/>.
