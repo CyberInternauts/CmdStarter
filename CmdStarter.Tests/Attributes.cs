@@ -79,9 +79,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<MultiAutoComplete>(MultiAutoComplete.OPTION_NAME, MultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<MultiSingleAutoComplete>(MultiSingleAutoComplete.OPTION_NAME, MultiSingleAutoComplete.ARGUMENT_NAME)]
         [TestCase<MultiMultiAutoComplete>(MultiMultiAutoComplete.OPTION_NAME, MultiMultiAutoComplete.ARGUMENT_NAME)]
-        [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
         [TestCase<LonelyEnumAutoComplete>(LonelyEnumAutoComplete.OPTION_NAME, LonelyEnumAutoComplete.ARGUMENT_NAME)]
         [TestCase<LonelyFeederAutoCompletion>(LonelyFeederAutoCompletion.OPTION_NAME, LonelyFeederAutoCompletion.ARGUMENT_NAME)]
+        [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
+        [TestCase<FactoryEnumAutoComplete>(FactoryEnumAutoComplete.OPTION_NAME, FactoryEnumAutoComplete.ARGUMENT_NAME)]
+        [TestCase<FactoryFeederAutoCompletion>(FactoryFeederAutoCompletion.OPTION_NAME, FactoryFeederAutoCompletion.ARGUMENT_NAME)]
         public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {

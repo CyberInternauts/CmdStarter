@@ -1,13 +1,12 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper
 {
     internal sealed class AutoCompleteOptionFactory : IAutoCompleteFactory
     {
-        public const string DETAIL = "Bob is a cool guy.";
+        public const string DETAIL = " is a cool guy.";
 
-        public string? GetDetail(string value) => DETAIL;
+        public string? GetDetail(string value) => value + DETAIL;
 
         public string? GetInsertText(string value) => value.ToUpper();
 
@@ -22,9 +21,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
         public string? GetDocumentation(string num)
         {
-            if (int.Parse(num) >= 21) return DOCUMENTATION_USA;
+            int number = (int)Enum.Parse<AgeEnum>(num);
 
-            if (int.Parse(num) >= 18) return DOCUMENTATION_EU;
+            if (number >= 21) return DOCUMENTATION_USA;
+
+            if (number >= 18) return DOCUMENTATION_EU;
 
             return DOCUMENTATION_NONE;
         }

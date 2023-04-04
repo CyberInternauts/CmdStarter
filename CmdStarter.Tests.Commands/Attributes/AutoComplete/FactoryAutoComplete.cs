@@ -27,7 +27,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
             var item = new CompletionItem(
                 OPTION_COMPLETION_1,
-                detail: AutoCompleteOptionFactory.DETAIL,
+                detail: OPTION_COMPLETION_1 + AutoCompleteOptionFactory.DETAIL,
                 insertText: OPTION_COMPLETION_1.ToUpper()
                 );
 
