@@ -2,6 +2,7 @@
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.CommandLine.Completions;
@@ -100,6 +101,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
             Assert.That(argument, Is.Not.Null);
             AssertCompletionItemsEqual(argument.GetCompletions(), command.ArgumentExpected());
+        }
+
+        [TestCase<NonGenericNullCompletion>]
+        [TestCase<NonGenericEmptyCompletion>]
+        [TestCase<NonGenericNotSupportedType>]
+        [TestCase<GenericWrongFactory>]
+        public void EnsureAutoCompleteAttributeExceptions<ErrorRunner>()
+            where ErrorRunner : IHasException, IErrorRunner, IGetDefault<ErrorRunner>
+        {
+            var instance = ErrorRunner.GetDefault();
+            Assert.Throws(instance.TypeOfException, instance.ErrorRunner);
         }
 
         public static void AssertCompletionItemsEqual(IEnumerable<CompletionItem> actual, IEnumerable<CompletionItem> expected)
