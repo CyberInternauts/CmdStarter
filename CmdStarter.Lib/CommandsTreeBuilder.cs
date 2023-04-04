@@ -3,6 +3,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.CommandLine;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -42,7 +43,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         public TreeNode<Type> BuildTree()
         {
             var tree = new TreeNode<Type>(null);
-            var namespaces = CommandsTypes.Select(c => c.Namespace).Distinct();
 
             /////////////
             // Attributes mode
@@ -57,7 +57,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 AddChildrenToTree(tree);
             }
 
-
             /////////////
             // Namespaces mode
             /////////////
@@ -67,8 +66,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 // Within tree, add commands based on their namespace hierachy
                 AddByNamespacesHierachy(tree, ClassesBuildingMode == ClassesBuildingMode.Both);
             }
-
-
 
             /////////////
             // Others
@@ -80,6 +77,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return tree;
         }
 
+        private readonly Func<object, bool> IsParent = (object a) => a.GetType().IsAssignableTo(typeof(ParentAttribute));
+
+        private ParentAttribute? GetParentAttribute(Type command)
+        {
+            var parentAttributes = command.GetCustomAttributes(false).Where(IsParent);
+            if (parentAttributes.Count() > 1)
+            {
+                var message = nameof(ParentAttribute) + " or its derived classes are present more than once on " + command.FullName;
+                throw new InvalidAttributeException(message);
+            }
+
+            return parentAttributes.FirstOrDefault() as ParentAttribute;
+        }
+
 
         /// <summary>
         /// Add to the tree all the commands types having a <see cref="ParentAttribute"/> and their parent
@@ -87,10 +98,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <param name="tree"></param>
         private void AddParentsToTree(TreeNode<Type> tree)
         {
-            var commandsWithParent = CommandsTypes.Where(t => t.GetCustomAttributes(false).Any(a => a is ParentAttribute));
+            var commandsWithParent = CommandsTypes.Where(t => t.GetCustomAttributes(false).Any(IsParent));
             foreach (var command in commandsWithParent)
             {
-                var parentAttribute = command.GetCustomAttributes(false).FirstOrDefault(a => a is ParentAttribute) as ParentAttribute;
+                var parentAttribute = GetParentAttribute(command);
                 if (parentAttribute?.Parent == null)
                 {
                     tree.AddChild(command);
@@ -120,7 +131,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                             break; // Quit because the rest of the chain is already done
                         }
 
-                        parentAttribute = parent.GetCustomAttributes(false).FirstOrDefault(a => a is ParentAttribute) as ParentAttribute;
+                        parentAttribute = GetParentAttribute(parent);
                         parent = parentAttribute?.Parent;
                     }
 

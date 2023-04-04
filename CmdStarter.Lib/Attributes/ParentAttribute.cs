@@ -15,7 +15,7 @@
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class ParentAttribute<ParentClass> : ParentAttribute where ParentClass : class
+    public class ParentAttribute<ParentClass> : ParentAttribute where ParentClass : StarterCommand
     {
         public ParentAttribute() : base(typeof(ParentClass))
         {
