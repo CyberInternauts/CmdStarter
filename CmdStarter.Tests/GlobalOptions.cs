@@ -35,5 +35,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var secondaryOption = starter.RootCommand.Options.FirstOrDefault(o => o.Name == SecondaryGlobalOptions.SECONDARY_INT_GLOBAL_OPTION_KEBAB);
             Assert.That(secondaryOption, Is.Not.Null);
         }
+
+        [Test]
+        public void FailingTest()
+        {
+            Assert.Fail("TEST FAILING");
+        }
     }
 }
