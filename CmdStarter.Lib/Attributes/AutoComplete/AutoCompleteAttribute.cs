@@ -21,6 +21,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             }
         }
 
+        public AutoCompleteAttribute(Type type)
+            : this(HandleType(type))
+        { }
         public AutoCompleteAttribute(params object[] completions)
         {
             _labels = new string[completions.Length];
