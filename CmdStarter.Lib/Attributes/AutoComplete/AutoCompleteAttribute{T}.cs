@@ -17,9 +17,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             : base(typeof(T))
         { }
 
-        public AutoCompleteAttribute(params T[] completions)
-            : base(completions.ToObjectArray())
-        { }
+        /// <inheritdoc cref="AutoCompleteAttribute(object[])"/>
+        public AutoCompleteAttribute(params object[] completions)
+            : base(completions)
+        {
+            _factory = GetFactory();
+        }
 
         private static object[] HandleGenericConstructor(Type type)
         {
