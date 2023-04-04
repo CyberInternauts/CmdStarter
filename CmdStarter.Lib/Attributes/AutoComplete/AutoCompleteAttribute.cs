@@ -20,13 +20,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
         public AutoCompleteAttribute(params object[] completions)
         {
+            const string NULL_ERROR_MESSAGE = "A completion cannot be null!";
+
             _objects = new object[completions.Length];
 
             for (int i = 0; i < completions.Length; i++)
             {
                 var autoCompleteValue = completions[i];
 
-                if (autoCompleteValue is null) throw new ArgumentNullException(autoCompleteValue?.ToString());
+                if (autoCompleteValue is null) throw new ArgumentNullException(NULL_ERROR_MESSAGE);
 
                 _objects[i] = autoCompleteValue;
             }
