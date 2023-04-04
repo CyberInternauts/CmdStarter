@@ -6,7 +6,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     public class AutoCompleteAttribute : Attribute
     {
         protected readonly object[] _objects;
-        protected CompletionItem[]? _items;
+        protected LinkedList<CompletionItem>? _items;
 
         public CompletionDelegate Context
         {
@@ -34,14 +34,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
         protected virtual void CacheItems()
         {
-            _items = new CompletionItem[_objects.Length];
+            _items = new LinkedList<CompletionItem>();
 
-            for (int i = 0; i < _items.Length; i++)
+            for (int i = 0; i < _objects.Length; i++)
             {
-                var label = _objects[i].ToString() ?? string.Empty;
+                var label = _objects[i].ToString();
+
+                if (label is null) continue;
+
                 var completionItem = new CompletionItem(label);
 
-                _items[i] = completionItem;
+                _items.AddLast(completionItem);
             }
         }
     }

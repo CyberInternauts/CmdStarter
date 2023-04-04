@@ -12,11 +12,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
         protected override void CacheItems()
         {
-            _items = new CompletionItem[_objects.Length];
+            _items = new LinkedList<CompletionItem>();
 
             var factory = FactoryT.GetDefault();
 
-            for (int i = 0; i < _items.Length; i++)
+            for (int i = 0; i < _objects.Length; i++)
             {
                 var item = (CompletionT)_objects[i];
 
@@ -33,7 +33,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                     documentation: documentation,
                     detail: detail);
 
-                _items[i] = completionItem;
+                _items.AddLast(completionItem);
             }
         }
     }
