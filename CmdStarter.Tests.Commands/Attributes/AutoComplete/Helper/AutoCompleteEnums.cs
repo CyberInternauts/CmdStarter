@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper
 {
     public enum NameEnum
     {
