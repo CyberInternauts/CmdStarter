@@ -14,7 +14,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// Can only be used if <typeparamref name="T"/> is <see langword="typeof"/> <see cref="Enum"/>.
         /// </remarks>
         public AutoCompleteAttribute()
-            : base(HandleGenericConstructor(typeof(T)))
+            : base(typeof(T))
         { }
 
         public AutoCompleteAttribute(params T[] completions)
