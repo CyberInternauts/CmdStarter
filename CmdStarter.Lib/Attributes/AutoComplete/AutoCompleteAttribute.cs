@@ -3,6 +3,9 @@ using System.CommandLine.Completions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
+    /// <summary>
+    /// Defines auto-completions for an <see cref="System.CommandLine.Option"/> or an <see cref="System.CommandLine.Argument"/>.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = true)]
     public class AutoCompleteAttribute : Attribute
     {
@@ -21,9 +24,26 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             }
         }
 
+        /// <summary>
+        /// <para>
+        /// If <paramref name="type"/> is <see langword="typeof"/> <see cref="Enum"/>
+        /// generates auto completions from all values. 
+        /// </para>
+        /// <para>
+        /// If <paramref name="type"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
+        /// retrieves auto completions from there.
+        /// </para>
+        /// </summary>
+        /// <param name="type">A <see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
         public AutoCompleteAttribute(Type type)
             : this(HandleType(type))
         { }
+
+        /// <summary>
+        /// Creates auto completions from the given parameters.
+        /// </summary>
+        /// <param name="completions">Labels for the auto completions.</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public AutoCompleteAttribute(params object[] completions)
         {
             _labels = new string[completions.Length];
