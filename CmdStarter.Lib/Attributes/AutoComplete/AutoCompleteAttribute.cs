@@ -5,8 +5,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = true)]
     public class AutoCompleteAttribute : Attribute
     {
-        protected readonly object[] _objects;
         const string NULL_OR_EMPTY_ERROR_MESSAGE = "A completion cannot be null or empty!";
+
+        protected readonly string[] _labels;
         protected LinkedList<CompletionItem>? _items;
 
         public CompletionDelegate Context
@@ -21,15 +22,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
         public AutoCompleteAttribute(params object[] completions)
         {
-            _objects = new object[completions.Length];
+            _labels = new string[completions.Length];
 
             for (int i = 0; i < completions.Length; i++)
             {
-                var autoCompleteValue = completions[i];
+                var autoCompleteValue = completions[i]?.ToString();
 
-                if (autoCompleteValue is null) throw new ArgumentNullException(NULL_ERROR_MESSAGE);
+                if (string.IsNullOrEmpty(autoCompleteValue)) throw new ArgumentNullException(NULL_OR_EMPTY_ERROR_MESSAGE);
 
-                _objects[i] = autoCompleteValue;
+                _labels[i] = autoCompleteValue;
             }
         }
 
@@ -37,9 +38,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         {
             _items = new LinkedList<CompletionItem>();
 
-            for (int i = 0; i < _objects.Length; i++)
+            for (int i = 0; i < _labels.Length; i++)
             {
-                var label = _objects[i].ToString();
+                var label = _labels[i].ToString();
 
                 if (label is null) continue;
 
