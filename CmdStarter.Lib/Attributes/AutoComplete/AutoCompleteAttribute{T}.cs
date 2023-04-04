@@ -3,16 +3,27 @@ using System.CommandLine.Completions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
+    /// <inheritdoc cref="AutoCompleteAttribute"/>
+    /// <typeparam name="T">
+    /// Defines the behaviour of the attribute.
+    /// <para>
+    /// More info in constructors.
+    /// </para>
+    /// </typeparam>
     public sealed class AutoCompleteAttribute<T> : AutoCompleteAttribute
     {
         private readonly IAutoCompleteFactory? _factory;
 
         /// <summary>
-        /// Creates autocompletion for all values of an <see cref="Enum"/>.
+        /// <para>
+        /// If <typeparamref name="T"/> is <see langword="typeof"/> <see cref="Enum"/>
+        /// generates auto completions from all values. 
+        /// </para>
+        /// <para>
+        /// If <typeparamref name="T"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
+        /// retrieves auto completions from there.
+        /// </para>
         /// </summary>
-        /// <remarks>
-        /// Can only be used if <typeparamref name="T"/> is <see langword="typeof"/> <see cref="Enum"/>.
-        /// </remarks>
         public AutoCompleteAttribute()
             : base(typeof(T))
         { }
