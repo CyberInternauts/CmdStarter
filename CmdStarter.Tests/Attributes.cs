@@ -105,10 +105,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public static void AssertCompletionItemsEqual(IEnumerable<CompletionItem> actual, IEnumerable<CompletionItem> expected)
         {
+            const string ERROR_MESSAGE = "Expected CompletionItem is different from actual.";
+
             TestsCommon.AssertIEnumerablesHaveSameElements(actual, expected);
 
             foreach (var expectedValue in expected)
             {
+
                 var hasMatch = actual.Any(actualValue =>
                 {
                     Assert.That(actualValue, Is.Not.Null);
@@ -120,7 +123,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                         && actualValue.Detail == expectedValue.Detail;
                 });
 
-                Assert.IsTrue(hasMatch);
+                Assert.IsTrue(hasMatch, ERROR_MESSAGE);
             }
         }
     }
