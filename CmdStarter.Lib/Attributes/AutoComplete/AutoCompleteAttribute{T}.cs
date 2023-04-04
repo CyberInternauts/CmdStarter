@@ -5,6 +5,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
     public sealed class AutoCompleteAttribute<T> : AutoCompleteAttribute
     {
+        private readonly IAutoCompleteFactory? _factory;
 
         /// <summary>
         /// Creates autocompletion for all values of an <see cref="Enum"/>.
