@@ -26,7 +26,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
             Option<string> expected = new(OPTION_NAME);
 
             var item = new CompletionItem(
-                OPTION_COMPLETION_1.PascalToKebabCase(),
+                OPTION_COMPLETION_1,
                 detail: AutoCompleteOptionFactory.DETAIL,
                 insertText: OPTION_COMPLETION_1.ToUpper()
                 );
