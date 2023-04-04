@@ -5,7 +5,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComple
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
-    public sealed class EnumAutoComplete : StarterCommand, IHasAutoComplete
+    public sealed class LonelyEnumAutoComplete : StarterCommand, IHasAutoComplete
     {
         [AutoComplete<NameEnum>()]
         public string PersonName { get; set; } = null!;
