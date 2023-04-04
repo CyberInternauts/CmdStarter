@@ -20,11 +20,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             {
                 var item = (CompletionT)_objects[i];
 
-                var label = factory.LabelFactory(item);
-                var sortText = factory.SortTextFactory(item);
-                var insertText = factory.InsertTextFactory(item);
-                var documentation = factory.DocumentationFactory(item);
-                var detail = factory.DetailFactory(item);
+                var label = factory.GetLabel(item);
+                var sortText = factory.GetSortText(item);
+                var insertText = factory.GetInsertText(item);
+                var documentation = factory.GetDocumentation(item);
+                var detail = factory.GetDetail(item);
 
                 var completionItem = new CompletionItem(
                     label,
