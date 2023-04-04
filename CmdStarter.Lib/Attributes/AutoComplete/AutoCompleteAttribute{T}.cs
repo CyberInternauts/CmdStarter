@@ -10,6 +10,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     /// More info in constructors.
     /// </para>
     /// </typeparam>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = true)]
     public sealed class AutoCompleteAttribute<T> : AutoCompleteAttribute
     {
         private readonly IAutoCompleteFactory? _factory;
