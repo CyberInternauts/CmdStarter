@@ -80,7 +80,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
             if (type.IsEnum) return Enum.GetNames(type);
 
-            if (type.IsAssignableFrom(typeof(IAutoCompleteProvider)))
+            if (type.IsAssignableTo(typeof(IAutoCompleteProvider)))
             {
                 var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteProvider.GetDefault))!; //Cannot be null as implementation is required.
 

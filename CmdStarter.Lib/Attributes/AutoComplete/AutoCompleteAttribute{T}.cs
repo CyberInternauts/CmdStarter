@@ -76,7 +76,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         {
             const string NOT_ASSIGNABLE_ERROR_MESSAGE = "{0} is not assignable from IAutoCompleteFactory.";
 
-            if (!typeof(T).IsAssignableFrom(typeof(IAutoCompleteFactory)))
+            if (!typeof(T).IsAssignableTo(typeof(IAutoCompleteFactory)))
             {
                 var message = string.Format(NOT_ASSIGNABLE_ERROR_MESSAGE, typeof(T));
                 throw new InvalidCastException(message);
