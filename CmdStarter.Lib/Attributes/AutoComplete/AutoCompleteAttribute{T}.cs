@@ -24,16 +24,42 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             _factory = GetFactory();
         }
 
-        private static object[] HandleGenericConstructor(Type type)
+        /// <inheritdoc cref="AutoCompleteAttribute(Type)"/>
+        public AutoCompleteAttribute(Type type)
+            : base(type)
         {
-            const string EXCEPTION_MESSAGE = "This constructor is only supported with Enums";
+            _factory = GetFactory();
+        }
 
-            if (type.IsEnum)
+        protected sealed override void CacheItems()
+        {
+            if (_factory is null)
             {
-                return Enum.GetNames(type);
+                base.CacheItems();
+                return;
             }
 
-            throw new NotSupportedException(EXCEPTION_MESSAGE);
+            _items = new LinkedList<CompletionItem>();
+
+            for (int i = 0; i < _labels.Length; i++)
+            {
+                var label = _labels[i];
+
+                var sortText = _factory.GetSortText(label);
+                var insertText = _factory.GetInsertText(label);
+                var documentation = _factory.GetDocumentation(label);
+                var detail = _factory.GetDetail(label);
+
+                var completionItem = new CompletionItem(
+                    label,
+                    sortText: sortText,
+                    insertText: insertText,
+                    documentation: documentation,
+                    detail: detail);
+
+                _items.AddLast(completionItem);
+            }
+        }
         }
     }
 }
