@@ -50,5 +50,28 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                 _items.AddLast(completionItem);
             }
         }
+
+        protected static object[] HandleType(Type type)
+        {
+            const string EXCEPTION_MESSAGE = "This constructor is only supported with Enums and IAutoCompleteProvider.";
+
+            if (type.IsEnum) return Enum.GetNames(type);
+
+            if (type.IsAssignableFrom(typeof(IAutoCompleteProvider)))
+            {
+                var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteProvider.GetDefault))!; //Cannot be null as implementation is required.
+
+                var instance = (IAutoCompleteProvider)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
+
+                var autoCompletes = instance.GetAutoCompletes();
+                var hasNullItem = autoCompletes.Any(autoComplete => string.IsNullOrEmpty(autoComplete));
+
+                if (hasNullItem) throw new ArgumentNullException(NULL_OR_EMPTY_ERROR_MESSAGE);
+
+                return autoCompletes;
+            }
+
+            throw new NotSupportedException(EXCEPTION_MESSAGE);
+        }
     }
 }
