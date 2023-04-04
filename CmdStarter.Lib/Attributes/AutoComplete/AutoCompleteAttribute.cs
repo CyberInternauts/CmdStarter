@@ -6,6 +6,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     public class AutoCompleteAttribute : Attribute
     {
         protected readonly object[] _objects;
+        const string NULL_OR_EMPTY_ERROR_MESSAGE = "A completion cannot be null or empty!";
         protected LinkedList<CompletionItem>? _items;
 
         public CompletionDelegate Context
@@ -20,8 +21,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
         public AutoCompleteAttribute(params object[] completions)
         {
-            const string NULL_ERROR_MESSAGE = "A completion cannot be null!";
-
             _objects = new object[completions.Length];
 
             for (int i = 0; i < completions.Length; i++)
