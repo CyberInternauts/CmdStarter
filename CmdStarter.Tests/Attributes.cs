@@ -75,10 +75,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [TestCase<NoAutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
-        [TestCase<NonGenericSingleAutoComplete>(NonGenericSingleAutoComplete.OPTION_NAME, NonGenericSingleAutoComplete.ARGUMENT_NAME)]
-        [TestCase<NonGenericMultiAutoComplete>(NonGenericMultiAutoComplete.OPTION_NAME, NonGenericMultiAutoComplete.ARGUMENT_NAME)]
-        [TestCase<NonGenericMultiSingleAutoComplete>(NonGenericMultiSingleAutoComplete.OPTION_NAME, NonGenericMultiSingleAutoComplete.ARGUMENT_NAME)]
-        [TestCase<NonGenericMultiMultiAutoComplete>(NonGenericMultiMultiAutoComplete.OPTION_NAME, NonGenericMultiMultiAutoComplete.ARGUMENT_NAME)]
+        [TestCase<SingleAutoComplete>(SingleAutoComplete.OPTION_NAME, SingleAutoComplete.ARGUMENT_NAME)]
+        [TestCase<MultiAutoComplete>(MultiAutoComplete.OPTION_NAME, MultiAutoComplete.ARGUMENT_NAME)]
+        [TestCase<MultiSingleAutoComplete>(MultiSingleAutoComplete.OPTION_NAME, MultiSingleAutoComplete.ARGUMENT_NAME)]
+        [TestCase<MultiMultiAutoComplete>(MultiMultiAutoComplete.OPTION_NAME, MultiMultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<GenericSingleAutoComplete>(GenericSingleAutoComplete.OPTION_NAME, GenericSingleAutoComplete.ARGUMENT_NAME)]
         [TestCase<GenericMultiAutoComplete>(GenericMultiAutoComplete.OPTION_NAME, GenericMultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<GenericMultiSingleAutoComplete>(GenericMultiSingleAutoComplete.OPTION_NAME, GenericMultiSingleAutoComplete.ARGUMENT_NAME)]

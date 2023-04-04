@@ -4,25 +4,19 @@ using System.CommandLine.Completions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
-    public sealed class GenericMultiSingleAutoComplete : StarterCommand, IHasAutoComplete
+    public sealed class SingleAutoComplete : StarterCommand, IHasAutoComplete
     {
         private const string OPTION_COMPLETION_1 = "Bob";
-        private const string OPTION_COMPLETION_2 = "Robert";
 
-        private const int ARGUMENT_COMPLETION_1 = 18;
-        private const int ARGUMENT_COMPLETION_2 = 60;
+        private const string ARGUMENT_COMPLETION_1 = "18";
 
-        [AutoComplete<string>(OPTION_COMPLETION_1)]
-        [AutoComplete<string>(OPTION_COMPLETION_2)]
+        [AutoComplete(OPTION_COMPLETION_1)]
         public string PersonName { get; set; } = null!;
         public const string OPTION_NAME = "person-name";
 
         public override Delegate MethodForHandling => Execute;
 
-        private void Execute(
-            [AutoComplete<int>(ARGUMENT_COMPLETION_1)]
-            [AutoComplete<int>(ARGUMENT_COMPLETION_2)]
-            int age = 18)
+        private void Execute([AutoComplete(ARGUMENT_COMPLETION_1)] int age = 18)
         { }
         public const string ARGUMENT_NAME = "age";
 
@@ -30,7 +24,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Option<string> expected = new(OPTION_NAME);
 
-            expected.AddCompletions(OPTION_COMPLETION_1, OPTION_COMPLETION_2);
+            expected.AddCompletions(OPTION_COMPLETION_1);
 
             return expected.GetCompletions();
         }
@@ -39,7 +33,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Argument<int> expected = new();
 
-            expected.AddCompletions(ARGUMENT_COMPLETION_1.ToString(), ARGUMENT_COMPLETION_2.ToString());
+            expected.AddCompletions(ARGUMENT_COMPLETION_1);
 
             return expected.GetCompletions();
         }
