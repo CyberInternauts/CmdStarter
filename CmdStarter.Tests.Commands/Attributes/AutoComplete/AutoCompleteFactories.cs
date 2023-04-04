@@ -3,7 +3,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
-    internal sealed class AutoCompleteOptionFactory : IAutoCompleteFactory<string>
+    internal sealed class AutoCompleteOptionFactory : IAutoCompleteFactory
     {
         public const string DETAIL = "Bob is a cool guy.";
 
@@ -13,10 +13,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
         public string? GetInsertText(string value) => value.ToUpper();
 
-        public static IAutoCompleteFactory<string> GetDefault() => new AutoCompleteOptionFactory();
+        public static IAutoCompleteFactory GetDefault() => new AutoCompleteOptionFactory();
     }
 
-    internal sealed class AutoCompleteArgumentFactory : IAutoCompleteFactory<int>
+    internal sealed class AutoCompleteArgumentFactory : IAutoCompleteFactory
     {
         public const string DOCUMENTATION_EU = "Age of legal alcohol usage in the E.U.";
         public const string DOCUMENTATION_USA = "Age of legal alcohol usage in the U.S.A.";
@@ -24,15 +24,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
         public string GetLabel(int num) => num.ToString();
 
-        public string? GetDocumentation(int num)
+        public string? GetDocumentation(string num)
         {
-            if (num >= 21) return DOCUMENTATION_USA;
+            if (int.Parse(num) >= 21) return DOCUMENTATION_USA;
 
-            if (num >= 18) return DOCUMENTATION_EU;
+            if (int.Parse(num) >= 18) return DOCUMENTATION_EU;
 
             return DOCUMENTATION_NONE;
         }
 
-        public static IAutoCompleteFactory<int> GetDefault() => new AutoCompleteArgumentFactory();
+        public static IAutoCompleteFactory GetDefault() => new AutoCompleteArgumentFactory();
     }
 }
