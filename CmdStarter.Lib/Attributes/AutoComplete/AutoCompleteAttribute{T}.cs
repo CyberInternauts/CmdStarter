@@ -3,7 +3,7 @@ using System.CommandLine.Completions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
-    public class AutoCompleteAttribute<T> : AutoCompleteAttribute
+    public sealed class AutoCompleteAttribute<T> : AutoCompleteAttribute
     {
         internal static readonly Func<T, string?> NullFactory = (obj) => null;
 
