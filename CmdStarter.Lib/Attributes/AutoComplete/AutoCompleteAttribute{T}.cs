@@ -60,6 +60,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                 _items.AddLast(completionItem);
             }
         }
+
+        private static IAutoCompleteFactory GetFactory()
+        {
+            const string NOT_ASSIGNABLE_ERROR_MESSAGE = "{0} is not assignable from IAutoCompleteFactory.";
+
+            if (!typeof(T).IsAssignableFrom(typeof(IAutoCompleteFactory)))
+            {
+                var message = string.Format(NOT_ASSIGNABLE_ERROR_MESSAGE, typeof(T));
+                throw new InvalidCastException(message);
+            }
+
+            var getDefaultMethod = typeof(T).GetMethod(nameof(IAutoCompleteFactory.GetDefault))!; //Cannot be null as implementation is required.
+
+            return (IAutoCompleteFactory)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
         }
     }
 }
