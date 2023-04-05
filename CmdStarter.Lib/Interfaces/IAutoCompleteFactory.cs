@@ -22,6 +22,6 @@
         /// </summary>
         string? GetDetail(string value) => null;
 
-        static abstract IAutoCompleteFactory GetDefault();
+        static abstract IAutoCompleteFactory GetInstance();
     }
 }

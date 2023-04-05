@@ -4,6 +4,6 @@
     {
         string[] GetAutoCompletes();
 
-        static abstract IAutoCompleteProvider GetDefault();
+        static abstract IAutoCompleteProvider GetInstance();
     }
 }
