@@ -26,7 +26,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             : base(typeof(T))
         { }
 
-        /// <inheritdoc cref="AutoCompleteAttribute(object[])"/>
+        /// <summary>
+        /// Creates auto completions from the given <paramref name="completions"/> and runs them through the <typeparamref name="T"/> factory.
+        /// </summary>
+        /// <param name="factory">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
+        /// <param name="completions">Labels for the auto completions.</param>
         public AutoCompleteAttribute(params object[] completions)
             : base(typeof(T), completions)
         { }
