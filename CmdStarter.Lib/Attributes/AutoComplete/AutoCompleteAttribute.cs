@@ -28,34 +28,34 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// <summary>
         /// Generates completion from a given provider.
         /// <para>
-        /// If <paramref name="feeder"/> is <see langword="typeof"/> <see cref="Enum"/>
+        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="Enum"/>
         /// generates auto completions from all values. 
         /// </para>
         /// <para>
-        /// If <paramref name="feeder"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
+        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
         /// retrieves auto completions from there.
         /// </para>
         /// </summary>
-        /// <param name="feeder">A <ee cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
-        public AutoCompleteAttribute(Type feeder)
-            : this(HandleFeederType(feeder))
+        /// <param name="provider"><see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
+        public AutoCompleteAttribute(Type provider)
+            : this(HandleProviderType(provider))
         { }
 
         /// <summary>
         /// Generates completion from a given provider and runs them through the <paramref name="factory"/>.
         /// <para>
-        /// If <paramref name="feeder"/> is <see langword="typeof"/> <see cref="Enum"/>
+        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="Enum"/>
         /// generates auto completions from all values. 
         /// </para>
         /// <para>
-        /// If <paramref name="feeder"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
+        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
         /// retrieves auto completions from there.
         /// </para>
         /// </summary>
         /// <param name="factory">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
-        /// <param name="feeder">A <ee cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
-        public AutoCompleteAttribute(Type factory, Type feeder)
-            : this(factory, HandleFeederType(feeder))
+        /// <param name="provider"><see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
+        public AutoCompleteAttribute(Type factory, Type provider)
+            : this(factory, HandleProviderType(provider))
         { }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             }
         }
 
-        private static object[] HandleFeederType(Type type)
+        private static object[] HandleProviderType(Type type)
         {
             const string EXCEPTION_MESSAGE = "This constructor is only supported with Enums and IAutoCompleteProvider.";
 
