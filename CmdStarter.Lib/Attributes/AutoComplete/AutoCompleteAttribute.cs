@@ -11,8 +11,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     {
         const string NULL_OR_EMPTY_ERROR_MESSAGE = "A completion cannot be null or empty!";
 
-        protected readonly string[] _labels;
-        protected LinkedList<CompletionItem>? _items;
+        private readonly string[] _labels;
+        private readonly IAutoCompleteFactory? _factory;
+        private LinkedList<CompletionItem>? _items;
 
         public CompletionDelegate Context
         {
@@ -25,6 +26,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         }
 
         /// <summary>
+        /// Generates completion from a given provider.
         /// <para>
         /// If <paramref name="feeder"/> is <see langword="typeof"/> <see cref="Enum"/>
         /// generates auto completions from all values. 
@@ -34,9 +36,26 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// retrieves auto completions from there.
         /// </para>
         /// </summary>
-        /// <param name="feeder">A <see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
+        /// <param name="feeder">A <ee cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
         public AutoCompleteAttribute(Type feeder)
             : this(HandleFeederType(feeder))
+        { }
+
+        /// <summary>
+        /// Generates completion from a given provider and runs them through the <paramref name="factory"/>.
+        /// <para>
+        /// If <paramref name="feeder"/> is <see langword="typeof"/> <see cref="Enum"/>
+        /// generates auto completions from all values. 
+        /// </para>
+        /// <para>
+        /// If <paramref name="feeder"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
+        /// retrieves auto completions from there.
+        /// </para>
+        /// </summary>
+        /// <param name="factory">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
+        /// <param name="feeder">A <ee cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
+        public AutoCompleteAttribute(Type factory, Type feeder)
+            : this(factory, HandleFeederType(feeder))
         { }
 
         /// <summary>
@@ -63,7 +82,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             }
         }
 
-        protected virtual void CacheItems()
+        /// <summary>
+        /// Creates auto completions from the given <paramref name="completions"/> and runs them through the <paramref name="factory"/>.
+        /// </summary>
+        /// <param name="factory">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
+        /// <param name="completions">Labels for the auto completions.</param>
+        public AutoCompleteAttribute(Type factory, params object[] completions)
+            : this(completions)
+        {
+            _factory = GetFactory(factory);
+        }
+
+        private void CacheItems()
         {
             _items = new LinkedList<CompletionItem>();
 
@@ -73,13 +103,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
                 if (string.IsNullOrWhiteSpace(label)) continue;
 
-                var completionItem = new CompletionItem(label);
+                var sortText = _factory?.GetSortText(label);
+                var insertText = _factory?.GetInsertText(label);
+                var documentation = _factory?.GetDocumentation(label);
+                var detail = _factory?.GetDetail(label);
+
+                var completionItem = new CompletionItem(
+                    label,
+                    sortText: sortText,
+                    insertText: insertText,
+                    documentation: documentation,
+                    detail: detail);
 
                 _items.AddLast(completionItem);
             }
         }
 
-        protected static object[] HandleFeederType(Type type)
+        private static object[] HandleFeederType(Type type)
         {
             const string EXCEPTION_MESSAGE = "This constructor is only supported with Enums and IAutoCompleteProvider.";
 
@@ -102,6 +142,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             }
 
             throw new NotSupportedException(EXCEPTION_MESSAGE);
+        }
+
+        private static IAutoCompleteFactory GetFactory(Type type)
+        {
+            const string NOT_ASSIGNABLE_ERROR_MESSAGE = "{0} is not assignable from IAutoCompleteFactory.";
+
+            if (!type.IsAssignableTo(typeof(IAutoCompleteFactory)))
+            {
+                var message = string.Format(NOT_ASSIGNABLE_ERROR_MESSAGE, type);
+                throw new InvalidCastException(message);
+            }
+
+            var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteFactory.GetDefault))!; //Cannot be null as implementation is required.
+
+            return (IAutoCompleteFactory)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
         }
     }
 }
