@@ -9,7 +9,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = true)]
     public class AutoCompleteAttribute : Attribute
     {
-        const string NULL_OR_EMPTY_ERROR_MESSAGE = "A completion cannot be null or empty!";
+        private const string NULL_OR_EMPTY_ERROR_MESSAGE = "A completion cannot be null or empty!";
 
         private readonly string[] _labels;
         private readonly IAutoCompleteFactory? _factory;
