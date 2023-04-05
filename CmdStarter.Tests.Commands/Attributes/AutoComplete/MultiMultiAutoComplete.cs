@@ -30,7 +30,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         { }
         public const string ARGUMENT_NAME = "age";
 
-        public IEnumerable<CompletionItem> OptionExpected()
+        public IEnumerable<CompletionItem> OptionCompletionsExpected()
         {
             Option<string> expected = new(OPTION_NAME);
 
@@ -41,7 +41,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
             return expected.GetCompletions();
         }
 
-        public IEnumerable<CompletionItem> ArgumentExpected()
+        public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
         {
             Argument<int> expected = new();
 

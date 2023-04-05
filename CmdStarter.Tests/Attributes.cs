@@ -96,11 +96,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             var option = command.Options.FirstOrDefault(option => option.Name == optionName);
             Assert.That(option, Is.Not.Null);
-            AssertCompletionItemsEqual(option.GetCompletions(), command.OptionExpected());
+            AssertCompletionItemsEqual(option.GetCompletions(), command.OptionCompletionsExpected());
 
             var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
             Assert.That(argument, Is.Not.Null);
-            AssertCompletionItemsEqual(argument.GetCompletions(), command.ArgumentExpected());
+            AssertCompletionItemsEqual(argument.GetCompletions(), command.ArgumentCompletionsExpected());
         }
 
         [TestCase<NonGenericNullCompletion>]

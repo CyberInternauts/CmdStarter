@@ -4,8 +4,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces
 {
     public interface IHasAutoComplete
     {
-        IEnumerable<CompletionItem> OptionExpected();
+        IEnumerable<CompletionItem> OptionCompletionsExpected();
 
-        IEnumerable<CompletionItem> ArgumentExpected();
+        IEnumerable<CompletionItem> ArgumentCompletionsExpected();
     }
 }
