@@ -127,7 +127,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
             if (type.IsAssignableTo(typeof(IAutoCompleteProvider)))
             {
-                var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteProvider.GetDefault))!; //Cannot be null as implementation is required.
+                var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteProvider.GetInstance))!; //Cannot be null as implementation is required.
 
                 var instance = (IAutoCompleteProvider)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
 
@@ -156,7 +156,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                 throw new InvalidCastException(message);
             }
 
-            var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteFactory.GetDefault))!; //Cannot be null as implementation is required.
+            var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteFactory.GetInstance))!; //Cannot be null as implementation is required.
 
             return (IAutoCompleteFactory)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
         }
