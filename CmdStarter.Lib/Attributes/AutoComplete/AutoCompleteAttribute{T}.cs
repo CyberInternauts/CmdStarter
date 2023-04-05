@@ -30,10 +30,5 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         public AutoCompleteAttribute(params object[] completions)
             : base(typeof(T), completions)
         { }
-
-        /// <inheritdoc cref="AutoCompleteAttribute(Type)"/>
-        public AutoCompleteAttribute(Type provider)
-            : base(typeof(T), provider)
-        { }
     }
 }

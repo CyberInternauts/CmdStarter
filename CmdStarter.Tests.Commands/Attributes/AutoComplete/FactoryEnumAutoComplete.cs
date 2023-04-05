@@ -7,13 +7,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 {
     public class FactoryEnumAutoComplete : StarterCommand, IHasAutoComplete
     {
-        [AutoComplete<AutoCompleteOptionFactory>(typeof(NameEnum))]
+        [AutoComplete(typeof(AutoCompleteOptionFactory), typeof(NameEnum))]
         public string PersonName { get; set; } = null!;
         public const string OPTION_NAME = "person-name";
 
         public override Delegate MethodForHandling => Execute;
 
-        private void Execute([AutoComplete<AutoCompleteArgumentFactory>(typeof(AgeEnum))] int age = 18)
+        private void Execute([AutoComplete(typeof(AutoCompleteArgumentFactory), typeof(AgeEnum))] int age = 18)
         { }
         public const string ARGUMENT_NAME = "age";
 
