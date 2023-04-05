@@ -7,7 +7,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoCom
     {
         public Type TypeOfException => typeof(NotSupportedException);
 
-        public TestDelegate ErrorRunner => () => new AutoCompleteAttribute(typeof(StarterCommand));
+        public Delegate ErrorInvoker => () => new AutoCompleteAttribute(typeof(StarterCommand));
 
         public static NonGenericNotSupportedType GetInstance() => new NonGenericNotSupportedType();
     }

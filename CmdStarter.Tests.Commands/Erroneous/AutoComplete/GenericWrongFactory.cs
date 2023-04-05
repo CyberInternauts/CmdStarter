@@ -9,7 +9,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoCom
 
         public Type TypeOfException => typeof(InvalidCastException);
 
-        public TestDelegate ErrorRunner => () => new AutoCompleteAttribute<GenericWrongFactory>(PARAM_1);
+        public Delegate ErrorInvoker => () => new AutoCompleteAttribute<GenericWrongFactory>(PARAM_1);
 
         public static GenericWrongFactory GetInstance() => new GenericWrongFactory();
     }

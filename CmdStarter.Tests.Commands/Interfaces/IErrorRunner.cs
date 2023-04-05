@@ -1,9 +1,9 @@
-﻿using NUnit.Framework;
-
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces
 {
     public interface IErrorRunner
     {
-        TestDelegate ErrorRunner { get; }
+        Type TypeOfException { get; }
+
+        Delegate ErrorInvoker { get; }
     }
 }
