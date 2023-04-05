@@ -134,6 +134,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                 var autoCompletes = instance.GetAutoCompletes();
                 for (int i = 0; i < autoCompletes.Length; i++)
                 {
+                    if (!string.IsNullOrWhiteSpace(autoCompletes[i])) continue;
+
                     var paramName = $"{nameof(autoCompletes)}[{i}]";
                     throw new ArgumentNullException(paramName, NULL_OR_EMPTY_ERROR_MESSAGE);
                 }
