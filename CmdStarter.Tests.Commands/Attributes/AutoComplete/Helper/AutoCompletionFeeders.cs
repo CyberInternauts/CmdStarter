@@ -11,7 +11,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
             return Enum.GetNames<AgeEnum>();
         }
 
-        public static IAutoCompleteProvider GetDefault() => new AutoCompletionArgumentFeeder();
+        public static IAutoCompleteProvider GetInstance() => new AutoCompletionArgumentFeeder();
     }
 
     internal sealed class AutoCompletionOptionFeeder : IAutoCompleteProvider
@@ -23,6 +23,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
             return Enum.GetNames<NameEnum>();
         }
 
-        public static IAutoCompleteProvider GetDefault() => new AutoCompletionOptionFeeder();
+        public static IAutoCompleteProvider GetInstance() => new AutoCompletionOptionFeeder();
     }
 }

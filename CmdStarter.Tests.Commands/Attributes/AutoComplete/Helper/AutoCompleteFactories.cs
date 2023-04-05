@@ -10,7 +10,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
         public string? GetInsertText(string value) => value.ToUpper();
 
-        public static IAutoCompleteFactory GetDefault() => new AutoCompleteOptionFactory();
+        public static IAutoCompleteFactory GetInstance() => new AutoCompleteOptionFactory();
     }
 
     internal sealed class AutoCompleteArgumentFactory : IAutoCompleteFactory
@@ -30,6 +30,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
             return DOCUMENTATION_NONE;
         }
 
-        public static IAutoCompleteFactory GetDefault() => new AutoCompleteArgumentFactory();
+        public static IAutoCompleteFactory GetInstance() => new AutoCompleteArgumentFactory();
     }
 }

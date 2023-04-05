@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete
 {
-    public class GenericWrongFactory : IHasException, IErrorRunner, IGetDefault<GenericWrongFactory>
+    public class GenericWrongFactory : IErrorRunner, IGetInstance<GenericWrongFactory>
     {
         const string PARAM_1 = "test";
 
@@ -11,6 +11,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoCom
 
         public TestDelegate ErrorRunner => () => new AutoCompleteAttribute<GenericWrongFactory>(PARAM_1);
 
-        public static GenericWrongFactory GetDefault() => new GenericWrongFactory();
+        public static GenericWrongFactory GetInstance() => new GenericWrongFactory();
     }
 }

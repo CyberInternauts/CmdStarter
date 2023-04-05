@@ -3,12 +3,12 @@ using NUnit.Framework;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete
 {
-    public sealed class NonGenericEmptyCompletion : IHasException, IErrorRunner, IGetDefault<NonGenericEmptyCompletion>
+    public sealed class NonGenericEmptyCompletion : IErrorRunner, IGetInstance<NonGenericEmptyCompletion>
     {
         public Type TypeOfException => typeof(ArgumentNullException);
 
         public TestDelegate ErrorRunner => () => new AutoCompleteAttribute(string.Empty);
 
-        public static NonGenericEmptyCompletion GetDefault() => new NonGenericEmptyCompletion();
+        public static NonGenericEmptyCompletion GetInstance() => new NonGenericEmptyCompletion();
     }
 }
