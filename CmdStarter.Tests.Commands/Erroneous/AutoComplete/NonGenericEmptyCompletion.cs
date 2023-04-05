@@ -7,7 +7,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoCom
     {
         public Type TypeOfException => typeof(ArgumentNullException);
 
-        public Delegate ErrorInvoker => () => new AutoCompleteAttribute(string.Empty);
+        public void ErrorInvoker() => new AutoCompleteAttribute(string.Empty);
 
         public static NonGenericEmptyCompletion GetInstance() => new NonGenericEmptyCompletion();
     }

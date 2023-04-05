@@ -108,10 +108,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NonGenericNotSupportedType>]
         [TestCase<GenericWrongFactory>]
         public void EnsureAutoCompleteAttributeExceptions<ErrorRunner>()
-            where ErrorRunner : IHasException, IErrorRunner, IGetInstance<ErrorRunner>
+            where ErrorRunner : IErrorRunner, IGetInstance<ErrorRunner>
         {
             var instance = ErrorRunner.GetInstance();
-            Assert.Throws(instance.TypeOfException, instance.ErrorRunner);
+            Assert.Throws(instance.TypeOfException, () => instance.ErrorInvoker());
         }
 
         public static void AssertCompletionItemsEqual(IEnumerable<CompletionItem> actual, IEnumerable<CompletionItem> expected)

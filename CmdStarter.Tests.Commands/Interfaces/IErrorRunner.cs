@@ -4,6 +4,6 @@
     {
         Type TypeOfException { get; }
 
-        Delegate ErrorInvoker { get; }
+        void ErrorInvoker();
     }
 }
