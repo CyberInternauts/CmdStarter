@@ -17,16 +17,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
         public IEnumerable<CompletionItem> OptionCompletionsExpected()
         {
-            Option<string> expected = new(OPTION_NAME);
-
-            return expected.GetCompletions();
+            return Array.Empty<CompletionItem>();
         }
 
         public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
         {
-            Argument<int> expected = new();
-
-            return expected.GetCompletions();
+            return Array.Empty<CompletionItem>();
         }
     }
 }

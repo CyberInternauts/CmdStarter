@@ -4,7 +4,7 @@ using System.CommandLine.Completions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
-    public sealed class MultiAutoComplete : StarterCommand, IHasAutoComplete
+    public sealed class SingleMultiAutoComplete : StarterCommand, IHasAutoComplete
     {
         private const string OPTION_COMPLETION_1 = "Bob";
         private const string OPTION_COMPLETION_2 = "Robert";

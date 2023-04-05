@@ -76,8 +76,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [TestCase<NoAutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
-        [TestCase<SingleAutoComplete>(SingleAutoComplete.OPTION_NAME, SingleAutoComplete.ARGUMENT_NAME)]
-        [TestCase<MultiAutoComplete>(MultiAutoComplete.OPTION_NAME, MultiAutoComplete.ARGUMENT_NAME)]
+        [TestCase<SingleSingleAutoComplete>(SingleSingleAutoComplete.OPTION_NAME, SingleSingleAutoComplete.ARGUMENT_NAME)]
+        [TestCase<SingleMultiAutoComplete>(SingleMultiAutoComplete.OPTION_NAME, SingleMultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<MultiSingleAutoComplete>(MultiSingleAutoComplete.OPTION_NAME, MultiSingleAutoComplete.ARGUMENT_NAME)]
         [TestCase<MultiMultiAutoComplete>(MultiMultiAutoComplete.OPTION_NAME, MultiMultiAutoComplete.ARGUMENT_NAME)]
         [TestCase<LonelyEnumAutoComplete>(LonelyEnumAutoComplete.OPTION_NAME, LonelyEnumAutoComplete.ARGUMENT_NAME)]
