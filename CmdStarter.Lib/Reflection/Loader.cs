@@ -106,7 +106,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             }
         }
 
-        internal static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
+        private static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
         {
             return provider.GetCustomAttributes(false)
                 .Where(attribute => attribute is AutoCompleteAttribute)
