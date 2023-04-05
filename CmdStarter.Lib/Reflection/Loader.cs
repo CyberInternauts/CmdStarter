@@ -1,6 +1,7 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.CommandLine;
+using System.CommandLine.Completions;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -31,7 +32,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 option.AllowMultipleArgumentsPerToken = isList;
                 LoadDescription(property, option);
                 LoadAliases(property, option);
-                LoadAutoCompletes(property, option);
+                LoadAutoCompletes(property, (completion) => option.AddCompletions(completion));
                 receptacle.AddOption(option);
             }
         }
@@ -53,7 +54,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                     argument.SetDefaultValue(parameter.DefaultValue);
                 }
                 LoadDescription(parameter, argument);
-                LoadAutoCompletes(parameter, argument);
+                LoadAutoCompletes(parameter, (completion) => argument.AddCompletions(completion));
                 receptacle.Add(argument);
             }
         }
@@ -84,25 +85,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             }
         }
 
-        internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Option option)
+        internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Action<CompletionDelegate> action)
         {
             var completionDelegates = GetAutoCompleteAttributes(provider)
                 .Select(attribute => attribute.Context);
 
             foreach (var completion in completionDelegates)
             {
-                option.AddCompletions(completion);
-            }
-        }
-
-        internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Argument argument)
-        {
-            var completionDelegates = GetAutoCompleteAttributes(provider)
-                .Select(attribute => attribute.Context);
-
-            foreach (var completion in completionDelegates)
-            {
-                argument.AddCompletions(completion);
+                action(completion);
             }
         }
 
