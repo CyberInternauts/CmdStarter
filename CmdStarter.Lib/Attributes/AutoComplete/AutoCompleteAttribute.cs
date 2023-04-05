@@ -52,7 +52,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             {
                 var autoCompleteValue = completions[i]?.ToString();
 
-                if (string.IsNullOrWhiteSpace(autoCompleteValue)) throw new ArgumentNullException(NULL_OR_EMPTY_ERROR_MESSAGE);
+                if (string.IsNullOrWhiteSpace(autoCompleteValue))
+                {
+                    var paramName = $"{nameof(completions)}[{i}]";
+                    throw new ArgumentNullException(paramName, NULL_OR_EMPTY_ERROR_MESSAGE);
+                }
+
 
                 _labels[i] = autoCompleteValue;
             }
@@ -87,9 +92,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                 var instance = (IAutoCompleteProvider)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
 
                 var autoCompletes = instance.GetAutoCompletes();
-                var hasNullItem = autoCompletes.Any(autoComplete => string.IsNullOrEmpty(autoComplete));
-
-                if (hasNullItem) throw new ArgumentNullException(NULL_OR_EMPTY_ERROR_MESSAGE);
+                for (int i = 0; i < autoCompletes.Length; i++)
+                {
+                    var paramName = $"{nameof(autoCompletes)}[{i}]";
+                    throw new ArgumentNullException(paramName, NULL_OR_EMPTY_ERROR_MESSAGE);
+                }
 
                 return autoCompletes;
             }
