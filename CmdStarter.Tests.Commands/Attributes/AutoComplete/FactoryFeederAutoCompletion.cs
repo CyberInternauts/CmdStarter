@@ -21,8 +21,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Option<string> expected = new(OPTION_NAME);
 
-            var feeder = AutoCompletionOptionFeeder.GetDefault();
-            var instance = AutoCompleteOptionFactory.GetDefault();
+            var feeder = AutoCompletionOptionFeeder.GetInstance();
+            var instance = AutoCompleteOptionFactory.GetInstance();
             var items = new LinkedList<CompletionItem>();
 
             foreach (var completion in feeder.GetAutoCompletes())
@@ -44,8 +44,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Argument<int> expected = new();
 
-            var feeder = AutoCompletionArgumentFeeder.GetDefault();
-            var instance = AutoCompleteArgumentFactory.GetDefault();
+            var feeder = AutoCompletionArgumentFeeder.GetInstance();
+            var instance = AutoCompleteArgumentFactory.GetInstance();
             var items = new LinkedList<CompletionItem>();
 
             foreach (var completion in feeder.GetAutoCompletes())

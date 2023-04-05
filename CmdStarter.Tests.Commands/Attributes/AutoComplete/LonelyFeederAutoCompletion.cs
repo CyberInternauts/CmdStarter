@@ -21,7 +21,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Option<string> expected = new(OPTION_NAME);
 
-            var instance = AutoCompletionOptionFeeder.GetDefault();
+            var instance = AutoCompletionOptionFeeder.GetInstance();
 
             expected.AddCompletions(instance.GetAutoCompletes());
 
@@ -32,7 +32,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Argument<int> expected = new();
 
-            var instance = AutoCompletionArgumentFeeder.GetDefault();
+            var instance = AutoCompletionArgumentFeeder.GetInstance();
 
             expected.AddCompletions(instance.GetAutoCompletes());
 

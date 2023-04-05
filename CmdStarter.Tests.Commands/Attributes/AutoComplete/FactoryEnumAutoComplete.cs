@@ -21,7 +21,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Option<string> expected = new(OPTION_NAME);
 
-            var instance = AutoCompleteOptionFactory.GetDefault();
+            var instance = AutoCompleteOptionFactory.GetInstance();
             var items = new LinkedList<CompletionItem>();
 
             foreach (var name in Enum.GetNames<NameEnum>())
@@ -43,7 +43,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Argument<int> expected = new();
 
-            var instance = AutoCompleteArgumentFactory.GetDefault();
+            var instance = AutoCompleteArgumentFactory.GetInstance();
             var items = new LinkedList<CompletionItem>();
 
             foreach (var name in Enum.GetNames<AgeEnum>())
