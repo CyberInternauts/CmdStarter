@@ -52,7 +52,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             {
                 var autoCompleteValue = completions[i]?.ToString();
 
-                if (string.IsNullOrEmpty(autoCompleteValue)) throw new ArgumentNullException(NULL_OR_EMPTY_ERROR_MESSAGE);
+                if (string.IsNullOrWhiteSpace(autoCompleteValue)) throw new ArgumentNullException(NULL_OR_EMPTY_ERROR_MESSAGE);
 
                 _labels[i] = autoCompleteValue;
             }
@@ -64,9 +64,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
             for (int i = 0; i < _labels.Length; i++)
             {
-                var label = _labels[i].ToString();
+                var label = _labels[i];
 
-                if (label is null) continue;
+                if (string.IsNullOrWhiteSpace(label)) continue;
 
                 var completionItem = new CompletionItem(label);
 
