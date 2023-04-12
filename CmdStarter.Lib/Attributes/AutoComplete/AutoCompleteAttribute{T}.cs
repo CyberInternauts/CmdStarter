@@ -21,15 +21,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// If <typeparamref name="T"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
         /// retrieves auto completions from there.
         /// </para>
+        /// <para>
+        /// Can also be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/> besides these.
+        /// </para>
         /// </summary>
         public AutoCompleteAttribute()
             : base(typeof(T))
         { }
 
         /// <summary>
-        /// Creates auto completions from the given <paramref name="completions"/> and runs them through the <typeparamref name="T"/> factory.
+        /// Creates auto completions from the given <paramref name="completions"/> and handles <typeparamref name="T"/>.
+        /// <para>
+        /// <typeparamref name="T"/> must be <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>.
+        /// <para>
+        /// Can also be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.
+        /// </para>
+        /// </para>
         /// </summary>
-        /// <param name="factory">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
         /// <param name="completions">Labels for the auto completions.</param>
         public AutoCompleteAttribute(params object[] completions)
             : base(typeof(T), completions)

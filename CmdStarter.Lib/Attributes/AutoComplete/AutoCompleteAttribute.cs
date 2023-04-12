@@ -11,7 +11,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
     {
         private const string NULL_OR_EMPTY_ERROR_MESSAGE = "A completion cannot be null or empty!";
 
-        private readonly string[] _labels;
+        private readonly LinkedList<string> _labels;
         private readonly IAutoCompleteFactory? _factory;
         private LinkedList<CompletionItem>? _items;
 
@@ -38,24 +38,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// </summary>
         /// <param name="provider"><see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
         public AutoCompleteAttribute(Type provider)
-            : this(HandleProviderType(provider))
-        { }
-
-        /// <summary>
-        /// Generates completion from a given provider and runs them through the <paramref name="factory"/>.
-        /// <para>
-        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="Enum"/>
-        /// generates auto completions from all values. 
-        /// </para>
-        /// <para>
-        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
-        /// retrieves auto completions from there.
-        /// </para>
-        /// </summary>
-        /// <param name="factory">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
-        /// <param name="provider"><see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
-        public AutoCompleteAttribute(Type factory, Type provider)
-            : this(factory, HandleProviderType(provider))
+            : this(provider, Array.Empty<string>())
         { }
 
         /// <summary>
@@ -65,7 +48,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// <exception cref="ArgumentNullException"></exception>
         public AutoCompleteAttribute(params object[] completions)
         {
-            _labels = new string[completions.Length];
+            _labels = new LinkedList<string>();
 
             for (int i = 0; i < completions.Length; i++)
             {
@@ -77,30 +60,65 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                     throw new ArgumentNullException(paramName, NULL_OR_EMPTY_ERROR_MESSAGE);
                 }
 
-
-                _labels[i] = autoCompleteValue;
+                _labels.AddLast(autoCompleteValue);
             }
         }
 
         /// <summary>
-        /// Creates auto completions from the given <paramref name="completions"/> and runs them through the <paramref name="factory"/>.
+        /// Creates auto completions from the given <paramref name="completions"/> and runs them through the <paramref name="provider"/>.
         /// </summary>
-        /// <param name="factory">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
+        /// <param name="provider">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
         /// <param name="completions">Labels for the auto completions.</param>
-        public AutoCompleteAttribute(Type factory, params object[] completions)
+        public AutoCompleteAttribute(Type provider, params object[] completions)
             : this(completions)
         {
-            _factory = GetFactory(factory);
+            const string EXCEPTION_MESSAGE = "Provider must be an Enum or inherit IAutoCompleteProvider.";
+
+            bool hadCast = false;
+
+            if (provider.IsEnum)
+            {
+                var enumNames = Enum.GetNames(provider);
+                foreach (var item in enumNames)
+                {
+                    _labels.AddLast(item);
+                }
+
+                hadCast = true;
+            }
+            else if (provider.IsAssignableTo(typeof(IAutoCompleteProvider)))
+            {
+                var getDefaultMethod = provider.GetMethod(nameof(IAutoCompleteProvider.GetInstance))!; //Cannot be null as implementation is required.
+
+                var instance = (IAutoCompleteProvider)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
+
+                var autoCompletes = instance.GetAutoCompletes();
+                for (int i = 0; i < autoCompletes.Length; i++)
+                {
+                    if (string.IsNullOrWhiteSpace(autoCompletes[i])) continue;
+
+                    _labels.AddLast(autoCompletes[i]);
+                }
+
+                hadCast = true;
+            }
+
+            if (!hadCast && completions.Length == 0) throw new NotSupportedException(EXCEPTION_MESSAGE);
+
+            if (provider.IsAssignableTo(typeof(IAutoCompleteFactory)))
+            {
+                var getDefaultMethod = provider.GetMethod(nameof(IAutoCompleteFactory.GetInstance))!; //Cannot be null as implementation is required.
+
+                _factory = (IAutoCompleteFactory)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
+            }
         }
 
         private void CacheItems()
         {
             _items = new LinkedList<CompletionItem>();
 
-            for (int i = 0; i < _labels.Length; i++)
+            foreach (var label in _labels)
             {
-                var label = _labels[i];
-
                 if (string.IsNullOrWhiteSpace(label)) continue;
 
                 var sortText = _factory?.GetSortText(label);
@@ -117,48 +135,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 
                 _items.AddLast(completionItem);
             }
-        }
-
-        private static object[] HandleProviderType(Type type)
-        {
-            const string EXCEPTION_MESSAGE = "This constructor is only supported with Enums and IAutoCompleteProvider.";
-
-            if (type.IsEnum) return Enum.GetNames(type);
-
-            if (type.IsAssignableTo(typeof(IAutoCompleteProvider)))
-            {
-                var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteProvider.GetInstance))!; //Cannot be null as implementation is required.
-
-                var instance = (IAutoCompleteProvider)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
-
-                var autoCompletes = instance.GetAutoCompletes();
-                for (int i = 0; i < autoCompletes.Length; i++)
-                {
-                    if (!string.IsNullOrWhiteSpace(autoCompletes[i])) continue;
-
-                    var paramName = $"{nameof(autoCompletes)}[{i}]";
-                    throw new ArgumentNullException(paramName, NULL_OR_EMPTY_ERROR_MESSAGE);
-                }
-
-                return autoCompletes;
-            }
-
-            throw new NotSupportedException(EXCEPTION_MESSAGE);
-        }
-
-        private static IAutoCompleteFactory GetFactory(Type type)
-        {
-            const string NOT_ASSIGNABLE_ERROR_MESSAGE = "{0} is not assignable from IAutoCompleteFactory.";
-
-            if (!type.IsAssignableTo(typeof(IAutoCompleteFactory)))
-            {
-                var message = string.Format(NOT_ASSIGNABLE_ERROR_MESSAGE, type);
-                throw new InvalidCastException(message);
-            }
-
-            var getDefaultMethod = type.GetMethod(nameof(IAutoCompleteFactory.GetInstance))!; //Cannot be null as implementation is required.
-
-            return (IAutoCompleteFactory)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
         }
     }
 }
