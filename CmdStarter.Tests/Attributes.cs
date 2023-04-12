@@ -106,7 +106,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NonGenericNullCompletion>]
         [TestCase<NonGenericEmptyCompletion>]
         [TestCase<NonGenericNotSupportedType>]
-        [TestCase<GenericWrongFactory>]
+        [TestCase<GenericNoProvider>]
         public void EnsureAutoCompleteAttributeExceptions<ErrorRunner>()
             where ErrorRunner : IErrorRunner, IGetInstance<ErrorRunner>
         {
