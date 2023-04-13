@@ -33,7 +33,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<MultiAlias>(MultiAlias.OPTION_NAME)]
         [TestCase<AliasWithCustomPrefix>(AliasWithCustomPrefix.OPTION_NAME)]
         [TestCase<AliasWithPartlyCustomPrefix>(AliasWithPartlyCustomPrefix.OPTION_NAME)]
-        public void EnsureAliasAttribute<CommandType>(string optionName)
+        public void EnsuresAliasAttribute<CommandType>(string optionName)
             where CommandType : StarterCommand, IHasAliases
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
@@ -53,7 +53,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<PartlyHiddenCommandA>(PartlyHiddenCommandA.NAME_OF_OPTION, PartlyHiddenCommandA.OPTION_IS_HIDDEN, PartlyHiddenCommandA.NAME_OF_PARAMETER, PartlyHiddenCommandA.PARAMETER_IS_HIDDEN, PartlyHiddenCommandA.COMMAND_IS_HIDDEN)]
         [TestCase<PartlyHiddenCommandB>(PartlyHiddenCommandB.NAME_OF_OPTION, PartlyHiddenCommandB.OPTION_IS_HIDDEN, PartlyHiddenCommandB.NAME_OF_PARAMETER, PartlyHiddenCommandB.PARAMETER_IS_HIDDEN, PartlyHiddenCommandB.COMMAND_IS_HIDDEN)]
         [TestCase<PartlyHiddenCommandC>(PartlyHiddenCommandC.NAME_OF_OPTION, PartlyHiddenCommandC.OPTION_IS_HIDDEN, PartlyHiddenCommandC.NAME_OF_PARAMETER, PartlyHiddenCommandC.PARAMETER_IS_HIDDEN, PartlyHiddenCommandC.COMMAND_IS_HIDDEN)]
-        public void EnsureIsHiddenAttribute<CommandType>(string optionName, bool isOptionHidden, string argumentName, bool isArgumentHidden, bool commandHidden)
+        public void EnsuresIsHiddenAttribute<CommandType>(string optionName, bool isOptionHidden, string argumentName, bool isArgumentHidden, bool commandHidden)
             where CommandType : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
@@ -85,7 +85,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
         [TestCase<FactoryEnumAutoComplete>(FactoryEnumAutoComplete.OPTION_NAME, FactoryEnumAutoComplete.ARGUMENT_NAME)]
         [TestCase<FactoryFeederAutoCompletion>(FactoryFeederAutoCompletion.OPTION_NAME, FactoryFeederAutoCompletion.ARGUMENT_NAME)]
-        public void EnusreAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
+        public void EnsuresAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
@@ -107,7 +107,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NonGenericEmptyCompletion>]
         [TestCase<NonGenericNotSupportedType>]
         [TestCase<GenericNoProvider>]
-        public void EnsureAutoCompleteAttributeExceptions<ErrorRunner>()
+        public void ThrowsAutoCompleteAttributeExceptions<ErrorRunner>()
             where ErrorRunner : IErrorRunner, IGetInstance<ErrorRunner>
         {
             var instance = ErrorRunner.GetInstance();

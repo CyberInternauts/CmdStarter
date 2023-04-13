@@ -28,7 +28,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [Test]
         [Category("Namespaces")]
-        public void EnsureNamespacesCannotBeNull()
+        public void EnsuresNamespacesCannotBeNull()
         {
             starter.Namespaces = starter.Namespaces.Clear();
 
@@ -205,7 +205,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCaseSource(nameof(ClassesFilter))]
         [Category("Classes")]
         [Category("Filters")]
-        public void UseClassesNoFilter(string namespaceFilter, IEnumerable<Type> types)
+        public void UsesClassesNoFilter(string namespaceFilter, IEnumerable<Type> types)
         {
             starter.Namespaces = starter.Namespaces.Add(namespaceFilter);
             starter.FindCommandsTypes();

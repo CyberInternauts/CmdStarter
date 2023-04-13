@@ -225,7 +225,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        public void EnsuresTypesTreeIsReadOnly()
+        public void ThrowsUponReadOnlyTypesTreeModification()
         {
             starter.BuildTree();
             var newNode = new TreeNode<Type>(this.GetType());
