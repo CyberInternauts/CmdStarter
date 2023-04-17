@@ -19,7 +19,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         public const string DOCUMENTATION_USA = "Age of legal alcohol usage in the U.S.A.";
         public const string DOCUMENTATION_NONE = "Cannot drink alcohol!";
 
-        public string? GetDocumentation(string num)
+        public static string? GetSharedDocumentation(string num)
         {
             int number = (int)Enum.Parse<AgeEnum>(num);
 
@@ -28,6 +28,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
             if (number >= 18) return DOCUMENTATION_EU;
 
             return DOCUMENTATION_NONE;
+        }
+
+        public string? GetDocumentation(string num)
+        {
+            return GetSharedDocumentation(num);
         }
 
         public static IAutoCompleteFactory GetInstance() => new AutoCompleteArgumentFactory();

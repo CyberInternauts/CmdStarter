@@ -10,6 +10,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoCom
 
         public void ErrorInvoker() => new AutoCompleteAttribute<GenericNoProvider>(PARAM_1);
 
-        public static GenericNoProvider GetInstance() => new GenericNoProvider();
+        public static GenericNoProvider GetInstance() => new();
     }
 }

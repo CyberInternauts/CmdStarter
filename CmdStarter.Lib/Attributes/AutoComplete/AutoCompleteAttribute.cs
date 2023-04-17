@@ -26,19 +26,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         }
 
         /// <summary>
-        /// Generates completion from a given provider.
+        /// Generates completion from a given features type.
         /// <para>
-        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="Enum"/>
+        /// If <paramref name="features"/> is <see langword="typeof"/> <see cref="Enum"/>
         /// generates auto completions from all values. 
         /// </para>
         /// <para>
-        /// If <paramref name="provider"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
+        /// If <paramref name="features"/> is <see langword="typeof"/> <see cref="IAutoCompleteProvider"/>
         /// retrieves auto completions from there.
         /// </para>
+        /// <para>
+        /// If <paramref name="features"/> is <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>
+        /// provides other completion information.
+        /// </para>
         /// </summary>
-        /// <param name="provider"><see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
-        public AutoCompleteAttribute(Type provider)
-            : this(provider, Array.Empty<string>())
+        /// <param name="features"><see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
+        public AutoCompleteAttribute(Type features)
+            : this(features, Array.Empty<string>())
         { }
 
         /// <summary>
@@ -65,30 +69,31 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         }
 
         /// <summary>
-        /// Creates auto completions from the given <paramref name="completions"/> and runs them through the <paramref name="provider"/>.
+        /// Creates auto completions from the given <paramref name="completions"/> and runs them through the <paramref name="features"/>.
         /// </summary>
-        /// <param name="provider">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
+        /// <param name="features">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
         /// <param name="completions">Labels for the auto completions.</param>
-        public AutoCompleteAttribute(Type provider, params object[] completions)
+        public AutoCompleteAttribute(Type features, params object[] completions)
             : this(completions)
         {
-            const string EXCEPTION_MESSAGE = "Provider must be an Enum or inherit IAutoCompleteProvider.";
+            const string EXCEPTION_MESSAGE = "The parameter " + nameof(features) + " must be an Enum or implement " 
+                + nameof(IAutoCompleteProvider)  + " or " + nameof(IAutoCompleteFactory);
 
-            bool hadCast = false;
+            bool isSupported = false;
 
-            if (provider.IsEnum)
+            if (features.IsEnum)
             {
-                var enumNames = Enum.GetNames(provider);
+                var enumNames = Enum.GetNames(features);
                 foreach (var item in enumNames)
                 {
                     _labels.AddLast(item);
                 }
 
-                hadCast = true;
+                isSupported = true;
             }
-            else if (provider.IsAssignableTo(typeof(IAutoCompleteProvider)))
+            else if (features.IsAssignableTo(typeof(IAutoCompleteProvider)))
             {
-                var getDefaultMethod = provider.GetMethod(nameof(IAutoCompleteProvider.GetInstance))!; //Cannot be null as implementation is required.
+                var getDefaultMethod = features.GetMethod(nameof(IAutoCompleteProvider.GetInstance))!; //Cannot be null as implementation is required.
 
                 var instance = (IAutoCompleteProvider)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
 
@@ -100,16 +105,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
                     _labels.AddLast(autoCompletes[i]);
                 }
 
-                hadCast = true;
+                isSupported = true;
             }
 
-            if (!hadCast && completions.Length == 0) throw new NotSupportedException(EXCEPTION_MESSAGE);
-
-            if (provider.IsAssignableTo(typeof(IAutoCompleteFactory)))
+            if (features.IsAssignableTo(typeof(IAutoCompleteFactory)))
             {
-                var getDefaultMethod = provider.GetMethod(nameof(IAutoCompleteFactory.GetInstance))!; //Cannot be null as implementation is required.
+                var getDefaultMethod = features.GetMethod(nameof(IAutoCompleteFactory.GetInstance))!; //Cannot be null as implementation is required.
 
                 _factory = (IAutoCompleteFactory)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
+
+                isSupported = true;
+            }
+
+            if (!isSupported || _labels.Count == 0)
+            {
+                throw new NotSupportedException(EXCEPTION_MESSAGE);
             }
         }
 

@@ -83,8 +83,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<LonelyEnumAutoComplete>(LonelyEnumAutoComplete.OPTION_NAME, LonelyEnumAutoComplete.ARGUMENT_NAME)]
         [TestCase<LonelyFeederAutoCompletion>(LonelyFeederAutoCompletion.OPTION_NAME, LonelyFeederAutoCompletion.ARGUMENT_NAME)]
         [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
-        [TestCase<FactoryEnumAutoComplete>(FactoryEnumAutoComplete.OPTION_NAME, FactoryEnumAutoComplete.ARGUMENT_NAME)]
-        [TestCase<FactoryFeederAutoCompletion>(FactoryFeederAutoCompletion.OPTION_NAME, FactoryFeederAutoCompletion.ARGUMENT_NAME)]
+        [TestCase<FullFeaturesAutoCompletion>(FullFeaturesAutoCompletion.OPTION_NAME, FullFeaturesAutoCompletion.ARGUMENT_NAME)]
+        [TestCase<MergedIdenticalChoices>(MergedIdenticalChoices.OPTION_NAME, MergedIdenticalChoices.ARGUMENT_NAME)]
         public void EnsuresAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : StarterCommand, IHasAutoComplete
         {
@@ -107,6 +107,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NonGenericEmptyCompletion>]
         [TestCase<NonGenericNotSupportedType>]
         [TestCase<GenericNoProvider>]
+        [TestCase<OnlyIAutoCompleteFactory>]
         public void ThrowsAutoCompleteAttributeExceptions<ErrorRunner>()
             where ErrorRunner : IErrorRunner, IGetInstance<ErrorRunner>
         {
@@ -123,7 +124,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             foreach (var expectedValue in expected)
             {
 
-                var hasMatch = actual.Any(actualValue =>
+                var hasMatch = actual.Where(actualValue =>
                 {
                     Assert.That(actualValue, Is.Not.Null);
 
@@ -134,7 +135,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                         && actualValue.Detail == expectedValue.Detail;
                 });
 
-                Assert.IsTrue(hasMatch, ERROR_MESSAGE);
+                Assert.That(hasMatch.Count(), Is.EqualTo(1), ERROR_MESSAGE);
             }
         }
     }

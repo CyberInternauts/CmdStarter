@@ -9,6 +9,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoCom
 
         public void ErrorInvoker() => new AutoCompleteAttribute(typeof(StarterCommand));
 
-        public static NonGenericNotSupportedType GetInstance() => new NonGenericNotSupportedType();
+        public static NonGenericNotSupportedType GetInstance() => new();
     }
 }

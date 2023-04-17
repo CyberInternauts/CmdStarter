@@ -9,6 +9,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoCom
 
         public void ErrorInvoker() => new AutoCompleteAttribute(string.Empty);
 
-        public static NonGenericEmptyCompletion GetInstance() => new NonGenericEmptyCompletion();
+        public static NonGenericEmptyCompletion GetInstance() => new();
     }
 }

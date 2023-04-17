@@ -1,19 +1,19 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 using System.CommandLine.Completions;
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
 {
-    public class FactoryEnumAutoComplete : StarterCommand, IHasAutoComplete
+    public sealed class FullFeaturesAutoCompletion : StarterCommand, IHasAutoComplete
     {
-        [AutoComplete(typeof(AutoCompleteOptionFactory), typeof(NameEnum))]
+        [AutoComplete<AutoCompleteOptionFullFeatures>()]
         public string PersonName { get; set; } = null!;
         public const string OPTION_NAME = "person-name";
 
         public override Delegate MethodForHandling => Execute;
 
-        private void Execute([AutoComplete(typeof(AutoCompleteArgumentFactory), typeof(AgeEnum))] int age = 18)
+        private void Execute([AutoComplete(typeof(AutoCompleteArgumentFullFeatures))] int age = 18)
         { }
         public const string ARGUMENT_NAME = "age";
 
@@ -21,15 +21,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Option<string> expected = new(OPTION_NAME);
 
+            var feeder = AutoCompletionOptionFeeder.GetInstance();
             var instance = AutoCompleteOptionFactory.GetInstance();
             var items = new LinkedList<CompletionItem>();
 
-            foreach (var name in Enum.GetNames<NameEnum>())
+            foreach (var completion in feeder.GetAutoCompletes())
             {
                 var item = new CompletionItem(
-                    name,
-                    detail: instance.GetDetail(name),
-                    insertText: instance.GetInsertText(name));
+                    completion,
+                    detail: instance.GetDetail(completion),
+                    insertText: instance.GetInsertText(completion));
 
                 items.AddLast(item);
             }
@@ -43,14 +44,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Argument<int> expected = new();
 
+            var feeder = AutoCompletionArgumentFeeder.GetInstance();
             var instance = AutoCompleteArgumentFactory.GetInstance();
             var items = new LinkedList<CompletionItem>();
 
-            foreach (var name in Enum.GetNames<AgeEnum>())
+            foreach (var completion in feeder.GetAutoCompletes())
             {
                 var item = new CompletionItem(
-                    name,
-                    documentation: instance.GetDocumentation(name));
+                    completion,
+                    documentation: instance.GetDocumentation(completion));
 
                 items.AddLast(item);
             }
