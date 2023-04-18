@@ -53,18 +53,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         public AutoCompleteAttribute(params object[] completions)
         {
             _labels = new LinkedList<string>();
+            FillLabels(completions);
 
-            for (int i = 0; i < completions.Length; i++)
+            if (_labels.Count == 0)
             {
-                var autoCompleteValue = completions[i]?.ToString();
-
-                if (string.IsNullOrWhiteSpace(autoCompleteValue))
-                {
-                    var paramName = $"{nameof(completions)}[{i}]";
-                    throw new ArgumentNullException(paramName, NULL_OR_EMPTY_ERROR_MESSAGE);
-                }
-
-                _labels.AddLast(autoCompleteValue);
+                throw new NotSupportedException("Shall have at least one completion");
             }
         }
 
@@ -74,36 +67,30 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// <param name="features">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
         /// <param name="completions">Labels for the auto completions.</param>
         public AutoCompleteAttribute(Type features, params object[] completions)
-            : this(completions)
         {
+            _labels = new LinkedList<string>();
+            FillLabels(completions);
+
             const string EXCEPTION_MESSAGE = "The parameter " + nameof(features) + " must be an Enum or implement " 
-                + nameof(IAutoCompleteProvider)  + " or " + nameof(IAutoCompleteFactory);
+                + nameof(IAutoCompleteProvider)  + " or " + nameof(IAutoCompleteFactory)
+                + " and having at least one completion";
 
             bool isSupported = false;
 
             if (features.IsEnum)
             {
                 var enumNames = Enum.GetNames(features);
-                foreach (var item in enumNames)
-                {
-                    _labels.AddLast(item);
-                }
+                FillLabels(enumNames);
 
                 isSupported = true;
             }
             else if (features.IsAssignableTo(typeof(IAutoCompleteProvider)))
             {
                 var getDefaultMethod = features.GetMethod(nameof(IAutoCompleteProvider.GetInstance))!; //Cannot be null as implementation is required.
-
                 var instance = (IAutoCompleteProvider)getDefaultMethod.Invoke(null, null)!; //Implementation requires non-nullable return.
 
                 var autoCompletes = instance.GetAutoCompletes();
-                for (int i = 0; i < autoCompletes.Length; i++)
-                {
-                    if (string.IsNullOrWhiteSpace(autoCompletes[i])) continue;
-
-                    _labels.AddLast(autoCompletes[i]);
-                }
+                FillLabels(autoCompletes);
 
                 isSupported = true;
             }
@@ -120,6 +107,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
             if (!isSupported || _labels.Count == 0)
             {
                 throw new NotSupportedException(EXCEPTION_MESSAGE);
+            }
+        }
+
+        private void FillLabels(object[] completions)
+        {
+            for (int i = 0; i < completions.Length; i++)
+            {
+                var autoCompleteValue = completions[i]?.ToString();
+                if (string.IsNullOrWhiteSpace(autoCompleteValue)) continue;
+
+                _labels.AddLast(autoCompleteValue);
             }
         }
 
