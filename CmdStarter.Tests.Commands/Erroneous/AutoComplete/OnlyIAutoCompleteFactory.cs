@@ -1,5 +1,5 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete
 {

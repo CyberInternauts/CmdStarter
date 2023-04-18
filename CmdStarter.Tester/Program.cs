@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.Composition.Hosting;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo;
+using System.ComponentModel.Composition.Hosting;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tester
 {
@@ -10,7 +11,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tester
 
             var starter = new CmdStarter.Lib.Starter(
                 new string[] {
-                    typeof(Tests.Commands.Listing.List).Namespace!, // Only accepts Listing commands
+                    typeof(List).Namespace!, // Only accepts Listing commands
                     typeof(Tests.Commands.GlobalOptions.MainGlobalOptions).Namespace!,
                 }
             );

@@ -16,18 +16,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public readonly static IList<Type> CLASS_FILTERING_TYPES = new List<Type>
                 {
-                    typeof(Commands.Filtering.Starter),
-                    typeof(Commands.Filtering.StarterA),
-                    typeof(Commands.Filtering.StarterB),
-                    typeof(Commands.Filtering.StarterOn),
-                    typeof(Commands.Filtering.StarterOff),
-                    typeof(Commands.Filtering.IO.Starter),
-                    typeof(Commands.Filtering.A.IO.Starter),
-                    typeof(Commands.Filtering.B.IO.Starter),
-                    typeof(Commands.Filtering.AB.IO.Starter),
-                    typeof(Commands.Filtering.NorthS.Starter),
-                    typeof(Commands.Filtering.EastNS.Starter),
-                    typeof(Commands.Filtering.NSouth.Starter)
+                    typeof(Commands.Loader.Filtering.Starter),
+                    typeof(Commands.Loader.Filtering.StarterA),
+                    typeof(Commands.Loader.Filtering.StarterB),
+                    typeof(Commands.Loader.Filtering.StarterOn),
+                    typeof(Commands.Loader.Filtering.StarterOff),
+                    typeof(Commands.Loader.Filtering.IO.Starter),
+                    typeof(Commands.Loader.Filtering.A.IO.Starter),
+                    typeof(Commands.Loader.Filtering.B.IO.Starter),
+                    typeof(Commands.Loader.Filtering.AB.IO.Starter),
+                    typeof(Commands.Loader.Filtering.NorthS.Starter),
+                    typeof(Commands.Loader.Filtering.EastNS.Starter),
+                    typeof(Commands.Loader.Filtering.NSouth.Starter)
                 };
 
         public static void GlobalSetup()

@@ -3,7 +3,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.CommandLine.Completions;
 
