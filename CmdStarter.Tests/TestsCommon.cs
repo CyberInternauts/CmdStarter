@@ -6,7 +6,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
     public static class TestsCommon
     {
-        public const int NUMBER_OF_COMMANDS_IN_LISTING = 3; // Using a hardcoded value otherwise the test would be about the same code as the tested one.
+        public const int NUMBER_OF_COMMANDS_IN_DEMO = 3; // Using a hardcoded value otherwise the test would be about the same code as the tested one.
         public const string ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL;
         public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS;
         public const string MULTI_ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.MULTI_ANY_CHAR_SYMBOL;

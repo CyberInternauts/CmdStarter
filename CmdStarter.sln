@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Lib", "CmdStarter.Lib\CmdStarter.Lib.csproj", "{F49E9001-0030-4DEB-BE9F-1294C4E93285}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Demo", "CmdStarter.Tester\CmdStarter.Demo.csproj", "{40741EFD-4E4A-4326-88D6-5995A0F9DB8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Demo", "CmdStarter.Demo\CmdStarter.Demo.csproj", "{40741EFD-4E4A-4326-88D6-5995A0F9DB8E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Tests", "CmdStarter.Tests\CmdStarter.Tests.csproj", "{3B608D74-0E9D-413C-A6AF-B078877B305F}"
 EndProject

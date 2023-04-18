@@ -11,7 +11,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tester
 
             var starter = new CmdStarter.Lib.Starter(
                 new string[] {
-                    typeof(List).Namespace!, // Only accepts Listing commands
+                    typeof(List).Namespace!, // Only accepts Demo commands
                     typeof(Tests.Commands.GlobalOptions.MainGlobalOptions).Namespace!,
                 }
             );
