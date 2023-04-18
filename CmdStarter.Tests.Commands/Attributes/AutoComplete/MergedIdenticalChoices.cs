@@ -1,5 +1,5 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
 

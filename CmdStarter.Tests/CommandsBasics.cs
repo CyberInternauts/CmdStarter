@@ -8,19 +8,19 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
-using System.Reflection;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Description;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes;
-using System.Net.Mail;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute.ChildrenOfParent;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children.SubChildren;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -57,7 +57,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void FindsCommandsForListing()
         {
-            starter.Namespaces = starter.Namespaces.Add(typeof(Commands.Listing.List).Namespace ?? string.Empty);
+            starter.Namespaces = starter.Namespaces.Add(typeof(Commands.Demo.List).Namespace ?? string.Empty);
             starter.FindCommandsTypes();
             var listingCommands = starter.CommandsTypes;
             Assert.That(listingCommands, Has.Count.EqualTo(TestsCommon.NUMBER_OF_COMMANDS_IN_LISTING));
@@ -153,10 +153,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             AssertChilding(mainCommand, true);
         }
 
-        [TestCase(typeof(Commands.Naming.Word), "Word", "word")]
-        [TestCase(typeof(Commands.Naming.NameFor), "NameFor", "name-for")]
-        [TestCase(typeof(Commands.Naming.NameOverride), "NameOverride", "name-overriden")]
-        [TestCase(typeof(Commands.Naming.NameKebab), "NameKebab", "name-to-kebab")]
+        [TestCase(typeof(Word), "Word", "word")]
+        [TestCase(typeof(NameFor), "NameFor", "name-for")]
+        [TestCase(typeof(NameOverride), "NameOverride", "name-overriden")]
+        [TestCase(typeof(NameKebab), "NameKebab", "name-to-kebab")]
         public void EnsuresKebabCase(Type commandTypeToTest, string originalName, string expectedName)
         {
             Assert.That(commandTypeToTest.Name, Is.EqualTo(originalName)); // This ensures to adjust the test if command name has changed
@@ -521,40 +521,40 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         private void AssertListing(TreeNode<Type>? parentOfList, TreeNode<Type>? parentOfFiles)
         {
             parentOfList ??= starter.CommandsTypesTree;
-            var listCommand = GetSubType(parentOfList, typeof(Commands.Listing.List));
+            var listCommand = GetSubType(parentOfList, typeof(Commands.Demo.List));
             Assert.That(listCommand, Is.Not.Null);
 
             parentOfFiles ??= listCommand;
-            var filesCommand = GetSubType(parentOfFiles!, typeof(Commands.Listing.Types.Files)); // "!" used because can't be null here due to Assert above
+            var filesCommand = GetSubType(parentOfFiles!, typeof(Files)); // "!" used because can't be null here due to Assert above
             Assert.That(filesCommand, Is.Not.Null);
 
-            var foldersCommand = GetSubType(listCommand, typeof(Commands.Listing.Types.Folders));
+            var foldersCommand = GetSubType(listCommand, typeof(Folders));
             Assert.That(foldersCommand, Is.Not.Null);
         }
         private void AssertTreeWithChildrenAttribute(TreeNode<Type>? parentOfParent)
         {
             parentOfParent ??= starter.CommandsTypesTree;
-            var parentCommand = GetSubType(parentOfParent, typeof(Commands.TreeWithChildrenAttribute.ParentWithChildren));
+            var parentCommand = GetSubType(parentOfParent, typeof(ParentWithChildren));
             Assert.That(parentCommand, Is.Not.Null);
 
-            var childNoParent = GetSubType(parentCommand!, typeof(Commands.TreeWithChildrenAttribute.ChildrenOfParent.ChildNoParent)); // "!" used because can't be null here due to Assert above
+            var childNoParent = GetSubType(parentCommand!, typeof(ChildNoParent)); // "!" used because can't be null here due to Assert above
             Assert.That(childNoParent, Is.Not.Null);
 
-            var childWithParent = GetSubType(parentCommand, typeof(Commands.TreeWithChildrenAttribute.ChildrenOfParent.ChildWithParent));
+            var childWithParent = GetSubType(parentCommand, typeof(ChildWithParent));
             Assert.That(childWithParent, Is.Not.Null);
         }
 
         private void AssertChilding(TreeNode<Type>? parentOfParent, bool isSubChild1ASub)
         {
             parentOfParent ??= starter.CommandsTypesTree;
-            var parentCommand = GetSubType(parentOfParent, typeof(Commands.Childing.ChildingParent));
+            var parentCommand = GetSubType(parentOfParent, typeof(ChildingParent));
             Assert.That(parentCommand, Is.Not.Null);
 
-            var child1Command = GetSubType(parentCommand, typeof(Commands.Childing.Children.Child1));
+            var child1Command = GetSubType(parentCommand, typeof(Child1));
             Assert.That(child1Command, Is.Not.Null);
 
             var parentOfSubChild1 = (isSubChild1ASub ? child1Command : parentCommand);
-            var subChild1Command = GetSubType(parentOfSubChild1!, typeof(Commands.Childing.Children.SubChildren.SubChild1)); // "!" used because can't be null here due to Assert above
+            var subChild1Command = GetSubType(parentOfSubChild1!, typeof(SubChild1)); // "!" used because can't be null here due to Assert above
             Assert.That(subChild1Command, Is.Not.Null);
         }
     }

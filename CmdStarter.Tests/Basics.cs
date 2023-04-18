@@ -1,5 +1,6 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.Text.RegularExpressions;
 
@@ -98,7 +99,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Category("Namespaces")]
         public void UsesNamespaceExclusion()
         {
-            var listingNamespace = typeof(Commands.Listing.List).Namespace;
+            var listingNamespace = typeof(Commands.Demo.List).Namespace;
             starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + listingNamespace);
             starter.FindCommandsTypes();
 
@@ -147,7 +148,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Category("Filters")]
         public void UsesClassesExclusion()
         {
-            const string ExcludedClassName = nameof(Commands.Filtering.Starter);
+            const string ExcludedClassName = nameof(Commands.Loader.Filtering.Starter);
 
             starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + ExcludedClassName);
             starter.FindCommandsTypes();
@@ -161,7 +162,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Category("Filters")]
         public void UsesClassesExclusion_Wildcard()
         {
-            const string ExcludedClassName = nameof(Commands.Filtering.Starter);
+            const string ExcludedClassName = nameof(Commands.Loader.Filtering.Starter);
 
             starter.Classes = starter.Classes.Add(TestsCommon.EXCLUSION_SYMBOL + ExcludedClassName + TestsCommon.MULTI_ANY_CHAR_SYMBOL);
             starter.FindCommandsTypes();
@@ -175,7 +176,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Category("Filters")]
         public void UsesClassesInclusion_WithoutWildcard(string namespaceFilter, IEnumerable<Type> types)
         {
-            const string IncludedClassName = nameof(Commands.Filtering.Starter);
+            const string IncludedClassName = nameof(Commands.Loader.Filtering.Starter);
 
             IEnumerable<Type> expectedTypes = types.Where(t => t.Name.Equals(IncludedClassName));
 
@@ -213,7 +214,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertIEnumerablesHaveSameElements(starter.CommandsTypes, types);
         }
 
-        [TestCase<Commands.Listing.Types.Folders>("list folders")]
+        [TestCase<Folders>("list folders")]
         public void EnsuresFullCommand<CommandType>(string expected) where CommandType : StarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
@@ -228,14 +229,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             get
             {
-                string namespaceFilter = typeof(Commands.Filtering.Starter).Namespace ?? string.Empty;
+                string namespaceFilter = typeof(Commands.Loader.Filtering.Starter).Namespace ?? string.Empty;
                 IList<Type> types = TestsCommon.CLASS_FILTERING_TYPES;
 
-                string nameofRootStarter = nameof(Commands.Filtering.Starter);
+                string nameofRootStarter = nameof(Commands.Loader.Filtering.Starter);
 
                 //FIRST = UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithinRegex
-                string firstRegex = @$"(\.|^){nameof(Commands.Filtering)}\.\w*$";
-                string firstFinalFilter = $"{nameof(Commands.Filtering)}.{TestsCommon.MULTI_ANY_CHAR_SYMBOL}";
+                string firstRegex = @$"(\.|^){nameof(Commands.Loader.Filtering)}\.\w*$";
+                string firstFinalFilter = $"{nameof(Commands.Loader.Filtering)}.{TestsCommon.MULTI_ANY_CHAR_SYMBOL}";
                 TestCaseData firstCase = new(namespaceFilter, types, firstRegex, firstFinalFilter);
                 firstCase.SetArgDisplayNames("1 - UsesClassesInclusion_WithinNamespace_WithWildCardNoDotsWithinRegex");
 
@@ -311,7 +312,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             get
             {
-                string namespaceFilter = typeof(Commands.Filtering.Starter).Namespace ?? string.Empty;
+                string namespaceFilter = typeof(Commands.Loader.Filtering.Starter).Namespace ?? string.Empty;
 
                 IList<Type> types = TestsCommon.CLASS_FILTERING_TYPES;
 

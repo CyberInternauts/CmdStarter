@@ -1,4 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Listing.Types;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes
 {

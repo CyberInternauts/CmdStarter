@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Lib", "CmdStarter.Lib\CmdStarter.Lib.csproj", "{F49E9001-0030-4DEB-BE9F-1294C4E93285}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Lib", "CmdStarter.Lib\CmdStarter.Lib.csproj", "{F49E9001-0030-4DEB-BE9F-1294C4E93285}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Tester", "CmdStarter.Tester\CmdStarter.Tester.csproj", "{40741EFD-4E4A-4326-88D6-5995A0F9DB8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Demo", "CmdStarter.Tester\CmdStarter.Demo.csproj", "{40741EFD-4E4A-4326-88D6-5995A0F9DB8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Tests", "CmdStarter.Tests\CmdStarter.Tests.csproj", "{3B608D74-0E9D-413C-A6AF-B078877B305F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Tests", "CmdStarter.Tests\CmdStarter.Tests.csproj", "{3B608D74-0E9D-413C-A6AF-B078877B305F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Tests.Commands", "CmdStarter.Tests.Commands\CmdStarter.Tests.Commands.csproj", "{06BFE96F-E8F0-4792-9273-BB113D065DC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Tests.Commands", "CmdStarter.Tests.Commands\CmdStarter.Tests.Commands.csproj", "{06BFE96F-E8F0-4792-9273-BB113D065DC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Tests.Common", "CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj", "{361193F2-0C4C-4F5B-9F1E-6520349C1D32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Tests.Common", "CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj", "{361193F2-0C4C-4F5B-9F1E-6520349C1D32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

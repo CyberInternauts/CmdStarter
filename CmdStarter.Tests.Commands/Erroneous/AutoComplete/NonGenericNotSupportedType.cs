@@ -1,4 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Interfaces;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using NUnit.Framework;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete
