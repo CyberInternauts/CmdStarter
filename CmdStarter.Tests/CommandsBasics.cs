@@ -60,7 +60,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Namespaces = starter.Namespaces.Add(typeof(Commands.Demo.List).Namespace ?? string.Empty);
             starter.FindCommandsTypes();
             var listingCommands = starter.CommandsTypes;
-            Assert.That(listingCommands, Has.Count.EqualTo(TestsCommon.NUMBER_OF_COMMANDS_IN_LISTING));
+            Assert.That(listingCommands, Has.Count.EqualTo(TestsCommon.NUMBER_OF_COMMANDS_IN_DEMO));
 
             starter.Namespaces = starter.Namespaces.Clear();
             starter.FindCommandsTypes();
