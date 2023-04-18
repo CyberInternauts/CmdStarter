@@ -1,6 +1,7 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.CommandLine;
+using System.CommandLine.Completions;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -31,6 +32,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 option.AllowMultipleArgumentsPerToken = isList;
                 LoadDescription(property, option);
                 LoadAliases(property, option);
+                LoadAutoCompletes(property, (completion) => option.AddCompletions(completion));
                 receptacle.AddOption(option);
             }
         }
@@ -52,6 +54,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                     argument.SetDefaultValue(parameter.DefaultValue);
                 }
                 LoadDescription(parameter, argument);
+                LoadAutoCompletes(parameter, (completion) => argument.AddCompletions(completion));
                 receptacle.Add(argument);
             }
         }
@@ -80,6 +83,24 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             {
                 receptacle.AddAlias(alias);
             }
+        }
+
+        internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Action<CompletionDelegate> action)
+        {
+            var completionDelegates = GetAutoCompleteAttributes(provider)
+                .Select(attribute => attribute.Context);
+
+            foreach (var completion in completionDelegates)
+            {
+                action(completion);
+            }
+        }
+
+        private static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
+        {
+            return provider.GetCustomAttributes(false)
+                .Where(attribute => attribute is AutoCompleteAttribute)
+                .Cast<AutoCompleteAttribute>();
         }
     }
 }

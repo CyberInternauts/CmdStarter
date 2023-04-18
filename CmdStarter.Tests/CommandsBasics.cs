@@ -153,7 +153,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             AssertChilding(mainCommand, true);
         }
 
-
         [TestCase(typeof(Commands.Naming.Word), "Word", "word")]
         [TestCase(typeof(Commands.Naming.NameFor), "NameFor", "name-for")]
         [TestCase(typeof(Commands.Naming.NameOverride), "NameOverride", "name-overriden")]
@@ -226,7 +225,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        public void EnsuresTypesTreeIsReadOnly()
+        public void ThrowsUponReadOnlyTypesTreeModification()
         {
             starter.BuildTree();
             var newNode = new TreeNode<Type>(this.GetType());
@@ -512,53 +511,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var command = starter.FindCommand<DescClass>() as DescClass;
             Assert.That(command, Is.Not.Null);
             Assert.That(command.Description, Is.EqualTo(description));
-        }
-
-        [TestCase<HiddenCommand>(HiddenCommand.NAME_OF_OPTION, HiddenCommand.OPTION_IS_HIDDEN, HiddenCommand.NAME_OF_PARAMETER, HiddenCommand.PARAMETER_IS_HIDDEN, HiddenCommand.COMMAND_IS_HIDDEN)]
-        [TestCase<VisibleCommand>(VisibleCommand.NAME_OF_OPTION, VisibleCommand.OPTION_IS_HIDDEN, VisibleCommand.NAME_OF_PARAMETER, VisibleCommand.PARAMETER_IS_HIDDEN, VisibleCommand.COMMAND_IS_HIDDEN)]
-        [TestCase<PartlyHiddenCommandA>(PartlyHiddenCommandA.NAME_OF_OPTION, PartlyHiddenCommandA.OPTION_IS_HIDDEN, PartlyHiddenCommandA.NAME_OF_PARAMETER, PartlyHiddenCommandA.PARAMETER_IS_HIDDEN, PartlyHiddenCommandA.COMMAND_IS_HIDDEN)]
-        [TestCase<PartlyHiddenCommandB>(PartlyHiddenCommandB.NAME_OF_OPTION, PartlyHiddenCommandB.OPTION_IS_HIDDEN, PartlyHiddenCommandB.NAME_OF_PARAMETER, PartlyHiddenCommandB.PARAMETER_IS_HIDDEN, PartlyHiddenCommandB.COMMAND_IS_HIDDEN)]
-        [TestCase<PartlyHiddenCommandC>(PartlyHiddenCommandC.NAME_OF_OPTION, PartlyHiddenCommandC.OPTION_IS_HIDDEN, PartlyHiddenCommandC.NAME_OF_PARAMETER, PartlyHiddenCommandC.PARAMETER_IS_HIDDEN, PartlyHiddenCommandC.COMMAND_IS_HIDDEN)]
-        public void EnsureIsHiddenAttribute<CommandType>(string optionName, bool isOptionHidden, string argumentName, bool isArgumentHidden, bool commandHidden)
-            where CommandType : StarterCommand
-        {
-            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
-            starter.InstantiateCommands();
-
-            //Test command
-            var command = starter.FindCommand<CommandType>() as CommandType;
-            Assert.That(command, Is.Not.Null);
-            Assert.That(command.IsHidden, Is.EqualTo(commandHidden));
-
-            //Test argument
-            var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
-            Assert.That(argument, Is.Not.Null);
-            Assert.That(argument.IsHidden, Is.EqualTo(isArgumentHidden));
-
-            //Test option
-            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
-            Assert.That(option, Is.Not.Null);
-            Assert.That(option.IsHidden, Is.EqualTo(isOptionHidden));
-        }
-
-        [TestCase<NoAlias>(NoAlias.OPTION_NAME)]
-        [TestCase<OneAlias>(OneAlias.OPTION_NAME)]
-        [TestCase<MultiAlias>(MultiAlias.OPTION_NAME)]
-        [TestCase<AliasWithCustomPrefix>(AliasWithCustomPrefix.OPTION_NAME)]
-        [TestCase<AliasWithPartlyCustomPrefix>(AliasWithPartlyCustomPrefix.OPTION_NAME)]
-        public void EnsureAliasAttribute<CommandType>(string optionName)
-            where CommandType : StarterCommand, IHasAliases
-        {
-            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
-            starter.InstantiateCommands();
-
-            var command = starter.FindCommand<CommandType>() as CommandType;
-            Assert.That(command, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(command.Aliases, command.ExpectedCommandAliases);
-
-            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
-            Assert.That(option, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, command.ExpectedOptionAliases);
         }
 
         private static TreeNode<Type>? GetSubType(TreeNode<Type> commandNode, Type subCommandType)
