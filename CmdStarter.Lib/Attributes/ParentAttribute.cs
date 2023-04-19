@@ -1,6 +1,6 @@
 ﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ParentAttribute : Attribute
     {
         /// <summary>
@@ -14,7 +14,7 @@
         }
     }
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ParentAttribute<ParentClass> : ParentAttribute where ParentClass : StarterCommand
     {
         public ParentAttribute() : base(typeof(ParentClass))
