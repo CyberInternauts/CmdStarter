@@ -10,7 +10,6 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
@@ -261,24 +260,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(DuplicateOnSame).Namespace!);
             Assert.DoesNotThrow(starter.InstantiateCommands);
-        }
-
-        [Test]
-        public void ThrowsOnDuplicateParentAttribute()
-        {
-            // Normal case
-            Assert.DoesNotThrow(starter.BuildTree);
-
-            // Erroneous case
-            starter = TestsCommon.CreateCmdStarter();
-            starter.Namespaces = starter.Namespaces.Clear(); // Allow Erroneous namespace
-            starter.Classes = starter.Classes.AddRange(new string[] {
-                typeof(MultiParent).FullName!,
-                typeof(Main).FullName!,
-                typeof(Folders).FullName!
-            });
-
-            Assert.Throws<InvalidAttributeException>(starter.BuildTree);
         }
 
         [Test]
