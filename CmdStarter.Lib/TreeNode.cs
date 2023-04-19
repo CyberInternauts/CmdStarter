@@ -98,6 +98,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
+        public TreeNode<T>? GetChildNode(T value)
+        {
+            return this.Children.FirstOrDefault(x => x.Value == value);
+        }
+
         public TreeNode<T> AddChild(T value)
         {
             if (isImmutable) throw new ReadOnlyException();

@@ -27,6 +27,8 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.SameChildrenOn
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.SameChildrenOnTwoParents.Children;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Parent.DuplicatedParent;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Parent.DuplicatedParent.Children;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.SelfParent.Children;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.SelfParent;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -284,6 +286,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         public void EnsuresSameChildrenAttributeOnTwoParents()
         {
             AssertDuplicateCommands<SameChildrenParent1, SameChildrenParent2, SameChildrenChild>();
+        }
+
+        [Test]
+        public void EnsuresSelfParent()
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(SelfParentClass).Namespace!);
+            starter.BuildTree();
+
+            var parent = starter.CommandsTypesTree.GetChildNode(typeof(SelfParentClass));
+            Assert.That(parent, Is.Not.Null);
+            Assert.That(parent.GetChildNode(typeof(SelfParentChild)), Is.Not.Null);
         }
 
         [Test]
