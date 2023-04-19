@@ -1,4 +1,5 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+using NUnit.Framework.Constraints;
 using System.Collections;
 using System.ComponentModel.Composition.Hosting;
 
@@ -13,6 +14,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Lib.Starter.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS;
         public const string EXCLUSION_SYMBOL = CmdStarter.Lib.Starter.EXCLUSION_SYMBOL;
         public readonly static string ERRONEOUS_NAMESPACE = typeof(Commands.Erroneous.Boggus).Namespace ?? string.Empty;
+        public readonly static EqualConstraint HAS_ONLY_ONE = Is.EqualTo(1);
 
         public readonly static IList<Type> CLASS_FILTERING_TYPES = new List<Type>
                 {

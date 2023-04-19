@@ -135,7 +135,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                         && actualValue.Detail == expectedValue.Detail;
                 });
 
-                Assert.That(hasMatch.Count(), Is.EqualTo(1), ERROR_MESSAGE);
+                Assert.That(hasMatch.Count(), TestsCommon.HAS_ONLY_ONE, ERROR_MESSAGE);
             }
         }
     }
