@@ -2,7 +2,7 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren
 {
-    [Children<DupChild>]
+    [Children<DupChildrenChild>]
     public class DuplicateOnOther : StarterCommand
     {
     }

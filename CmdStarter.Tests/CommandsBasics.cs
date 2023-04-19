@@ -25,6 +25,8 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.MultipleParent
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.MultipleParentsSameChildren;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.SameChildrenOnTwoParents;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.SameChildrenOnTwoParents.Children;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Parent.DuplicatedParent;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Parent.DuplicatedParent.Children;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -263,16 +265,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [Test]
         public void EnsuresTwoChildrenAttributeWithSameNamespace()
         {
-            starter.Namespaces = starter.Namespaces.Add(typeof(DuplicateOnSame).Namespace!);
-            Assert.DoesNotThrow(starter.InstantiateCommands);
-            Assert.Multiple(() =>
-            {
-                var parent1 = starter.CommandsTypesTree.Children.Where(c => c.Value?.Equals(typeof(DuplicateOnSame)) ?? false);
-                Assert.That(parent1.Count(), TestsCommon.HAS_ONLY_ONE);
+            AssertDuplicateCommands<DuplicateOnSame, DupChildrenChild>();
+        }
 
-                var child1 = parent1.First().Children.Where(c => c.Value?.Equals(typeof(DupChild)) ?? false);
-                Assert.That(child1.Count(), TestsCommon.HAS_ONLY_ONE);
-            });
+        [Test]
+        public void EnsuresTwoIdenticalParentAttributes()
+        {
+            AssertDuplicateCommands<DupParent, DupParentChild>();
         }
 
         [Test]
@@ -562,6 +561,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var parentOfSubChild1 = (isSubChild1ASub ? child1Command : parentCommand);
             var subChild1Command = GetSubType(parentOfSubChild1!, typeof(SubChild1)); // "!" used because can't be null here due to Assert above
             Assert.That(subChild1Command, Is.Not.Null);
+        }
+
+        private void AssertDuplicateCommands<ParentType, ChildType>()
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(ParentType).Namespace!);
+            Assert.DoesNotThrow(starter.InstantiateCommands);
+            Assert.Multiple(() =>
+            {
+                var parent1 = starter.CommandsTypesTree.Children.Where(c => c.Value?.Equals(typeof(ParentType)) ?? false);
+                Assert.That(parent1.Count(), TestsCommon.HAS_ONLY_ONE);
+
+                var child1 = parent1.First().Children.Where(c => c.Value?.Equals(typeof(ChildType)) ?? false);
+                Assert.That(child1.Count(), TestsCommon.HAS_ONLY_ONE);
+            });
         }
 
         private void AssertDuplicateCommands<Parent1Type, Parent2Type, ChildType>()

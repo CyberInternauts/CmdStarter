@@ -2,8 +2,8 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren
 {
-    [Children<DupChild>]
-    [Children<DupChild>]
+    [Children<DupChildrenChild>]
+    [Children<DupChildrenChild>]
     public class DuplicateOnSame : StarterCommand
     {
 
