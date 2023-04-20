@@ -77,19 +77,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return tree;
         }
 
-        private readonly Func<object, bool> IsParent = (object a) => a.GetType().IsAssignableTo(typeof(ParentAttribute));
+        private Func<object, bool> IsParentAttribute => (object a) => a.GetType().IsAssignableTo(typeof(ParentAttribute));
+        private Func<Type, Type, bool> HasParentAttribute => (Type parent, Type child) => 
+            child.GetCustomAttributes(false).Any(a => IsParentAttribute(a) && (((ParentAttribute)a).Parent?.Equals(parent) ?? false));
+        private Func<object, bool> IsRootParentExplicitly => (object a) => IsParentAttribute(a) && ((ParentAttribute)a).Parent == null;
+        private Func<Type, bool> HasRootParentImplicitly => (Type t) => !t.CustomAttributes.Any() && 
+            CommandsTypes.Any(child => HasParentAttribute(t, child));
 
-        private ParentAttribute? GetParentAttribute(Type command)
-        {
-            var parentAttributes = command.GetCustomAttributes(false).Where(IsParent);
-            if (parentAttributes.Count() > 1)
-            {
-                var message = nameof(ParentAttribute) + " or its derived classes are present more than once on " + command.FullName;
-                throw new InvalidAttributeException(message);
-            }
-
-            return parentAttributes.FirstOrDefault() as ParentAttribute;
-        }
+        private IEnumerable<ParentAttribute> GetParentAttributes(Type command)
+            => command.GetCustomAttributes(false).Where(IsParentAttribute).Cast<ParentAttribute>() ?? Array.Empty<ParentAttribute>();
 
 
         /// <summary>
@@ -98,47 +94,48 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <param name="tree"></param>
         private void AddParentsToTree(TreeNode<Type> tree)
         {
-            var commandsWithParent = CommandsTypes.Where(t => t.GetCustomAttributes(false).Any(IsParent));
-            foreach (var command in commandsWithParent)
+            var rootParentCommands = CommandsTypes
+                .Where(t => t.GetCustomAttributes(false).Any(IsRootParentExplicitly));
+            foreach (var command in rootParentCommands)
             {
-                var parentAttribute = GetParentAttribute(command);
-                if (parentAttribute?.Parent == null)
+                AddParentsToTree(tree, command);
+            }
+        }
+
+        private void AddParentsToTree(TreeNode<Type> tree, Type command)
+        {
+            foreach (var parentAttribute in GetParentAttributes(command))
+            {
+                var parent = parentAttribute.Parent;
+                var curNode = new TreeNode<Type>(command);
+                var initialNode = curNode;
+                if (parent != null)
                 {
-                    tree.AddChild(command);
+                    if (initialNode.FindNode(parent) != null)
+                    {
+                        throw new LoopException(parent, initialNode.Value!);
+                    }
+
+                    var childNode = curNode;
+                    curNode = tree.FindNode(parent);
+                    var found = curNode != null;
+
+                    curNode ??= new TreeNode<Type>(parent);
+                    curNode.AddChild(childNode);
+
+                    if (found)
+                    {
+                        curNode = null; // No need to add
+                        break; // Quit because the rest of the chain is already done
+                    }
+
+                    ___AddParentsToTree(tree, parent);
+                    parent = parentAttribute?.Parent;
                 }
-                else
+
+                if (curNode != null)
                 {
-                    var parent = parentAttribute.Parent;
-                    var curNode = new TreeNode<Type>(command);
-                    var initialNode = curNode;
-                    while (parent != null)
-                    {
-                        if (initialNode.FindNode(parent) != null)
-                        {
-                            throw new LoopException(parent, initialNode.Value!);
-                        }
-
-                        var childNode = curNode;
-                        curNode = tree.FindNode(parent);
-                        var found = curNode != null;
-
-                        curNode ??= new TreeNode<Type>(parent);
-                        curNode.AddChild(childNode);
-
-                        if (found)
-                        {
-                            curNode = null; // No need to add
-                            break; // Quit because the rest of the chain is already done
-                        }
-
-                        parentAttribute = GetParentAttribute(parent);
-                        parent = parentAttribute?.Parent;
-                    }
-
-                    if (curNode != null)
-                    {
-                        tree.AddChild(curNode);
-                    }
+                    tree.AddChild(curNode);
                 }
             }
         }
