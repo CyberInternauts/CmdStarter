@@ -94,6 +94,28 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(actual.Except(expected), Is.Empty, errorMessage);
         }
 
+
+        public static void AssertThrowsException<ExceptionType>(Action codeThatThrows, Action<ExceptionType> testOnException) where ExceptionType : Exception
+        {
+            string failingMessage = "Expected to throw " + typeof(ExceptionType).FullName;
+            try
+            {
+                codeThatThrows();
+                Assert.Fail(failingMessage);
+            }
+            catch (ExceptionType ex)
+            {
+                testOnException(ex);
+            }
+            catch (Exception ex)
+            {
+                if (ex is not ExceptionType)
+                {
+                    Assert.Fail(failingMessage);
+                }
+            }
+        }
+
         public static string PrintOption(string optionName, object expectedValue)
         {
             switch (Type.GetTypeCode(expectedValue.GetType()))

@@ -197,16 +197,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
-            if (!commandsTypes.Any()) throw new Exceptions.InvalidNamespaceException();
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Namespaces);
 
             // Filter by namespaces
             commandsTypes = FilterTypesByClasses(commandsTypes, Classes.ToList());
-            if (!commandsTypes.Any()) throw new InvalidClassException();
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Classes);
 
             this.commandsTypes = CommandsTypes.Clear();
             if (commandsTypes != null)
             {
-                var commandsToAdd = (Type[])commandsTypes.ToArray();
+                var commandsToAdd = commandsTypes.ToArray();
                 this.commandsTypes = CommandsTypes.AddRange(commandsToAdd);
             }
         }
