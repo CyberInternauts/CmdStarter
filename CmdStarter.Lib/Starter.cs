@@ -245,7 +245,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             BuildTree();
 
             // Lonely command
-            if (CommandsTypes.Count == 1)
+            if (IsRootingLonelyCommand && CommandsTypes.Count == 1)
             {
                 var command = CreateCommand(CommandsTypes[0])!;
                 command.IsHidden = true;
@@ -258,7 +258,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             {
                 AddLevel(RootCommand, CommandsTypesTree);
 
-                // Doing Initialize after having created all because the command may act differently if it has children or not
+                // Doing Initialize after having created all because a command may act differently if it has children or not
                 VisitCommands(RootCommand, (child) =>
                 {
                     if (child is StarterCommand command)
