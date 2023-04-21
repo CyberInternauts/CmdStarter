@@ -412,9 +412,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        public void IsLonelyCommandRooted()
+        public void IsLonelyCommandRooted([Values] bool isRootingLonelyCommand)
         {
-            starter.Classes = starter.Classes.Add(typeof(FullArgs).FullName!);
+            string testedCommandClassName = typeof(FullArgs).FullName!;
+            starter.Classes = starter.Classes.Add(testedCommandClassName);
             starter.InstantiateCommands();
 
             Assert.That(starter.RootCommand.Subcommands, Has.Count.EqualTo(1));
@@ -422,15 +423,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var command = starter.FindCommand<FullArgs>() as FullArgs;
             Assert.That(command, Is.Not.Null);
 
+            var receptable = isRootingLonelyCommand ? (Command)starter.RootCommand : command!; // Null test was already applied
+
             // Ensure arguments
-            AssertArguments(command, starter.RootCommand);
+            AssertArguments(command, receptable);
 
             // Ensure options
-            AssertOptionsPresence(command, starter.RootCommand);
+            AssertOptionsPresence(command, receptable);
 
             // Ensure handle
             var optionValue = command.MyOpt + 1;
-            var args = "--my-opt " + optionValue + " my 222"; // FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
+            var commandName = isRootingLonelyCommand ? string.Empty : testedCommandClassName.PascalToKebabCase() + " ";
+            var args = commandName+ "--my-opt " + optionValue + " my 222"; // FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
             Assert.DoesNotThrowAsync(async () => await starter.Start(args.Split(" ")));
             Assert.That(command.MyOpt, Is.EqualTo(optionValue));
             Assert.That(async () => await starter.Start(Array.Empty<string>()), Throws.Exception);

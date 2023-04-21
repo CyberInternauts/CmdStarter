@@ -35,6 +35,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private bool hasToInstantiate = true;
         private bool hasToUseDefaults = true;
         private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
+        private bool isRootingLonelyCommand = true;
 
         public Starter() : this(Array.Empty<string>())
         {
@@ -106,7 +107,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// - Both: Use (Parent|Children)Attributes and if nothing then namespaces.
         ///     - If ClassC has a <see cref="ParentAttribute"/> set to ClassP ==> Assign ClassC as subcommand of ClassP.
         ///     - If ClassP has a <see cref="ChildrenAttribute"/> set to the namespace of ClassC ==> Assign ClassC as subcommand of ClassP.
-        ///     - If ClassC's parent namespace has only one CmdStarterCommand (ClassP) AND :
+        ///     - If ClassC's parent namespace has only one <see cref="StarterCommand"/> (ClassP) AND :
         ///         - ClassC doesn't have a <see cref="ParentAttribute"/> ==> Assign ClassC as subcommand of ClassP.
         ///         - ClassC is not covered by a <see cref="ChildrenAttribute"/> ==> Assign ClassC as subcommand of ClassP.
         /// 
@@ -115,7 +116,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         ///     - If ClassP has a <see cref="ChildrenAttribute"/> set to the namespace of ClassC ==> Assign ClassC as subcommand of ClassP.
         /// 
         /// - OnlyNamespaces:
-        ///     - If ClassC's parent namespace has only one CmdStarterCommand (ClassP)
+        ///     - If ClassC's parent namespace has only one <see cref="StarterCommand"/> (ClassP)
         /// </remarks>
         public ClassesBuildingMode ClassesBuildingMode {
             get => classesBuildingMode;
@@ -124,6 +125,19 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             {
                 ResetTrees();
                 classesBuildingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// If true and only one command is found, assign the options and arguments to root instead.
+        /// </summary>
+        public bool IsRootingLonelyCommand
+        {
+            get => isRootingLonelyCommand;
+            set
+            {
+                ResetTrees();
+                isRootingLonelyCommand = value;
             }
         }
 
