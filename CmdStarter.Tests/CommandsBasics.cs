@@ -415,6 +415,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         public void IsLonelyCommandRooted([Values] bool isRootingLonelyCommand)
         {
             string testedCommandClassName = typeof(FullArgs).FullName!;
+            starter.IsRootingLonelyCommand = isRootingLonelyCommand;
             starter.Classes = starter.Classes.Add(testedCommandClassName);
             starter.InstantiateCommands();
 
