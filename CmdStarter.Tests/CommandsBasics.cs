@@ -31,8 +31,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
     {
         private CmdStarter.Lib.Starter starter;
 
-        //TODO: Shall add tests when using attribute on wrong class type
-
         [OneTimeSetUp]
         public void GlobalSetup()
         {

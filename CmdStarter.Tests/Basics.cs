@@ -85,13 +85,24 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(initialCommands, Has.Count.EqualTo(starter.CommandsTypes.Count));
             Assert.That(initialCommands.Except(starter.CommandsTypes), Is.Empty);
         }
+        public void ThrowsInvalidNamespace()
+        {
+        }
+
 
         [Test]
         [Category("Namespaces")]
-        public void ThrowsInvalidNamespace()
+        [Category("Classes")]
+        public void ThrowsWhenNoClassFound()
         {
             starter.Namespaces = starter.Namespaces.Add("com2.cyberint");
-            Assert.Throws<InvalidNamespaceException>(starter.FindCommandsTypes);
+            TestsCommon.AssertThrowsException<NoCommandFoundException>(starter.FindCommandsTypes,
+                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filters.Namespaces)));
+
+            starter = TestsCommon.CreateCmdStarter();
+            starter.Classes = starter.Classes.Add("ZxaAxca");
+            TestsCommon.AssertThrowsException<NoCommandFoundException>(starter.FindCommandsTypes,
+                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filters.Classes)));
         }
 
         [Test]
@@ -134,13 +145,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertCommandsExists(starter);
             starter.Classes = starter.Classes.RemoveAt(starter.Classes.Count - 1); // "Add" have to be done before!!!
             TestsCommon.AssertCommandsAreEmpty(starter);
-        }
-
-        [Test]
-        [Category("Classes")]
-        public void ThrowsWhenClassesFoundNothing()
-        {
-            //TODO: Change InvalidNamespaceException to NoCommandFoundException, but ensure if doing so
         }
 
         [Test]

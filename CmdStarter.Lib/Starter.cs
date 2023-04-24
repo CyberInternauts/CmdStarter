@@ -142,10 +142,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             var b = new CommandLineBuilder(RootCommand);
 
-
-
-
-
             if (hasToUseDefaults)
             {
                 hasToUseDefaults = false;
@@ -163,13 +159,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// </summary>
         public async Task<int> Start(IServiceCollection provider, string[] args)
         {
-            //TODO: Copy changes in Start(args)
-            provider.AddTransient<string, string>();
-            InstantiateCommands();
-            var b = new CommandLineBuilder(RootCommand);
-            await b.UseDefaults().Build().InvokeAsync(args);
-            await Task.Delay(500);
-            return 0;
+            throw new NotImplementedException();
         }
 
         public Command? FindCommand<CommandType>() where CommandType : Command
@@ -186,7 +176,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <summary>
         /// Find all <see cref="StarterCommand "/>s that have a namespace
         /// </summary>
-        /// <exception cref="Exceptions.InvalidNamespaceException"></exception>
+        /// <exception cref="Exceptions.NoCommandFoundException"></exception>
         public void FindCommandsTypes()
         {
             if (!hasToFindCommands) return; // Quit, job already done
@@ -197,16 +187,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
-            if (!commandsTypes.Any()) throw new Exceptions.InvalidNamespaceException();
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Namespaces);
 
             // Filter by namespaces
             commandsTypes = FilterTypesByClasses(commandsTypes, Classes.ToList());
-            if (!commandsTypes.Any()) throw new InvalidClassException();
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Classes);
 
             this.commandsTypes = CommandsTypes.Clear();
             if (commandsTypes != null)
             {
-                var commandsToAdd = (Type[])commandsTypes.ToArray();
+                var commandsToAdd = commandsTypes.ToArray();
                 this.commandsTypes = CommandsTypes.AddRange(commandsToAdd);
             }
         }

@@ -19,7 +19,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 
             foreach (var property in properties)
             {
-                //TODO: There was an error here... this means Option.AllowMultipleArgumentsPerToken is not tested.
                 var isList = property.PropertyType.GetInterfaces()
                     .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
 

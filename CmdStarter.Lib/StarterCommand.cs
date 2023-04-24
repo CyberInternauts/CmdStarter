@@ -14,12 +14,6 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 { 
-    //TODO: Is it the best idea to use a Class instead of an Interface? Have both: ...
-    ///     - When Interface, and not a StarterCommand, create one using a new sealed class in the Lib with the ClassFound as parameter
-    ///         - It will redirect the Handle method from the ClassFound
-    ///         - Copy attributes
-    ///     - Detect Options with OptionAttribute on public Property|Field
-    /// 
     public abstract class StarterCommand : Command
     {
         public const string OPTION_PREFIX = "--";
@@ -28,7 +22,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private const string TEMPORARY_NAME = "temp";
 
 
-        //TODO: Transfer to IStarterCommand what's below
+        //TODO: CMD-43 Transfer to IStarterCommand what's below
         public virtual Delegate MethodForHandling { get; } = () => { };
 
         public GlobalOptionsManager GlobalOptionsManager { get; internal set; } = default!; // Usage of default because this property is set by Starter class and the object is shared among multiple classes, but I don't want to add it to the constructor.
@@ -36,7 +30,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             return GlobalOptionsManager.GetGlobalOptions<GlobalOptionsType>();
         }
-        //TODO: Transfer to IStarterCommand what's above
+        //TODO: CMD-43 Transfer to IStarterCommand what's above
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
@@ -113,7 +107,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
 
             // Handle command execution
-            return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: Manage async
+            return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: CMD-44 Manage async
         }
 
         /// <summary>
