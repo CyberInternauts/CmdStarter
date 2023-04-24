@@ -97,12 +97,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             starter.Namespaces = starter.Namespaces.Add("com2.cyberint");
             TestsCommon.AssertThrowsException<NoCommandFoundException>(starter.FindCommandsTypes,
-                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filters.Namespaces)));
+                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filter.Namespaces)));
 
             starter = TestsCommon.CreateCmdStarter();
             starter.Classes = starter.Classes.Add("ZxaAxca");
             TestsCommon.AssertThrowsException<NoCommandFoundException>(starter.FindCommandsTypes,
-                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filters.Classes)));
+                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filter.Classes)));
         }
 
         [Test]

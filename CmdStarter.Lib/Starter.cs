@@ -201,11 +201,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
-            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Namespaces);
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Namespaces);
 
             // Filter by namespaces
             commandsTypes = FilterTypesByClasses(commandsTypes, Classes.ToList());
-            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Classes);
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Classes);
 
             this.commandsTypes = CommandsTypes.Clear();
             if (commandsTypes != null)
