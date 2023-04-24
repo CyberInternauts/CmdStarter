@@ -3,6 +3,6 @@
     [Parent<ArgParent>]
     public class ArgChild : StarterCommand
     {
-        public override Delegate MethodForHandling => (int p1) => { };
+        public override Delegate HandlingMethod => (int p1) => { };
     }
 }

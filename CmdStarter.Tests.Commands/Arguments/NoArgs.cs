@@ -2,6 +2,6 @@
 {
     public class NoArgs : StarterCommand
     {
-        public override Delegate MethodForHandling => () => { };
+        public override Delegate HandlingMethod => () => { };
     }
 }

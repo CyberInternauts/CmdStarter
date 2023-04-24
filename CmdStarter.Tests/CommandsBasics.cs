@@ -468,7 +468,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         private static void AssertArguments(StarterCommand commandToGetHandler, Command commandToGetArguments)
         {
-            var parameters = commandToGetHandler.MethodForHandling.Method.GetParameters();
+            var parameters = commandToGetHandler.HandlingMethod.Method.GetParameters();
             Assert.That(parameters, Is.Not.Null);
             Assert.That(commandToGetArguments.Arguments, Has.Count.EqualTo(parameters.Length));
 
