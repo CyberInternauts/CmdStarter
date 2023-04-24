@@ -410,8 +410,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        public void IsLonelyCommandRooted()
+        public void IsLonelyCommandRooted([Values] bool isRootingLonelyCommand)
         {
+            starter.IsRootingLonelyCommand = isRootingLonelyCommand;
             starter.Classes = starter.Classes.Add(typeof(FullArgs).FullName!);
             starter.InstantiateCommands();
 
@@ -420,18 +421,25 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var command = starter.FindCommand<FullArgs>() as FullArgs;
             Assert.That(command, Is.Not.Null);
 
+            var receptable = isRootingLonelyCommand ? (Command)starter.RootCommand : command!; // Null test was already applied
+
             // Ensure arguments
-            AssertArguments(command, starter.RootCommand);
+            AssertArguments(command, receptable);
 
             // Ensure options
-            AssertOptionsPresence(command, starter.RootCommand);
+            AssertOptionsPresence(command, receptable);
 
             // Ensure handle
             var optionValue = command.MyOpt + 1;
-            var args = "--my-opt " + optionValue + " my 222"; // FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
-            Assert.DoesNotThrowAsync(async () => await starter.Start(args.Split(" ")));
+            var commandName = isRootingLonelyCommand ? string.Empty : typeof(FullArgs).Name.PascalToKebabCase();
+            var successArgs = commandName + (isRootingLonelyCommand ? string.Empty : " ") // Command name
+                + "--my-opt " + optionValue // Options
+                + " my 222"; // Arguments  ==> FROM FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
+            Assert.DoesNotThrowAsync(async () => await starter.Start(successArgs.Split(" ")));
             Assert.That(command.MyOpt, Is.EqualTo(optionValue));
-            Assert.That(async () => await starter.Start(Array.Empty<string>()), Throws.Exception);
+
+            var failingArgs = (isRootingLonelyCommand ? Array.Empty<string>() : new string[] { commandName });
+            Assert.That(async () => await starter.Start(failingArgs), Throws.Exception);
         }
 
         /// <summary>
