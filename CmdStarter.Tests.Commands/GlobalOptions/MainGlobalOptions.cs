@@ -5,7 +5,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions
     public class MainGlobalOptions : IGlobalOptionsContainer
     {
         [Description(INT_GLOBAL_OPTION_DESC)]
-        public int IntGlobalOption { get; set; } = 888;
+        public int IntGlobalOption { get; set; } = INT_GLOBAL_OPTION_VALUE;
+        public const int INT_GLOBAL_OPTION_VALUE = 888;
         public const string INT_GLOBAL_OPTION_KEBAB = "int-global-option";
         public const string INT_GLOBAL_OPTION_DESC = "My first global option";
 
