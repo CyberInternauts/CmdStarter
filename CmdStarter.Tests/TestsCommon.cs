@@ -69,14 +69,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             });
         }
 
-        public static void AssertCommandsExists(CmdStarter.Lib.Starter starter, bool includeTypes = true)
+        public static void AssertCommandsExists(CmdStarter.Lib.Starter starter, bool onlyTypes = false)
         {
             Assert.Multiple(() =>
             {
-                if (includeTypes)
-                {
-                    Assert.That(starter.CommandsTypes, Is.Not.Empty);
-                }
+                Assert.That(starter.CommandsTypes, Is.Not.Empty);
+                if (onlyTypes) return;
+
                 Assert.That(starter.CommandsTypesTree.Children, Is.Not.Empty);
                 Assert.That(starter.RootCommand.Subcommands, Is.Not.Empty);
             });

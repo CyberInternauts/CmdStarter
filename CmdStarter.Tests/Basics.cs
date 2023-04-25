@@ -85,12 +85,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(initialCommands, Has.Count.EqualTo(starter.CommandsTypes.Count));
             Assert.That(initialCommands.Except(starter.CommandsTypes), Is.Empty);
         }
-        public void ThrowsInvalidNamespace()
-        {
-        }
-
 
         [Test]
+        [Category("Commands")]
         [Category("Namespaces")]
         [Category("Classes")]
         public void ThrowsWhenNoClassFound()
@@ -145,6 +142,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertCommandsExists(starter);
             starter.Classes = starter.Classes.RemoveAt(starter.Classes.Count - 1); // "Add" have to be done before!!!
             TestsCommon.AssertCommandsAreEmpty(starter);
+        }
+
+        [Test]
+        [Category("Commands")]
+        public void ChangesOnCommandsTypesEmptiesTree()
+        {
+            TestsCommon.AssertCommandsAreEmpty(starter);
+
+            starter.InstantiateCommands();
+            TestsCommon.AssertCommandsExists(starter);
+
+            starter.CommandsTypes = starter.CommandsTypes.RemoveAt(0);
+            TestsCommon.AssertCommandsAreEmpty(starter, false);
+            TestsCommon.AssertCommandsExists(starter, true);
+
         }
 
         [Test]

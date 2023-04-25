@@ -29,7 +29,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
     [Category("Commands")]
     public class CommandsBasics
     {
-        private CmdStarter.Lib.Starter starter;
+        private Starter starter;
 
         [OneTimeSetUp]
         public void GlobalSetup()
