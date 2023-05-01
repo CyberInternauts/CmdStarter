@@ -1,4 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common
+﻿using System.Collections;
+
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common
 {
     public class HandlerData
     {
@@ -27,7 +29,20 @@
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(this.Name.GetHashCode() + this.Value.GetHashCode());
+            var valueHash = 0;
+            if (Value is not string && Value is IEnumerable values)
+            {
+                foreach (var item in values)
+                {
+                    valueHash = HashCode.Combine(valueHash, item.GetHashCode());
+                }
+            } 
+            else
+            {
+                valueHash = Value.GetHashCode();
+            }
+
+            return HashCode.Combine(this.Name.GetHashCode(), valueHash);
         }
 
         public override bool Equals(object? obj)

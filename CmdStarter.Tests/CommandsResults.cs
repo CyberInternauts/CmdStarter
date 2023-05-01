@@ -32,6 +32,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [TestCase<ExecSum>]
+        [TestCase<ExecOptionTypes>]
         public async Task EnsuresCommandHandling<CommandType>() where CommandType : StarterCommand, IHandleTester
         {
             starter.IsRootingLonelyCommand = false;
@@ -78,8 +79,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                     var list = new List<string>();
                     if (isOption)
                     {
-                        var optionArg = TestsCommon.PrintOption(d.Name, d.Value);
-                        list.AddRange(optionArg.Split(' ', 2));
+                        list.AddRange(TestsCommon.PrepareOption(d.Name, d.Value));
                     }
                     else if (d.Value != null)
                     {
