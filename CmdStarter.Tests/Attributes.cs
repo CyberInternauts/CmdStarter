@@ -1,5 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete;

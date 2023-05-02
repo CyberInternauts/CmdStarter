@@ -1,5 +1,3 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Lib;
 using Erroneous = com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous;
 using System.Data;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;

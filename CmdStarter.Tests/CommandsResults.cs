@@ -1,11 +1,8 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
-using System.CommandLine;
-using System.Security.Cryptography;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {

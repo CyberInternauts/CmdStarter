@@ -1,7 +1,5 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using System.Drawing;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution
 {

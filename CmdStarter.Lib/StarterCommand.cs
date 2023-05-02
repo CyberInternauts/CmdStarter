@@ -1,12 +1,8 @@
-using System.Text;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
-using System.ComponentModel;
 using System.CommandLine.Invocation;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.Reflection;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection.Metadata;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Loader;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;

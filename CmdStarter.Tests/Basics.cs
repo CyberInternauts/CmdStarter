@@ -1,5 +1,3 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.Text.RegularExpressions;
