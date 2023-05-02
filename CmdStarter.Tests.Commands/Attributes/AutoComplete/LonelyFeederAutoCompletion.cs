@@ -11,7 +11,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         public string PersonName { get; set; } = null!;
         public const string OPTION_NAME = "person-name";
 
-        public override Delegate MethodForHandling => Execute;
+        public override Delegate HandlingMethod => Execute;
 
         private void Execute([AutoComplete<AutoCompletionArgumentFeeder>()] int age = 18)
         { }

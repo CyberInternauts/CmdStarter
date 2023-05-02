@@ -9,7 +9,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types
     [TestParent(ClassesBuildingMode.OnlyNamespaces, typeof(List))]
     public class Files : StarterCommand
     {
-        public override Delegate MethodForHandling => Execute;
+        public override Delegate HandlingMethod => Execute;
 
         private void Execute([Description("Folder to list files")] string folder)
         {

@@ -69,14 +69,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             });
         }
 
-        public static void AssertCommandsExists(CmdStarter.Lib.Starter starter, bool includeTypes = true)
+        public static void AssertCommandsExists(CmdStarter.Lib.Starter starter, bool onlyTypes = false)
         {
             Assert.Multiple(() =>
             {
-                if (includeTypes)
-                {
-                    Assert.That(starter.CommandsTypes, Is.Not.Empty);
-                }
+                Assert.That(starter.CommandsTypes, Is.Not.Empty);
+                if (onlyTypes) return;
+
                 Assert.That(starter.CommandsTypesTree.Children, Is.Not.Empty);
                 Assert.That(starter.RootCommand.Subcommands, Is.Not.Empty);
             });
@@ -116,30 +115,46 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             }
         }
 
-        public static string PrintOption(string optionName, object expectedValue)
+        public static List<string> PrepareOption(string optionName, object expectedValue)
         {
+            var args = new List<string>();
+
             switch (Type.GetTypeCode(expectedValue.GetType()))
             {
                 case TypeCode.Boolean:
-                    return OptHandling.OPTION_PREFIX + optionName;
+                    args.Add(OptHandling.OPTION_PREFIX + optionName);
+                    break;
 
                 default:
-                    if (expectedValue.GetType().IsArray)
+                    if (expectedValue is not string && expectedValue is IEnumerable values)
                     {
-                        var optionString = string.Empty;
-                        var values = (IEnumerable)expectedValue;
                         foreach (var curValue in values)
                         {
-                            optionString += " " + OptHandling.OPTION_PREFIX + optionName + " " + curValue;
+                            var value = curValue.ToString() ?? string.Empty;
+                            if (string.IsNullOrWhiteSpace(value)) continue;
+
+                            args.Add(OptHandling.OPTION_PREFIX + optionName);
+                            args.Add(value);
                         }
-                        optionString = optionString.Trim();
-                        return optionString;
                     }
                     else
                     {
-                        return OptHandling.OPTION_PREFIX + optionName + " " + expectedValue;
+                        var value = expectedValue.ToString() ?? string.Empty;
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            args.Add(OptHandling.OPTION_PREFIX + optionName);
+                            args.Add(value);
+                        }
                     }
+                    break;
             }
+
+            return args;
+        }
+
+        public static string PrintOption(string optionName, object expectedValue)
+        {
+            return string.Join(" ", PrepareOption(optionName, expectedValue));
         }
     }
 }

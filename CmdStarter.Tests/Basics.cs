@@ -1,5 +1,3 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.Text.RegularExpressions;
@@ -85,24 +83,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(initialCommands, Has.Count.EqualTo(starter.CommandsTypes.Count));
             Assert.That(initialCommands.Except(starter.CommandsTypes), Is.Empty);
         }
-        public void ThrowsInvalidNamespace()
-        {
-        }
-
 
         [Test]
+        [Category("Commands")]
         [Category("Namespaces")]
         [Category("Classes")]
         public void ThrowsWhenNoClassFound()
         {
             starter.Namespaces = starter.Namespaces.Add("com2.cyberint");
             TestsCommon.AssertThrowsException<NoCommandFoundException>(starter.FindCommandsTypes,
-                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filters.Namespaces)));
+                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filter.Namespaces)));
 
             starter = TestsCommon.CreateCmdStarter();
             starter.Classes = starter.Classes.Add("ZxaAxca");
             TestsCommon.AssertThrowsException<NoCommandFoundException>(starter.FindCommandsTypes,
-                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filters.Classes)));
+                (ex) => Assert.That(ex.LastFilterApplied, Is.EqualTo(NoCommandFoundException.Filter.Classes)));
         }
 
         [Test]
@@ -145,6 +140,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertCommandsExists(starter);
             starter.Classes = starter.Classes.RemoveAt(starter.Classes.Count - 1); // "Add" have to be done before!!!
             TestsCommon.AssertCommandsAreEmpty(starter);
+        }
+
+        [Test]
+        [Category("Commands")]
+        public void ChangesOnCommandsTypesEmptiesTree()
+        {
+            TestsCommon.AssertCommandsAreEmpty(starter);
+
+            starter.InstantiateCommands();
+            TestsCommon.AssertCommandsExists(starter);
+
+            starter.CommandsTypes = starter.CommandsTypes.RemoveAt(0);
+            TestsCommon.AssertCommandsAreEmpty(starter, false);
+            TestsCommon.AssertCommandsExists(starter, true);
+
         }
 
         [Test]

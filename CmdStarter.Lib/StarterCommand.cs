@@ -1,12 +1,8 @@
-using System.Text;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
-using System.ComponentModel;
 using System.CommandLine.Invocation;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.Reflection;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection.Metadata;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Loader;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
@@ -23,7 +19,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
 
         //TODO: CMD-43 Transfer to IStarterCommand what's below
-        public virtual Delegate MethodForHandling { get; } = () => { };
+        public virtual Delegate HandlingMethod { get; } = () => { };
 
         public GlobalOptionsManager GlobalOptionsManager { get; internal set; } = default!; // Usage of default because this property is set by Starter class and the object is shared among multiple classes, but I don't want to add it to the constructor.
         public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
@@ -78,7 +74,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
                 Handler = CommandHandler.Create(HandleCommand);
-                LoadArguments(MethodForHandling.Method, receptacle);
+                LoadArguments(HandlingMethod.Method, receptacle);
             }
 
             var commandType = this.GetType();
@@ -107,7 +103,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
 
             // Handle command execution
-            return CommandHandler.Create(MethodForHandling).Invoke(context); //TODO: CMD-44 Manage async
+            return CommandHandler.Create(HandlingMethod).Invoke(context); //TODO: CMD-44 Manage async
         }
 
         /// <summary>

@@ -8,7 +8,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types
     [Parent<List>]
     public class Folders : StarterCommand
     {
-        public override Delegate MethodForHandling => Execute;
+        public override Delegate HandlingMethod => Execute;
 
         private void Execute()
         {

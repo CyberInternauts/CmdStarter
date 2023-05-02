@@ -2,15 +2,15 @@
 {
     public class NoCommandFoundException : Exception
     {
-        public enum Filters
+        public enum Filter
         {
             Namespaces,
             Classes
         }
 
-        public Filters LastFilterApplied { get; init; }
+        public Filter LastFilterApplied { get; init; }
 
-        public NoCommandFoundException(Filters lastFilterApplied)
+        public NoCommandFoundException(Filter lastFilterApplied)
         {
             LastFilterApplied = lastFilterApplied;
         }

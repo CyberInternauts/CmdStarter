@@ -1,5 +1,3 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Lib;
 using Erroneous = com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous;
 using System.Data;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
@@ -29,7 +27,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
     [Category("Commands")]
     public class CommandsBasics
     {
-        private CmdStarter.Lib.Starter starter;
+        private Starter starter;
 
         [OneTimeSetUp]
         public void GlobalSetup()
@@ -468,7 +466,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         private static void AssertArguments(StarterCommand commandToGetHandler, Command commandToGetArguments)
         {
-            var parameters = commandToGetHandler.MethodForHandling.Method.GetParameters();
+            var parameters = commandToGetHandler.HandlingMethod.Method.GetParameters();
             Assert.That(parameters, Is.Not.Null);
             Assert.That(commandToGetArguments.Arguments, Has.Count.EqualTo(parameters.Length));
 

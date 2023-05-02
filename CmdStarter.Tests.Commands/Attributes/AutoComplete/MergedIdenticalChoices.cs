@@ -13,7 +13,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         public string? OptionWithDuplicates { get; set; }
         public const string OPTION_NAME = "option-with-duplicates";
 
-        public override Delegate MethodForHandling => Execute;
+        public override Delegate HandlingMethod => Execute;
 
         private void Execute(
             [AutoComplete<AgeEnum>()]

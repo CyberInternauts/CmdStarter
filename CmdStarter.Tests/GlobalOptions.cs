@@ -1,5 +1,4 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
-using System.CommandLine;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {

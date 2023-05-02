@@ -141,7 +141,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
-        public ImmutableList<Type> CommandsTypes { get => commandsTypes; }
+        public ImmutableList<Type> CommandsTypes { 
+            get => commandsTypes;
+            set
+            {
+                ResetTrees();
+                commandsTypes = value ?? ImmutableList<Type>.Empty;
+            }
+        }
 
         public TreeNode<Type> CommandsTypesTree { get; set; } = new(null);
 
@@ -188,7 +195,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         }
 
         /// <summary>
-        /// Find all <see cref="StarterCommand "/>s that have a namespace
+        /// Find all <see cref="StarterCommand "/>s that correspond to filters
         /// </summary>
         /// <exception cref="Exceptions.NoCommandFoundException"></exception>
         public void FindCommandsTypes()
@@ -201,11 +208,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
-            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Namespaces);
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Namespaces);
 
-            // Filter by namespaces
+            // Filter by classes
             commandsTypes = FilterTypesByClasses(commandsTypes, Classes.ToList());
-            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filters.Classes);
+            if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Classes);
 
             this.commandsTypes = CommandsTypes.Clear();
             if (commandsTypes != null)
@@ -215,6 +222,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
+        /// <summary>
+        /// Build tree from commands types found by <see cref="FindCommandsTypes"/>
+        /// </summary>
         public void BuildTree()
         {
             if (!hasToBuildTree) return;
@@ -227,6 +237,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             CommandsTypesTree.SetImmutable();
         }
 
+        /// <summary>
+        /// Instantiate commands using the tree built by <see cref="BuildTree" />
+        /// </summary>
         public void InstantiateCommands()
         {
             if (!hasToInstantiate) return;

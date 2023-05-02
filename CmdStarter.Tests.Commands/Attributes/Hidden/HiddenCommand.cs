@@ -5,7 +5,7 @@
     {
         public const bool COMMAND_IS_HIDDEN = true;
 
-        public override Delegate MethodForHandling => ([Hidden] int parameter) => { };
+        public override Delegate HandlingMethod => ([Hidden] int parameter) => { };
         public const string NAME_OF_PARAMETER = "parameter";
         public const bool PARAMETER_IS_HIDDEN = true;
 

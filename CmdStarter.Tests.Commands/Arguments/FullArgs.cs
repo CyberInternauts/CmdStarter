@@ -4,7 +4,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments
 {
     public class FullArgs : StarterCommand
     {
-        public override Delegate MethodForHandling => HandleExecution;
+        public override Delegate HandlingMethod => HandleExecution;
 
         public int MyOpt { get; set; } = 888;
 
