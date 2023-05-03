@@ -10,23 +10,26 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 { 
-    public abstract class StarterCommand : Command
+    public abstract class StarterCommand : Command, IStarterCommand
     {
         public const string OPTION_PREFIX = "--";
         public const string DESCRIPTION_JOINER = "\n";
 
         private const string TEMPORARY_NAME = "temp";
-
-
-        //TODO: CMD-43 Transfer to IStarterCommand what's below
+        
         public virtual Delegate HandlingMethod { get; } = () => { };
 
-        public GlobalOptionsManager GlobalOptionsManager { get; internal set; } = default!; // Usage of default because this property is set by Starter class and the object is shared among multiple classes, but I don't want to add it to the constructor.
+        public GlobalOptionsManager? GlobalOptionsManager { get; set; }
+
+        /// <summary>
+        /// Shortcut method for <see cref="IStarterCommandExtensions.GetGlobalOptions{GlobalOptionsType}(IStarterCommand)"/> that doesn't need usage of "this"
+        /// </summary>
+        /// <typeparam name="GlobalOptionsType"></typeparam>
+        /// <returns></returns>
         public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
         {
-            return GlobalOptionsManager.GetGlobalOptions<GlobalOptionsType>();
+            return ((IStarterCommand)this).GetGlobalOptions<GlobalOptionsType>();
         }
-        //TODO: CMD-43 Transfer to IStarterCommand what's above
 
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
