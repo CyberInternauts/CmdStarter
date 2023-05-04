@@ -302,7 +302,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<OptHandling>(nameof(OptHandling.MyOptInt), OptHandling.MY_OPT_INT_KEBAB, 111, 999)]
         [TestCase<OptHandling>(nameof(OptHandling.MyOptBool), OptHandling.MY_OPT_BOOL_KEBAB, false, true)]
-        [TestCase<OptHandling>(nameof(OptHandling.MyOptListInt), OptHandling.MY_OPT_LIST_INT_KEBAB, null, new int[] {11, 22})]
+        [TestCase<OptHandling>(nameof(OptHandling.MyOptListInt), OptHandling.MY_OPT_LIST_INT_KEBAB, null!, new int[] {11, 22})]
         [TestCase<OptByInterface>(nameof(OptByInterface.IntOpt), OptByInterface.INT_OPT_KEBAB, 111, 999)]
         public async Task IsPropertyFilledWithOption<CommandType>(string propertyName, string optionName, object defaultValue, object expectedValue) where CommandType : class, IStarterCommand
         {
@@ -331,12 +331,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]
         [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, false)]
-        public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : StarterCommand
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.INT_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STRING_OPT_KEBAB, false)]
+        public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
 
-            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
             var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
@@ -346,12 +348,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, "")]
         [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, OptComplete.STRING_OPT_DESC)]
-        public void HasOptionDescription<OptClass>(string optionName, string description) where OptClass : StarterCommand
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.INT_OPT_KEBAB, "")]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STRING_OPT_KEBAB, OptCompleteByInterface.STRING_OPT_DESC)]
+        public void HasOptionDescription<OptClass>(string optionName, string description) where OptClass : IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
 
-            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
             var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
@@ -372,6 +376,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<OptCompleteDerived>(OptComplete.DATE_OPT_KEBAB, true)]
         [TestCase<OptCompleteDerived>(OptCompleteDerived.NEW_INT_OPT_KEBAB, true)]
         [TestCase<OptByInterface>(OptByInterface.INT_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.INT_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STRING_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.DATE_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.PRIVATE_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.PROTECTED_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.READ_ONLY_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.WRITE_ONLY_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STATIC_OPT_KEBAB, false)]
         public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : class, IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
