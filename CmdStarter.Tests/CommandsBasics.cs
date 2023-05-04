@@ -408,7 +408,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NoArgs>]
         [TestCase<ArgParent>]
         [TestCase<ArgChild>]
-        public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : StarterCommand
+        [TestCase<FullArgsByInterface>]
+        public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : IStarterCommand
         {
             // Using NoArgs instead of CommandType, otherwise with ArgChild, it finds only one command and now the behavior is to root options/arguments
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(NoArgs).Namespace!);
@@ -423,7 +424,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 return;
             }
 
-            AssertArguments(command, command);
+            AssertArguments(command.UnderlyingCommand, command);
         }
 
         [Test]
@@ -483,7 +484,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             }
         }
 
-        private static void AssertArguments(StarterCommand commandToGetHandler, Command commandToGetArguments)
+        private static void AssertArguments(IStarterCommand commandToGetHandler, Command commandToGetArguments)
         {
             var parameters = commandToGetHandler.HandlingMethod.Method.GetParameters();
             Assert.That(parameters, Is.Not.Null);
