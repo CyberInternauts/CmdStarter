@@ -19,6 +19,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Child
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ByInterface;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -292,7 +293,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<ArgParent>]
         [TestCase<ArgChild>]
-        public void FindsCommand<CommandType>() where CommandType : StarterCommand
+        [TestCase<FirstByInterface>]
+        public void FindsCommand<CommandType>() where CommandType : IStarterCommand
         {
             starter.InstantiateCommands();
             Assert.That(starter.FindCommand<CommandType>(), Is.Not.Null);

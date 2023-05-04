@@ -8,6 +8,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ByInterfac
 
         public Delegate HandlingMethod => Execute;
 
+        public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
+            => new FirstByInterface();
+
         public void Execute()
         {
         }

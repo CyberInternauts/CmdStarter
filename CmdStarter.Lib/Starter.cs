@@ -8,6 +8,9 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using System.Data;
+using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -183,10 +186,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             throw new NotImplementedException();
         }
 
-        public Command? FindCommand<CommandType>() where CommandType : Command
+        public Command? FindCommand<CommandType>() where CommandType : IStarterCommand
         {
             var loopBody = (Command child) =>
             {
+                if (child is GenericStarterCommand<CommandType>) return child;
                 if (child is CommandType) return child;
                 return null;
             };
@@ -203,8 +207,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             if (!hasToFindCommands) return; // Quit, job already done
             hasToFindCommands = false;
 
+            var specialCommandsNamespace = typeof(GenericStarterCommand<>).Namespace;
             var commandsTypes = AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => a.GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(StarterCommand)) && t.Namespace != null));
+                        .SelectMany(a => a.GetTypes()
+                            .Where(t => 
+                                t.IsClass && 
+                                !t.IsAbstract && 
+                                t.IsAssignableTo(typeof(IStarterCommand)) &&
+                                t.Namespace != null &&
+                                t.Namespace != specialCommandsNamespace && 
+                                !t.Namespace.StartsWith(specialCommandsNamespace + ".")
+                            )
+                        );
 
             // Filter by namespaces
             commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
@@ -257,7 +271,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 RootCommand.Handler = CommandHandler.Create((InvocationContext context) => {
                     return command.Handler?.Invoke(context);
                 });
-            } else
+            } 
+            else
             {
                 AddLevel(RootCommand, CommandsTypesTree);
 
@@ -306,7 +321,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private StarterCommand? CreateCommand(Type commandType)
         {
-            var command = Activator.CreateInstance(commandType) as StarterCommand;
+            var getInstanceMethod = typeof(StarterCommand).GetMethod(nameof(IStarterCommand.GetInstance))!.MakeGenericMethod(commandType);
+            StarterCommand command = (StarterCommand)(getInstanceMethod.Invoke(null, null)!);
+
             if (command != null) command.GlobalOptionsManager = GlobalOptionsManager;
             return command;
         }
