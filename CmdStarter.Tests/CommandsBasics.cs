@@ -294,6 +294,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<ArgParent>]
         [TestCase<ArgChild>]
         [TestCase<FirstByInterface>]
+        [TestCase<SecondByInterface>]
         public void FindsCommand<CommandType>() where CommandType : IStarterCommand
         {
             starter.InstantiateCommands();
