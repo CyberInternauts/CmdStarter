@@ -1,13 +1,13 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 {
     public static class Helper
     {
+
+        private static List<string>? interfacePropertiesNames = null;
 
         public static IEnumerable<PropertyInfo> GetProperties(object obj)
         {
@@ -16,11 +16,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 
         public static IEnumerable<PropertyInfo> GetProperties(Type type)
         {
+            LoadInterfaceProperties();
+
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p =>
                     p.CanWrite && p.CanRead
                     && 
-                    ((p.DeclaringType?.IsSubclassOf(typeof(StarterCommand)) ?? false)
+                    (
+                      ((p.DeclaringType?.IsAssignableTo(typeof(IStarterCommand)) ?? false)
+                      && !interfacePropertiesNames!.Contains(p.Name)) // Can't be null because already loaded
                     ||
                     (p.DeclaringType?.IsAssignableTo(typeof(IGlobalOptionsContainer)) ?? false))
                 );
@@ -94,6 +98,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 .Replace(Starter.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS, @$".{STAR_PLACEHOLDER}")
                 .Replace(Starter.MULTI_ANY_CHAR_SYMBOL, @"\w*")
                 .Replace(STAR_PLACEHOLDER, "*");
+        }
+
+        private static void LoadInterfaceProperties()
+        {
+            if (interfacePropertiesNames != null) return;
+
+            interfacePropertiesNames = typeof(IStarterCommand).GetProperties().Select(p => p.Name).ToList();
         }
     }
 }

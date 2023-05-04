@@ -1,5 +1,4 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using System.Data;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands
 {
