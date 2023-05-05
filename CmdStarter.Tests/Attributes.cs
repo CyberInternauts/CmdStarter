@@ -55,13 +55,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<PartlyHiddenCommandB>(PartlyHiddenCommandB.NAME_OF_OPTION, PartlyHiddenCommandB.OPTION_IS_HIDDEN, PartlyHiddenCommandB.NAME_OF_PARAMETER, PartlyHiddenCommandB.PARAMETER_IS_HIDDEN, PartlyHiddenCommandB.COMMAND_IS_HIDDEN)]
         [TestCase<PartlyHiddenCommandC>(PartlyHiddenCommandC.NAME_OF_OPTION, PartlyHiddenCommandC.OPTION_IS_HIDDEN, PartlyHiddenCommandC.NAME_OF_PARAMETER, PartlyHiddenCommandC.PARAMETER_IS_HIDDEN, PartlyHiddenCommandC.COMMAND_IS_HIDDEN)]
         public void EnsuresIsHiddenAttribute<CommandType>(string optionName, bool isOptionHidden, string argumentName, bool isArgumentHidden, bool commandHidden)
-            where CommandType : StarterCommand
+            where CommandType : IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
             starter.InstantiateCommands();
 
             //Test command
-            var command = starter.FindCommand<CommandType>() as CommandType;
+            var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
             Assert.That(command.IsHidden, Is.EqualTo(commandHidden));
 
@@ -86,22 +86,24 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
         [TestCase<FullFeaturesAutoCompletion>(FullFeaturesAutoCompletion.OPTION_NAME, FullFeaturesAutoCompletion.ARGUMENT_NAME)]
         [TestCase<MergedIdenticalChoices>(MergedIdenticalChoices.OPTION_NAME, MergedIdenticalChoices.ARGUMENT_NAME)]
+        [TestCase<SingleSingleAutoCompleteByInterface>(SingleSingleAutoCompleteByInterface.OPTION_NAME, SingleSingleAutoCompleteByInterface.ARGUMENT_NAME)]
         public void EnsuresAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
-            where CommandType : StarterCommand, IHasAutoComplete
+            where CommandType : IStarterCommand, IHasAutoComplete
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<CommandType>() as CommandType;
+            var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
+            var autoCompleteCommand = (IHasAutoComplete)command.UnderlyingCommand;
 
             var option = command.Options.FirstOrDefault(option => option.Name == optionName);
             Assert.That(option, Is.Not.Null);
-            AssertCompletionItemsEqual(option.GetCompletions(), command.OptionCompletionsExpected());
+            AssertCompletionItemsEqual(option.GetCompletions(), autoCompleteCommand.OptionCompletionsExpected());
 
             var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
             Assert.That(argument, Is.Not.Null);
-            AssertCompletionItemsEqual(argument.GetCompletions(), command.ArgumentCompletionsExpected());
+            AssertCompletionItemsEqual(argument.GetCompletions(), autoCompleteCommand.ArgumentCompletionsExpected());
         }
 
         [TestCase<NonGenericNullCompletion>]

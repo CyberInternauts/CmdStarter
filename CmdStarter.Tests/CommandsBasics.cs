@@ -150,16 +150,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             AssertChilding(mainCommand, true);
         }
 
-        [TestCase(typeof(Word), "Word", "word")]
-        [TestCase(typeof(NameFor), "NameFor", "name-for")]
-        [TestCase(typeof(NameOverride), "NameOverride", "name-overriden")]
-        [TestCase(typeof(NameKebab), "NameKebab", "name-to-kebab")]
-        public void EnsuresKebabCase(Type commandTypeToTest, string originalName, string expectedName)
+        [TestCase<Word>("Word", "word")]
+        [TestCase<NameFor>("NameFor", "name-for")]
+        [TestCase<NameOverride>("NameOverride", "name-overriden")]
+        [TestCase<NameKebab>("NameKebab", "name-to-kebab")]
+        [TestCase<FirstByInterface>("FirstByInterface", "first-by-interface")]
+        public void EnsuresKebabCase<CommandType>(string originalName, string expectedName) where CommandType : IStarterCommand
         {
+            var commandTypeToTest = typeof(CommandType);
             Assert.That(commandTypeToTest.Name, Is.EqualTo(originalName)); // This ensures to adjust the test if command name has changed
 
-            var commandToTest = Activator.CreateInstance(commandTypeToTest) as StarterCommand;
-            Assert.That(commandToTest?.Name, Is.EqualTo(expectedName));
+            starter.Classes = starter.Classes.Add(commandTypeToTest.FullName!);
+            starter.InstantiateCommands();
+
+            var command = starter.FindCommand<CommandType>();
+            Assert.That(command, Is.Not.Null);
+            Assert.That(command?.Name, Is.EqualTo(expectedName));
         }
 
         [Test]
@@ -169,33 +175,33 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             // Normal case
             starter.InstantiateCommands();
             starter.VisitCommands(command => {
-                if (command is StarterCommand starterCommand)
-                {
-                    var cmdString = starterCommand.GetFullCommandString();
-                    Assert.DoesNotThrowAsync(
-                        async () => {
-                            try
+                var starterCommand = command as StarterCommand;
+                if (starterCommand == null) return;
+
+                var cmdString = starterCommand.GetFullCommandString();
+                Assert.DoesNotThrowAsync(
+                    async () => {
+                        try
+                        {
+                            await starter.Start(cmdString.Split(" "));
+                        }
+                        catch (Exception ex)
+                        {
+                            // Missing required argument, normal as the cmdString doesn't include those
+                            var parent = ex;
+                            var isMissingArgumentException = false;
+                            while (!isMissingArgumentException && parent != null)
                             {
-                                await starter.Start(cmdString.Split(" "));
+                                isMissingArgumentException = parent is InvalidOperationException;
+                                parent = parent.InnerException;
                             }
-                            catch (Exception ex)
+                            if (!isMissingArgumentException)
                             {
-                                // Missing required argument, normal as the cmdString doesn't include those
-                                var parent = ex;
-                                var isMissingArgumentException = false;
-                                while (!isMissingArgumentException && parent != null)
-                                {
-                                    isMissingArgumentException = parent is InvalidOperationException;
-                                    parent = parent.InnerException;
-                                }
-                                if (!isMissingArgumentException)
-                                {
-                                    throw new Exception("Command: " + starterCommand.GetType().FullName, ex);
-                                }
+                                throw new Exception("Command: " + starterCommand.GetType().FullName, ex);
                             }
                         }
-                    );;
-                }
+                    }
+                );
             });
 
             // Error case
@@ -528,11 +534,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NoDesc>("")]
         [TestCase<SingleDesc>(SingleDesc.DESC)]
         [TestCase<MultipleDesc>(MultipleDesc.FIRST_DESC + StarterCommand.DESCRIPTION_JOINER + MultipleDesc.SECOND_DESC)]
-        public void HasCommandDescription<DescClass>(string description) where DescClass : StarterCommand
+        [TestCase<SingleDescByInterface>(SingleDescByInterface.DESC)]
+        public void HasCommandDescription<DescClass>(string description) where DescClass : IStarterCommand
         {
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<DescClass>() as DescClass;
+            var command = starter.FindCommand<DescClass>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
             Assert.That(command.Description, Is.EqualTo(description));
         }

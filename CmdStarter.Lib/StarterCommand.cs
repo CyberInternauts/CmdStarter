@@ -155,7 +155,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             if (typeof(CommandType).IsAssignableTo(typeof(StarterCommand)))
             {
-                return (Activator.CreateInstance(typeof(CommandType)) as StarterCommand)!; // Can't be null because already an IStarterCommand
+                return (Activator.CreateInstance(typeof(CommandType)) as StarterCommand)!; // Can't be null because already an StarterCommand
             }
 
             return new GenericStarterCommand<CommandType>();
