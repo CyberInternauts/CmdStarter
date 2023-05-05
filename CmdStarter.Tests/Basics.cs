@@ -229,12 +229,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [TestCase<Folders>("list folders")]
-        public void EnsuresFullCommand<CommandType>(string expected) where CommandType : StarterCommand
+        public void EnsuresFullCommand<CommandType>(string expected) where CommandType : IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<CommandType>() as CommandType;
+            var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
             Assert.That(command.GetFullCommandString(), Is.EqualTo(expected));
         }

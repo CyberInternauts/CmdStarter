@@ -52,7 +52,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             if (globalOptionsArgs.Any()) mainArgs.AddRange(globalOptionsArgs);
 
             // Command name
-            mainArgs.Add(((StarterCommand)command).Name);
+            mainArgs.Add(command.Name);
 
             // Arguments
             var argumentsArgs = SelectHandlerDataByFeature(handleTester, HandlerData.CommandFeature.Argument);
