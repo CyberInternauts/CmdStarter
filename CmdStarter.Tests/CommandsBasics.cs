@@ -307,11 +307,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<OptByInterface>(nameof(OptByInterface.IntOpt), OptByInterface.INT_OPT_KEBAB, 111, 999)]
         public async Task IsPropertyFilledWithOption<CommandType>(string propertyName, string optionName, object defaultValue, object expectedValue) where CommandType : class, IStarterCommand
         {
-            var propertyTested = typeof(CommandType).GetProperty(propertyName);
-
-            // Test without option for default value
             var commandType = typeof(CommandType);
             var commandName = commandType.Name.PascalToKebabCase();
+            var propertyTested = commandType.GetProperty(propertyName);
+
+            // Test without option for default value
             starter.Namespaces = starter.Namespaces.Add(commandType.Namespace!);
             await starter.Start(new string[] { commandName });
             var optionCommand = starter.FindCommand<CommandType>() as StarterCommand;
