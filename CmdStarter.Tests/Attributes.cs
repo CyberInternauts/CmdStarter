@@ -32,19 +32,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<MultiAlias>(MultiAlias.OPTION_NAME)]
         [TestCase<AliasWithCustomPrefix>(AliasWithCustomPrefix.OPTION_NAME)]
         [TestCase<AliasWithPartlyCustomPrefix>(AliasWithPartlyCustomPrefix.OPTION_NAME)]
+        [TestCase<OneAliasByInterface>(OneAliasByInterface.OPTION_NAME)]
         public void EnsuresAliasAttribute<CommandType>(string optionName)
-            where CommandType : StarterCommand, IHasAliases
+            where CommandType : class, IStarterCommand, IHasAliases
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<CommandType>() as CommandType;
+            var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(command.Aliases, command.ExpectedCommandAliases);
+            var expectation = (IHasAliases)command.UnderlyingCommand;
+            TestsCommon.AssertIEnumerablesHaveSameElements(command.Aliases, expectation.ExpectedCommandAliases);
 
             var option = command.Options.FirstOrDefault(option => option.Name == optionName);
             Assert.That(option, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, command.ExpectedOptionAliases);
+            TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, expectation.ExpectedOptionAliases);
         }
 
         [TestCase<HiddenCommand>(HiddenCommand.NAME_OF_OPTION, HiddenCommand.OPTION_IS_HIDDEN, HiddenCommand.NAME_OF_PARAMETER, HiddenCommand.PARAMETER_IS_HIDDEN, HiddenCommand.COMMAND_IS_HIDDEN)]

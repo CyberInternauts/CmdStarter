@@ -18,7 +18,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private const string TEMPORARY_NAME = "temp";
 
-        internal IStarterCommand UnderlyingCommand { get; set; }
+        public IStarterCommand UnderlyingCommand { get; internal set; }
         
         public virtual Delegate HandlingMethod { get; } = () => { };
 
@@ -86,12 +86,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 LoadArguments(HandlingMethod.Method, receptacle);
             }
 
-            var commandType = this.GetType();
+            var commandType = UnderlyingCommand.GetType();
             LoadOptions(commandType, receptacle);
             LoadDescription(commandType, receptacle);
             LoadAliases(commandType, receptacle);
 
-            IsHidden = Attribute.IsDefined(this.GetType(), typeof(HiddenAttribute));
+            IsHidden = Attribute.IsDefined(UnderlyingCommand.GetType(), typeof(HiddenAttribute));
         }
 
         private void HandleGlobalOptions(InvocationContext context)
@@ -113,9 +113,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             HandleGlobalOptions(context);
 
             // Handle options
-            var handleCommandOptionsMethod = this.GetType() //typeof(StarterCommand)
+            var handleCommandOptionsMethod = typeof(HandlerStarterCommand) // Using <see cref="HandlerStarterCommand"> because it is not abstract nor generic
                 .GetMethod(nameof(HandleCommandOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
-                .MakeGenericMethod(this.GetType());
+                .MakeGenericMethod(UnderlyingCommand.GetType());
             CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
 
             // Handle command execution
@@ -123,29 +123,31 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         }
 
         /// <summary>
-        /// Copy the properties to the command
+        /// Copy the parsed properties to a receptable
         /// </summary>
-        /// <typeparam name="Self">Type of the command</typeparam>
+        /// <typeparam name="ParsingType">Type of the object to fill from parsing</typeparam>
         /// <param name="context">Parsing context</param>
-        /// <param name="self">Filled command provided by System.CommandLine</param>
-        /// <remarks>This method has to have "protected" visibility, otherwise it doesn't work</remarks>
-        protected void HandleCommandOptions<Self>(InvocationContext context, Self self) where Self : Command
+        /// <param name="parsed">Filled object provided by System.CommandLine</param>
+        /// <remarks>This method has to have "internal" visibility not "private", otherwise it doesn't work because it uses a derived class as method container</remarks>
+        internal void HandleCommandOptions<ParsingType>(InvocationContext context, ParsingType parsed) where ParsingType : IStarterCommand
         {
             var currentCommand = context.BindingContext.ParseResult.CommandResult.Command; // Using "this" is not the same object
             if (currentCommand is RootCommand)
             {
                 currentCommand = currentCommand.Subcommands[0];
             }
-            var selfProperties = GetProperties(self);
-            var thisProperties = GetProperties(currentCommand);
+            var starterCommand = currentCommand as StarterCommand;
+            var receptable = starterCommand?.UnderlyingCommand ?? (object)currentCommand;
+            var parsedProperties = GetProperties(parsed);
+            var receptacleProperties = GetProperties(receptable);
 
-            foreach ( var selfProperty in selfProperties )
+            foreach ( var parsedProperty in parsedProperties )
             {
-                var thisProperty = thisProperties.FirstOrDefault(p => p.Equals(selfProperty));
-                if (thisProperty == null) continue;
+                var receptacleProperty = receptacleProperties.FirstOrDefault(p => p.Equals(parsedProperty));
+                if (receptacleProperty == null) continue;
 
-                var value = selfProperty.GetValue(self);
-                thisProperty.SetValue(currentCommand, value);
+                var value = parsedProperty.GetValue(parsed);
+                receptacleProperty.SetValue(receptable, value);
             }
         }
 
