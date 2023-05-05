@@ -86,6 +86,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<FactoryAutoComplete>(FactoryAutoComplete.OPTION_NAME, FactoryAutoComplete.ARGUMENT_NAME)]
         [TestCase<FullFeaturesAutoCompletion>(FullFeaturesAutoCompletion.OPTION_NAME, FullFeaturesAutoCompletion.ARGUMENT_NAME)]
         [TestCase<MergedIdenticalChoices>(MergedIdenticalChoices.OPTION_NAME, MergedIdenticalChoices.ARGUMENT_NAME)]
+        [TestCase<SingleSingleAutoCompleteByInterface>(SingleSingleAutoCompleteByInterface.OPTION_NAME, SingleSingleAutoCompleteByInterface.ARGUMENT_NAME)]
         public void EnsuresAutoCompleteAttribute<CommandType>(string optionName, string argumentName)
             where CommandType : IStarterCommand, IHasAutoComplete
         {
