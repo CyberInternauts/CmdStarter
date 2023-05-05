@@ -31,38 +31,42 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<ExecSum>]
         [TestCase<ExecOptionTypes>]
         [TestCase<ExecArgumentTypes>]
-        public async Task EnsuresCommandHandling<CommandType>() where CommandType : StarterCommand, IHandleTester
+        [TestCase<ExecSumByInterface>]
+        [TestCase<ExecOptionTypesByInterface>]
+        [TestCase<ExecArgumentTypesByInterface>]
+        public async Task EnsuresCommandHandling<CommandType>() where CommandType : IStarterCommand, IHandleTester
         {
             starter.IsRootingLonelyCommand = false;
             starter.Classes = starter.Classes.Add(typeof(MainGlobalOptions).FullName!);
             starter.Classes = starter.Classes.Add(typeof(CommandType).FullName!);
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<CommandType>() as IHandleTester;
+            var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
+            var handleTester = (IHandleTester)command.UnderlyingCommand;
 
             var mainArgs = new List<string>();
 
             // Global options
-            var globalOptionsArgs = SelectHandlerDataByFeature(command, HandlerData.CommandFeature.GlobalOption);
+            var globalOptionsArgs = SelectHandlerDataByFeature(handleTester, HandlerData.CommandFeature.GlobalOption);
             if (globalOptionsArgs.Any()) mainArgs.AddRange(globalOptionsArgs);
 
             // Command name
-            mainArgs.Add(((StarterCommand)command).Name);
+            mainArgs.Add(command.Name);
 
             // Arguments
-            var argumentsArgs = SelectHandlerDataByFeature(command, HandlerData.CommandFeature.Argument);
+            var argumentsArgs = SelectHandlerDataByFeature(handleTester, HandlerData.CommandFeature.Argument);
             if (argumentsArgs.Any()) mainArgs.AddRange(argumentsArgs);
 
             // Options
-            var optionsArgs = SelectHandlerDataByFeature(command, HandlerData.CommandFeature.Option);
+            var optionsArgs = SelectHandlerDataByFeature(handleTester, HandlerData.CommandFeature.Option);
             if (optionsArgs.Any()) mainArgs.AddRange(optionsArgs);
 
             // Run and compare
             var actualReturn = await starter.Start(mainArgs.ToArray());
-            Assert.That(actualReturn, Is.EqualTo(command.ExpectedReturn));
+            Assert.That(actualReturn, Is.EqualTo(handleTester.ExpectedReturn));
 
-            TestsCommon.AssertIEnumerablesHaveSameElements(command.ActualHandlerData, command.ExpectedHandlerData);
+            TestsCommon.AssertIEnumerablesHaveSameElements(handleTester.ActualHandlerData, handleTester.ExpectedHandlerData);
         }
 
 

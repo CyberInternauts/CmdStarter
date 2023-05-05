@@ -1,4 +1,6 @@
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingByInterface;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingByInterface.Children;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.Text.RegularExpressions;
 
@@ -228,13 +230,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertIEnumerablesHaveSameElements(starter.CommandsTypes, types);
         }
 
-        [TestCase<Folders>("list folders")]
-        public void EnsuresFullCommand<CommandType>(string expected) where CommandType : StarterCommand
+        [TestCase<Commands.Demo.List, Folders>("list folders")]
+        [TestCase<ChildingParentByInterface, ChildingChildByInterface>("childing-parent-by-interface childing-child-by-interface")]
+        public void EnsuresFullCommand<NamespaceFilterType, CommandType>(string expected) where CommandType : IStarterCommand
         {
-            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
+            starter.Namespaces = starter.Namespaces.Add(typeof(NamespaceFilterType).Namespace!);
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<CommandType>() as CommandType;
+            var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
             Assert.That(command.GetFullCommandString(), Is.EqualTo(expected));
         }

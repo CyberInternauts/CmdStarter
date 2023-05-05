@@ -19,6 +19,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Child
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ByInterface;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -51,7 +52,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        public void FindsCommandsForListing()
+        public void FindsCommandsForDemo()
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(Commands.Demo.List).Namespace ?? string.Empty);
             starter.FindCommandsTypes();
@@ -149,16 +150,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             AssertChilding(mainCommand, true);
         }
 
-        [TestCase(typeof(Word), "Word", "word")]
-        [TestCase(typeof(NameFor), "NameFor", "name-for")]
-        [TestCase(typeof(NameOverride), "NameOverride", "name-overriden")]
-        [TestCase(typeof(NameKebab), "NameKebab", "name-to-kebab")]
-        public void EnsuresKebabCase(Type commandTypeToTest, string originalName, string expectedName)
+        [TestCase<Word>("Word", "word")]
+        [TestCase<NameFor>("NameFor", "name-for")]
+        [TestCase<NameOverride>("NameOverride", "name-overriden")]
+        [TestCase<NameKebab>("NameKebab", "name-to-kebab")]
+        [TestCase<FirstByInterface>("FirstByInterface", "first-by-interface")]
+        public void EnsuresKebabCase<CommandType>(string originalName, string expectedName) where CommandType : IStarterCommand
         {
+            var commandTypeToTest = typeof(CommandType);
             Assert.That(commandTypeToTest.Name, Is.EqualTo(originalName)); // This ensures to adjust the test if command name has changed
 
-            var commandToTest = Activator.CreateInstance(commandTypeToTest) as StarterCommand;
-            Assert.That(commandToTest?.Name, Is.EqualTo(expectedName));
+            starter.Classes = starter.Classes.Add(commandTypeToTest.FullName!);
+            starter.InstantiateCommands();
+
+            var command = starter.FindCommand<CommandType>();
+            Assert.That(command, Is.Not.Null);
+            Assert.That(command?.Name, Is.EqualTo(expectedName));
         }
 
         [Test]
@@ -168,33 +175,33 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             // Normal case
             starter.InstantiateCommands();
             starter.VisitCommands(command => {
-                if (command is StarterCommand starterCommand)
-                {
-                    var cmdString = starterCommand.GetFullCommandString();
-                    Assert.DoesNotThrowAsync(
-                        async () => {
-                            try
+                var starterCommand = command as StarterCommand;
+                if (starterCommand == null) return;
+
+                var cmdString = starterCommand.GetFullCommandString();
+                Assert.DoesNotThrowAsync(
+                    async () => {
+                        try
+                        {
+                            await starter.Start(cmdString.Split(" "));
+                        }
+                        catch (Exception ex)
+                        {
+                            // Missing required argument, normal as the cmdString doesn't include those
+                            var parent = ex;
+                            var isMissingArgumentException = false;
+                            while (!isMissingArgumentException && parent != null)
                             {
-                                await starter.Start(cmdString.Split(" "));
+                                isMissingArgumentException = parent is InvalidOperationException;
+                                parent = parent.InnerException;
                             }
-                            catch (Exception ex)
+                            if (!isMissingArgumentException)
                             {
-                                // Missing required argument, normal as the cmdString doesn't include those
-                                var parent = ex;
-                                var isMissingArgumentException = false;
-                                while (!isMissingArgumentException && parent != null)
-                                {
-                                    isMissingArgumentException = parent is InvalidOperationException;
-                                    parent = parent.InnerException;
-                                }
-                                if (!isMissingArgumentException)
-                                {
-                                    throw new Exception("Command: " + starterCommand.GetType().FullName, ex);
-                                }
+                                throw new Exception("Command: " + starterCommand.GetType().FullName, ex);
                             }
                         }
-                    );;
-                }
+                    }
+                );
             });
 
             // Error case
@@ -292,46 +299,53 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<ArgParent>]
         [TestCase<ArgChild>]
-        public void FindsCommand<CommandType>() where CommandType : StarterCommand
+        [TestCase<FirstByInterface>]
+        [TestCase<SecondByInterface>]
+        public void FindsCommand<CommandType>() where CommandType : IStarterCommand
         {
             starter.InstantiateCommands();
             Assert.That(starter.FindCommand<CommandType>(), Is.Not.Null);
         }
 
-        [TestCase(nameof(OptHandling.MyOptInt), OptHandling.MY_OPT_INT_KEBAB, 111, 999)]
-        [TestCase(nameof(OptHandling.MyOptBool), OptHandling.MY_OPT_BOOL_KEBAB, false, true)]
-        [TestCase(nameof(OptHandling.MyOptListInt), OptHandling.MY_OPT_LIST_INT_KEBAB, null, new int[] {11, 22})] 
-        public async Task IsPropertyFilledWithOption(string propertyName, string optionName, object defaultValue, object expectedValue)
+        [TestCase<OptHandling>(nameof(OptHandling.MyOptInt), OptHandling.MY_OPT_INT_KEBAB, 111, 999)]
+        [TestCase<OptHandling>(nameof(OptHandling.MyOptBool), OptHandling.MY_OPT_BOOL_KEBAB, false, true)]
+        [TestCase<OptHandling>(nameof(OptHandling.MyOptListInt), OptHandling.MY_OPT_LIST_INT_KEBAB, null!, new int[] {11, 22})]
+        [TestCase<OptByInterface>(nameof(OptByInterface.IntOpt), OptByInterface.INT_OPT_KEBAB, 111, 999)]
+        public async Task IsPropertyFilledWithOption<CommandType>(string propertyName, string optionName, object defaultValue, object expectedValue) where CommandType : class, IStarterCommand
         {
-            var propertyTested = typeof(OptHandling).GetProperty(propertyName);
+            var commandType = typeof(CommandType);
+            var commandName = commandType.Name.PascalToKebabCase();
+            var propertyTested = commandType.GetProperty(propertyName);
 
             // Test without option for default value
-            starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
-            await starter.Start(new string[] { nameof(OptHandling).PascalToKebabCase() });
-            var optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
+            starter.Namespaces = starter.Namespaces.Add(commandType.Namespace!);
+            await starter.Start(new string[] { commandName });
+            var optionCommand = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(optionCommand, Is.Not.Null);
-            Assert.That(propertyTested!.GetValue(optionCommand), Is.EqualTo(defaultValue));
+            Assert.That(propertyTested!.GetValue(optionCommand.UnderlyingCommand), Is.EqualTo(defaultValue));
 
             // Test with option
             starter = TestsCommon.CreateCmdStarter();
-            starter.Namespaces = starter.Namespaces.Add(typeof(OptHandling).Namespace!);
+            starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
 
-            var argsString = nameof(OptHandling).PascalToKebabCase() + " " + TestsCommon.PrintOption(optionName, expectedValue);
+            var argsString = commandName + " " + TestsCommon.PrintOption(optionName, expectedValue);
             await starter.Start(argsString.Split(" "));
 
-            optionCommand = starter.FindCommand<OptHandling>() as OptHandling;
+            optionCommand = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(optionCommand, Is.Not.Null);
-            Assert.That(propertyTested!.GetValue(optionCommand), Is.EqualTo(expectedValue));
+            Assert.That(propertyTested!.GetValue(optionCommand.UnderlyingCommand), Is.EqualTo(expectedValue));
         }
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]
         [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, false)]
-        public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : StarterCommand
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.INT_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STRING_OPT_KEBAB, false)]
+        public void HasRequiredOption<OptClass>(string optionName, bool isRequired) where OptClass : IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
 
-            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
             var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
@@ -341,12 +355,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, "")]
         [TestCase<OptComplete>(OptComplete.STRING_OPT_KEBAB, OptComplete.STRING_OPT_DESC)]
-        public void HasOptionDescription<OptClass>(string optionName, string description) where OptClass : StarterCommand
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.INT_OPT_KEBAB, "")]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STRING_OPT_KEBAB, OptCompleteByInterface.STRING_OPT_DESC)]
+        public void HasOptionDescription<OptClass>(string optionName, string description) where OptClass : IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
 
-            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
             var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
@@ -366,12 +382,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<OptCompleteDerived>(OptComplete.STRING_OPT_KEBAB, true)]
         [TestCase<OptCompleteDerived>(OptComplete.DATE_OPT_KEBAB, true)]
         [TestCase<OptCompleteDerived>(OptCompleteDerived.NEW_INT_OPT_KEBAB, true)]
-        public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : StarterCommand
+        [TestCase<OptByInterface>(OptByInterface.INT_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.INT_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STRING_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.DATE_OPT_KEBAB, true)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.PRIVATE_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.PROTECTED_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.READ_ONLY_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.WRITE_ONLY_OPT_KEBAB, false)]
+        [TestCase<OptCompleteByInterface>(OptCompleteByInterface.STATIC_OPT_KEBAB, false)]
+        public void EnsuresOptionsAreProperlyCreated<OptClass>(string optionName, bool shallBePresent) where OptClass : class, IStarterCommand
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
             starter.InstantiateCommands();
 
-            var optionCommand = starter.FindCommand<OptClass>() as OptClass;
+            var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
             var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
@@ -389,7 +414,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NoArgs>]
         [TestCase<ArgParent>]
         [TestCase<ArgChild>]
-        public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : StarterCommand
+        [TestCase<FullArgsByInterface>]
+        public void EnsuresArgumentsAreProperlyCreated<CommandType>() where CommandType : IStarterCommand
         {
             // Using NoArgs instead of CommandType, otherwise with ArgChild, it finds only one command and now the behavior is to root options/arguments
             starter.Namespaces = starter.Namespaces.Clear().Add(typeof(NoArgs).Namespace!);
@@ -404,7 +430,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 return;
             }
 
-            AssertArguments(command, command);
+            AssertArguments(command.UnderlyingCommand, command);
         }
 
         [Test]
@@ -464,7 +490,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             }
         }
 
-        private static void AssertArguments(StarterCommand commandToGetHandler, Command commandToGetArguments)
+        private static void AssertArguments(IStarterCommand commandToGetHandler, Command commandToGetArguments)
         {
             var parameters = commandToGetHandler.HandlingMethod.Method.GetParameters();
             Assert.That(parameters, Is.Not.Null);
@@ -508,11 +534,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<NoDesc>("")]
         [TestCase<SingleDesc>(SingleDesc.DESC)]
         [TestCase<MultipleDesc>(MultipleDesc.FIRST_DESC + StarterCommand.DESCRIPTION_JOINER + MultipleDesc.SECOND_DESC)]
-        public void HasCommandDescription<DescClass>(string description) where DescClass : StarterCommand
+        [TestCase<SingleDescByInterface>(SingleDescByInterface.DESC)]
+        public void HasCommandDescription<DescClass>(string description) where DescClass : IStarterCommand
         {
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<DescClass>() as DescClass;
+            var command = starter.FindCommand<DescClass>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
             Assert.That(command.Description, Is.EqualTo(description));
         }
