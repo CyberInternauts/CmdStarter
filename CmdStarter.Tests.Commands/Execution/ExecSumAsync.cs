@@ -4,7 +4,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution
 {
-    public class ExecSum : StarterCommand, IHandleTester
+    public class ExecSumAsync : StarterCommand, IHandleTester
     {
         private const int EXPECTED_RETURN = GLOBAL_INT_OPTION_VALUE + INT_OPTION_VALUE + PARAM1_VALUE;
         private const int DEFAULT_INT_OPTION_VALUE = 11;
@@ -19,12 +19,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution
 
         public override Delegate HandlingMethod => Execute;
 
-        public int Execute(int param1)
+        public async Task<int> Execute(int param1)
         {
             var globalOptions = this.GlobalOptionsManager?.GetGlobalOptions<MainGlobalOptions>();
             var globalInt = (globalOptions?.IntGlobalOption ?? 0);
 
             actualHandlerData = CreateData(globalInt, MyInt, param1);
+
+            var m = async () => { await Task.Delay(100); return 1; };
+            var test = await m.Invoke();
 
             return globalInt + MyInt + param1;
         }
