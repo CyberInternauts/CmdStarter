@@ -26,10 +26,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution
 
             actualHandlerData = CreateData(globalInt, MyInt, param1);
 
-            var m = async () => { await Task.Delay(100); return 1; };
+            var m = async () => { await Task.Delay(100); return 0; };
             var test = await m.Invoke();
 
-            return globalInt + MyInt + param1;
+            return globalInt + MyInt + param1 + test;
         }
 
         public int ExpectedReturn => EXPECTED_RETURN;

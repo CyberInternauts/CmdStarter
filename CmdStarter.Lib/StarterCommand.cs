@@ -94,7 +94,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             IsHidden = Attribute.IsDefined(UnderlyingCommand.GetType(), typeof(HiddenAttribute));
         }
 
-        private void HandleGlobalOptions(InvocationContext context)
+        private async Task HandleGlobalOptions(InvocationContext context)
         {
             if (GlobalOptionsManager == null) return;
 
@@ -103,23 +103,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var handleGlobalOptions = GlobalOptionsManager.GetType()
                     .GetMethod(nameof(GlobalOptionsManager.SetGlobalOptions), BindingFlags.Public | BindingFlags.Instance)!
                     .MakeGenericMethod(globalOptionsType);
-                CommandHandler.Create(handleGlobalOptions, GlobalOptionsManager).Invoke(context);
+                await CommandHandler.Create(handleGlobalOptions, GlobalOptionsManager).InvokeAsync(context);
             }
         }
 
-        private int HandleCommand(InvocationContext context)
+        private async Task<int> HandleCommand(InvocationContext context)
         {
             // Handle global options
-            HandleGlobalOptions(context);
+            await HandleGlobalOptions(context);
 
             // Handle options
             var handleCommandOptionsMethod = typeof(HandlerStarterCommand) // Using <see cref="HandlerStarterCommand"> because it is not abstract nor generic
                 .GetMethod(nameof(HandleCommandOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
                 .MakeGenericMethod(UnderlyingCommand.GetType());
-            CommandHandler.Create(handleCommandOptionsMethod).Invoke(context);
+            await CommandHandler.Create(handleCommandOptionsMethod).InvokeAsync(context);
 
             // Handle command execution
-            return CommandHandler.Create(HandlingMethod).Invoke(context); //TODO: CMD-44 Manage async
+            return await CommandHandler.Create(HandlingMethod).InvokeAsync(context);
         }
 
         /// <summary>
@@ -128,7 +128,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <typeparam name="ParsingType">Type of the object to fill from parsing</typeparam>
         /// <param name="context">Parsing context</param>
         /// <param name="parsed">Filled object provided by System.CommandLine</param>
-        /// <remarks>This method has to have "internal" visibility not "private", otherwise it doesn't work because it uses a derived class as method container</remarks>
+        /// <remarks>
+        /// - This method has to have "internal" visibility not "private", otherwise it doesn't work because it uses a derived class as method container
+        /// - This method cannot be static
+        /// </remarks>
         internal void HandleCommandOptions<ParsingType>(InvocationContext context, ParsingType parsed) where ParsingType : IStarterCommand
         {
             var currentCommand = context.BindingContext.ParseResult.CommandResult.Command; // Using "this" is not the same object
