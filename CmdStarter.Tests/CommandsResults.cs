@@ -34,6 +34,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<ExecSumByInterface>]
         [TestCase<ExecOptionTypesByInterface>]
         [TestCase<ExecArgumentTypesByInterface>]
+        [TestCase<ExecSumAsync>]
         public async Task EnsuresCommandHandling<CommandType>() where CommandType : IStarterCommand, IHandleTester
         {
             starter.IsRootingLonelyCommand = false;
