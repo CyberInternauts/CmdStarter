@@ -2,10 +2,15 @@
 {
     public interface IStarterCommand
     {
+        public readonly static Action EMPTY_EXECUTION = () => { };
+
         public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
         public Delegate HandlingMethod { get; }
 
-        public static abstract IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand;
+        public static virtual IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
+        {
+            return FactoryBag.RunFactory<CommandType>();
+        }
     }
 }

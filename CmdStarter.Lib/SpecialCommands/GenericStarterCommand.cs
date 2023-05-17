@@ -1,4 +1,5 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands
 {
@@ -20,7 +21,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands
             IStarterCommandType = typeof(CommandType);
 
             // Get method from specific type implementing <see cref="IStarterCommand"> to get the object and this method prevents null already
-            var method = IStarterCommandType.GetMethod(nameof(GetInstance))!.MakeGenericMethod(IStarterCommandType);
+            var method = FindGetInstanceMethod(IStarterCommandType);
             UnderlyingCommand = (IStarterCommand)method.Invoke(null, null)!;
         }
 

@@ -15,7 +15,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tester
                     typeof(Tests.Commands.GlobalOptions.MainGlobalOptions).Namespace!,
                 }
             );
-            await starter.Start(args);
+            await starter.Start(3, args);
 
             Console.WriteLine("Hello, World!");
         }

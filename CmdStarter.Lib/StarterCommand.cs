@@ -20,7 +20,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         public IStarterCommand UnderlyingCommand { get; internal set; }
         
-        public virtual Delegate HandlingMethod { get; } = () => { };
+        public virtual Delegate HandlingMethod { get; } = IStarterCommand.EMPTY_EXECUTION;
 
         public virtual GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
@@ -156,17 +156,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         public static StarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
         {
-            if (typeof(CommandType).IsAssignableTo(typeof(StarterCommand)))
+            var commandType = typeof(CommandType);
+
+            if (commandType.IsAssignableTo(typeof(StarterCommand)))
             {
-                return (Activator.CreateInstance(typeof(CommandType)) as StarterCommand)!; // Can't be null because already an StarterCommand
+                var method = FindGetInstanceMethod(commandType);
+                return (StarterCommand)method.Invoke(null, null)!;
             }
 
             return new GenericStarterCommand<CommandType>();
-        }
-
-        static IStarterCommand IStarterCommand.GetInstance<CommandType>()
-        {
-            return StarterCommand.GetInstance<StarterCommand>();
         }
     }
 }

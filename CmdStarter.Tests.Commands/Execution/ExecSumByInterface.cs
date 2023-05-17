@@ -32,9 +32,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution
 
         public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
-            => new ExecSumByInterface();
-
         public int ExpectedReturn => EXPECTED_RETURN;
 
         public List<HandlerData> ExpectedHandlerData => CreateData(GLOBAL_INT_OPTION_VALUE, INT_OPTION_VALUE, PARAM1_VALUE);

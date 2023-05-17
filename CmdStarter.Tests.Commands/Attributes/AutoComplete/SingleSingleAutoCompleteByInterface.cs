@@ -18,8 +18,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
         public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        private void Execute([AutoComplete(ARGUMENT_COMPLETION_1)] int age = 18)
-        { }
+        private void Execute([AutoComplete(ARGUMENT_COMPLETION_1)] int age = 18) { }
         public const string ARGUMENT_NAME = "age";
 
         public IEnumerable<CompletionItem> OptionCompletionsExpected()
@@ -39,8 +38,5 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
             return expected.GetCompletions();
         }
-
-        public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
-            => new SingleSingleAutoCompleteByInterface();
     }
 }

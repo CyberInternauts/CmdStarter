@@ -5,9 +5,6 @@
     {
         public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        public Delegate HandlingMethod => () => { };
-
-        public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
-            => new ChildingChildByInterface();
+        public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
     }
 }

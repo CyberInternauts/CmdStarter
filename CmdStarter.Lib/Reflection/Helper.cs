@@ -9,6 +9,32 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 
         private static List<string>? interfacePropertiesNames = null;
 
+        public static MethodInfo FindGetInstanceMethod(Type commandType)
+        {
+            const string methodName = nameof(IStarterCommand.GetInstance);
+
+            // Look through classes hierarchy from top to bottom
+            MethodInfo? methodInfo = null;
+            var currentType = commandType;
+            while (
+                methodInfo == null 
+                && currentType != null 
+                && currentType.IsAssignableTo(typeof(IStarterCommand))
+                && !currentType.Equals(typeof(StarterCommand)) // Ensures not looping back
+                )
+            {
+                methodInfo = currentType.GetMethod(methodName);
+                currentType = currentType.BaseType;
+            }
+            // Use default interface method implementation
+            if (methodInfo == null)
+            {
+                methodInfo = typeof(IStarterCommand).GetMethod(methodName)!;
+            }
+            var method = methodInfo.MakeGenericMethod(commandType);
+            return method;
+        }
+
         public static IEnumerable<PropertyInfo> GetProperties(object obj)
         {
             return GetProperties(obj.GetType());
