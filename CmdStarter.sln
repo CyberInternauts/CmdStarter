@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Tests.Commands",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmdStarter.Tests.Common", "CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj", "{361193F2-0C4C-4F5B-9F1E-6520349C1D32}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Demo.SimpleInjector", "CmdStarter.Demo.SimpleInjector\CmdStarter.Demo.SimpleInjector.csproj", "{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{361193F2-0C4C-4F5B-9F1E-6520349C1D32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{361193F2-0C4C-4F5B-9F1E-6520349C1D32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{361193F2-0C4C-4F5B-9F1E-6520349C1D32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
