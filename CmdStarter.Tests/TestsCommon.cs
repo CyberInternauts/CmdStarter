@@ -1,4 +1,5 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using System.Collections;
 using System.ComponentModel.Composition.Hosting;
 
@@ -37,6 +38,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public static CmdStarter.Lib.Starter CreateCmdStarter()
         {
+            Starter.SetDefaultFactory();
+
             var starter = new CmdStarter.Lib.Starter(); // Reset object to a new one, not to interfer between tests
             SetDefaultNamespaces(starter);
             return starter;
@@ -49,6 +52,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             {
                 starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + TestsCommon.ERRONEOUS_NAMESPACE);
             }
+            // Remove, by default, dependency injection namespace
+            starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Dependent1).Namespace!);
         }
 
         public static void SetDefaultClasses(CmdStarter.Lib.Starter starter)
