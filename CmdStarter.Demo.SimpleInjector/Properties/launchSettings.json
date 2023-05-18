@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CmdStarter.Demo.SimpleInjector": {
+      "commandName": "Project",
+      "commandLineArgs": "--my-int 999"
+    }
+  }
+}

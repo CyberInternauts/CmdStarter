@@ -19,14 +19,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias
 
         public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        public Delegate HandlingMethod => Execute;
-
-        public void Execute()
-        {
-
-        }
-
-        public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
-            => new OneAliasByInterface();
+        public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
     }
 }

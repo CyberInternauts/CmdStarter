@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.CommandLine.Invocation;
@@ -157,6 +156,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         public RootCommand RootCommand { get => rootCommand; }
 
+        public static void SetFactory(Func<Type, IStarterCommand> factory) => FactoryBag.SetFactory(factory);
+        public static void SetDefaultFactory() => FactoryBag.SetDefaultFactory();
+
         /// <summary>
         /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
         /// </summary>
@@ -181,9 +183,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <summary>
         /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
         /// </summary>
-        public async Task<int> Start(IServiceCollection provider, string[] args)
+        public async Task<int> Start(IServiceManager serviceManager, string[] args)
         {
-            throw new NotImplementedException();
+            // Set factory
+            var creationMethod = (Type commandType) =>
+            {
+                return serviceManager.GetService(commandType) as IStarterCommand;
+            };
+            Starter.SetFactory(creationMethod);
+
+            // Register commands
+            FindCommandsTypes();
+            CommandsTypes.ForEach(type => serviceManager.SetService(type));
+
+            return await Start(args);
         }
 
         public Command? FindCommand<CommandType>() where CommandType : IStarterCommand
@@ -321,8 +334,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private StarterCommand? CreateCommand(Type commandType)
         {
-            var getInstanceMethod = typeof(StarterCommand).GetMethod(nameof(IStarterCommand.GetInstance))!.MakeGenericMethod(commandType);
-            var command = getInstanceMethod.Invoke(null, null) as StarterCommand; // This shall always returns a <see cref="StarterCommand">
+            var getInstanceMethod = typeof(StarterCommand).GetMethod(nameof(StarterCommand.GetInstance))!.MakeGenericMethod(commandType);
+            var command = getInstanceMethod!.Invoke(null, null) as StarterCommand; // This shall always returns a <see cref="StarterCommand">
 
             if (command != null) command.GlobalOptionsManager = GlobalOptionsManager;
             return command;

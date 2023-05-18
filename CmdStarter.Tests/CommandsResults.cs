@@ -1,5 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
@@ -70,6 +71,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             TestsCommon.AssertIEnumerablesHaveSameElements(handleTester.ActualHandlerData, handleTester.ExpectedHandlerData);
         }
 
+        [TestCase<Dependent1, DependentService1>]
+        [TestCase<Dependent1, DependentService2>]
+        public async Task UsesDependencyInjection<CommandType, DependentServiceType>() 
+            where CommandType : IStarterCommand 
+            where DependentServiceType : IDependentService
+        {
+            var dependentService = (IDependentService)Activator.CreateInstance(typeof(DependentServiceType))!;
+            var serviceManager = new ServiceManager(dependentService);
+
+            starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
+            var actualReturn = await starter.Start(serviceManager, Array.Empty<string>());
+
+            Assert.That(dependentService.GetInt(), Is.EqualTo(actualReturn));
+        }
 
         private static IEnumerable<string> SelectHandlerDataByFeature(IHandleTester command, HandlerData.CommandFeature feature)
         {

@@ -10,13 +10,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ByInterfac
     {
         public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        public Delegate HandlingMethod => Execute;
-
-        public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
-            => new SecondByInterface();
-
-        public void Execute()
-        {
-        }
+        public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
     }
 }

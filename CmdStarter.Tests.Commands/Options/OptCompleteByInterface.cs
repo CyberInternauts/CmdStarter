@@ -41,14 +41,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options
 
         public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        public Delegate HandlingMethod => Execute;
-
-        public void Execute()
-        {
-
-        }
-
-        public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
-            => new OptCompleteByInterface();
+        public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
     }
 }
