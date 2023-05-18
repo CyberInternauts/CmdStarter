@@ -183,33 +183,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <summary>
         /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
         /// </summary>
-        public async Task<int> Start(int provider, string[] args)
+        public async Task<int> Start(IServiceManager serviceManager, string[] args)
         {
-            InstantiateCommands();
-
-            var b = new CommandLineBuilder(RootCommand);
-
-            /*
-            b.UseHost(_ => Host.CreateDefaultBuilder(),
-                host =>
-                {
-                    host.ConfigureServices(services =>
-                    {
-                        //services.AddSingleton<Service1>();
-                    });
-                    
-                });
-            */
-            if (hasToUseDefaults)
+            // Set factory
+            var creationMethod = (Type commandType) =>
             {
-                hasToUseDefaults = false;
-                b.UseDefaults();
-            }
+                return serviceManager.GetService(commandType) as IStarterCommand;
+            };
+            Starter.SetFactory(creationMethod);
 
-            var parser = b.Build();
+            // Register commands
+            FindCommandsTypes();
+            CommandsTypes.ForEach(type => serviceManager.SetService(type));
 
-
-            return await parser.InvokeAsync(args);
+            return await Start(args);
         }
 
         public Command? FindCommand<CommandType>() where CommandType : IStarterCommand

@@ -6,15 +6,28 @@ using SimpleInjector;
 
 namespace CmdStarter.Demo.SimpleInjector
 {
-    internal class Program
+    internal class Program : IServiceManager
     {
-        static async Task Main(string[] args)
-        {
-            var container = new Container();
+        private Starter starter = new();
+        private Container container = new();
 
+        internal Program()
+        {
             // Register services
             container.Register<IService, Service2>(Lifestyle.Singleton);
+        }
 
+        static async Task<int> Main(string[] args)
+        {
+            var program = new Program();
+
+            //return await program.StartManually(args);
+
+            return await program.StartAutomatically(args);
+        }
+
+        public async Task<int> StartManually(string[] args)
+        {
             // Set factory
             var creationMethod = (Type commandType) =>
             {
@@ -23,13 +36,27 @@ namespace CmdStarter.Demo.SimpleInjector
             Starter.SetFactory(creationMethod);
 
             // Find commands
-            var starter = new Starter();
             starter.FindCommandsTypes();
 
             // Place the code here because I should iterate through all commands
             container.Register<CmdService>(Lifestyle.Singleton);
 
-            await starter.Start(args);
+            return await starter.Start(args);
+        }
+
+        public async Task<int> StartAutomatically(string[] args)
+        {
+            return await starter.Start(this, args);
+        }
+
+        public object? GetService(Type serviceType)
+        {
+            return container.GetInstance(serviceType);
+        }
+
+        public void SetService(Type service)
+        {
+            container.Register(service, service, Lifestyle.Singleton);
         }
     }
 }
