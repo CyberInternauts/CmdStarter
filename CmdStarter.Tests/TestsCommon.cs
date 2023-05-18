@@ -1,6 +1,9 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using System.Collections;
+using System.CommandLine;
 using System.ComponentModel.Composition.Hosting;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
@@ -160,6 +163,71 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         public static string PrintOption(string optionName, object expectedValue)
         {
             return string.Join(" ", PrepareOption(optionName, expectedValue));
+        }
+
+        /// <summary>
+        /// This method use reflexion and thus shall not be used to test reflexion of a method
+        /// </summary>
+        /// <param name="commandToGetProperties"></param>
+        /// <param name="commandToGetOptions"></param>
+        public static void AssertOptionsPresence(Command commandToGetProperties, Command commandToGetOptions)
+        {
+            var properties = Helper.GetProperties(commandToGetProperties);
+            if (properties == null || !properties.Any())
+            {
+                Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(0));
+                return;
+            }
+
+            Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(properties.Count()));
+            var index = 0;
+            foreach (var property in properties)
+            {
+                var option = commandToGetOptions.Options[index];
+                Assert.That(option.Name, Is.EqualTo(property.Name.PascalToKebabCase()));
+                index++;
+            }
+        }
+
+        public static void AssertArguments(IStarterCommand commandToGetHandler, Command commandToGetArguments)
+        {
+            var parameters = commandToGetHandler.HandlingMethod.Method.GetParameters();
+            Assert.That(parameters, Is.Not.Null);
+            Assert.That(commandToGetArguments.Arguments, Has.Count.EqualTo(parameters.Length));
+
+            Assert.Multiple(() =>
+            {
+                var index = 0;
+                foreach (var parameter in parameters)
+                {
+                    var description = (parameter.GetCustomAttributes(false)
+                        .FirstOrDefault(a => a is System.ComponentModel.DescriptionAttribute) as System.ComponentModel.DescriptionAttribute)
+                        ?.Description;
+
+                    var message = () => "Error for parameter:" + parameter.Name;
+                    var arg = commandToGetArguments.Arguments[index];
+                    Assert.That(arg.Name, Is.EqualTo(parameter.Name), message);
+                    if (description != null)
+                    {
+                        Assert.That(arg.Description, Is.EqualTo(description), message);
+                    }
+                    else
+                    {
+                        Assert.That(String.IsNullOrEmpty(arg.Description), Is.True, message);
+                    }
+                    if (parameter.DefaultValue is not System.DBNull)
+                    {
+                        Assert.That(arg.HasDefaultValue, Is.True, message);
+                        Assert.That(arg.GetDefaultValue(), Is.EqualTo(parameter.DefaultValue), message);
+                    }
+                    else
+                    {
+                        Assert.That(arg.HasDefaultValue, Is.False, message);
+                    }
+
+                    index++;
+                }
+            });
         }
     }
 }
