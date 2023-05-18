@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection
 {
     public class Dependent1 : IStarterCommand
     {
