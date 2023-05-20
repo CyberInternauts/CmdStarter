@@ -1,10 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
 
 	<PropertyGroup>
+		<Version>0.9.0</Version>
 		<BaseNamespace>com.cyberinternauts.csharp</BaseNamespace>
 		<Company>CyberInternauts</Company>
 		<Authors>Jonathan Boivin, Norbert Ormándi</Authors>
 		<Copyright>$(Company)</Copyright>
+		<RepositoryUrl>https://github.com/CyberInternauts/CmdStarter</RepositoryUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>

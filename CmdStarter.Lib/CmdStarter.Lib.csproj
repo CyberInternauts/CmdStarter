@@ -2,15 +2,27 @@
 	<Import Project="..\ProjectsCommon.props" />
 	
   <PropertyGroup>
-	  <TargetFramework>net7.0</TargetFramework>
-	  <ImplicitUsings>enable</ImplicitUsings>
-	  <Nullable>enable</Nullable>
-	  <RootNamespace>com.cyberinternauts.csharp.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>$(BaseNamespace).$(SolutionName)</PackageId>
     <Title>$(SolutionName)</Title>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Description>Layer over System.CommandLine that simplifies integration.</Description>
+    <PackageProjectUrl>https://github.com/CyberInternauts/CmdStarter</PackageProjectUrl>
+    <PackageTags>System.CommandLine;command line</PackageTags>
+    <PackageReadmeFile>PKG-README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
+	
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\PKG-README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
