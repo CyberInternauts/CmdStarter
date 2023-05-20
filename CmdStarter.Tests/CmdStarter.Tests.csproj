@@ -1,13 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\ProjectsCommon.props" />
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
-
-    <RootNamespace>com.cyberinternauts.csharp.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

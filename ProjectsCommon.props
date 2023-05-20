@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<BaseNamespace>com.cyberinternauts.csharp</BaseNamespace>
+		<Company>CyberInternauts</Company>
+		<Authors>Jonathan Boivin, Norbert Ormándi</Authors>
+		<Copyright>$(Company)</Copyright>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>$(BaseNamespace).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	</PropertyGroup>
+
+</Project>
