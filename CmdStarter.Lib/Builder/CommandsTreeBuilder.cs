@@ -1,34 +1,14 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.CommandLine;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Builder
 {
     internal class CommandsTreeBuilder
     {
         /// <summary>
-        /// Configure how to build the commands tree (Order is important. Skipping other IFs when ClassC is assigned):
-        /// 
-        /// - Both: Use CommandsAttributes and if nothing then namespaces.
-        ///     - If ClassC has a ParentAttribute set to ClassP ==> Assign ClassC as subcommand of ClassP.
-        ///     - If ClassP has a ChildrenAttribute set to the namespace of ClassC ==> Assign ClassC as subcommand of ClassP.
-        ///     - If ClassC's parent namespace has only one CmdStarterCommand (ClassP) AND :
-        ///         - ClassC doesn't have a ParentAttribute ==> Assign ClassC as subcommand of ClassP.
-        ///         - ClassC is not covered by a ChildrenAttribute ==> Assign ClassC as subcommand of ClassP.
-        ///         
-        /// - OnlyAttributes: Use only CommandsAttributes.
-        ///     - If ClassC has a ParentAttribute set to ClassP ==> Assign ClassC as subcommand of ClassP.
-        ///     - If ClassP has a ChildrenAttribute set to the namespace of ClassC ==> Assign ClassC as subcommand of ClassP.
-        ///     
-        /// - OnlyNamespaces:
-        ///     - If ClassC's parent namespace has only one CmdStarterCommand (ClassP)
+        /// Configure how to build the commands tree using one of <see cref="Builder.ClassesBuildingMode"/>
         /// </summary>
         public ClassesBuildingMode ClassesBuildingMode { get; set; } = ClassesBuildingMode.Both;
 
@@ -77,7 +57,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return tree;
         }
 
-        private readonly Func<object, bool> IsParent = (object a) => a.GetType().IsAssignableTo(typeof(ParentAttribute));
+        private readonly Func<object, bool> IsParent = (a) => a.GetType().IsAssignableTo(typeof(ParentAttribute));
 
         private ParentAttribute? GetParentAttribute(Type command)
         {
@@ -219,6 +199,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// - If the commant type is in the tree, but shall be under type, move it (except if <see cref="ParentAttribute"/> is present.
         /// </summary>
         /// <param name="tree"></param>
+        /// <param name="noMoveIfParentAttribute"></param>
         /// <remarks>To be a parent, the command type has to be alone in its namespace</remarks>
         private void AddByNamespacesHierachy(TreeNode<Type> tree, bool noMoveIfParentAttribute)
         {

@@ -15,6 +15,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         private readonly IAutoCompleteFactory? _factory;
         private LinkedList<CompletionItem>? _items;
 
+        /// <summary>
+        /// Return a completion delegate that provides the items of possible completions.
+        /// </summary>
         public CompletionDelegate Context
         {
             get

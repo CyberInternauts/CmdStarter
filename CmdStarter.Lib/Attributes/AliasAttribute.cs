@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Numerics;
 using System.Text;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
@@ -75,6 +74,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// <returns>The alias at the specified index.</returns>
         public string this[int index] => Aliases[index];
 
+        /// <inheritdoc/>
         public IEnumerator<string> GetEnumerator() => Aliases.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => Aliases.GetEnumerator();
 
