@@ -397,16 +397,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             rootCommand = new();
         }
 
-        private string? GetParentNamespace(string? namespaceToCut)
-        {
-            if (namespaceToCut == null) return null;
-
-            var dotIndex = namespaceToCut.LastIndexOf(".");
-            if (dotIndex == -1) return null;
-
-            return namespaceToCut[..dotIndex];
-        }
-
         /// <summary>
         /// Visit commands from a specific command until not null is returned
         /// </summary>
