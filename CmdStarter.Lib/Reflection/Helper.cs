@@ -7,7 +7,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
     /// <summary>
     /// Reflection helper class specific to <see cref="IStarterCommand"/>
     /// </summary>
-    public static class Helper
+    public static partial class Helper
     {
 
         private static List<string>? interfacePropertiesNames = null;
@@ -63,8 +63,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                     p.CanWrite && p.CanRead
                     && 
                     (
-                      ((p.DeclaringType?.IsAssignableTo(typeof(IStarterCommand)) ?? false)
-                      && !interfacePropertiesNames!.Contains(p.Name)) // Can't be null because already loaded
+                      (p.DeclaringType?.IsAssignableTo(typeof(IStarterCommand)) ?? false)
+                      && !interfacePropertiesNames!.Contains(p.Name) // Can't be null because already loaded
                     ||
                     (p.DeclaringType?.IsAssignableTo(typeof(IGlobalOptionsContainer)) ?? false))
                 );
@@ -83,9 +83,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             var nbCommands = commandsTypes.Count();
             if (nbCommands == 0 || !namespaces.Any()) return commandsTypes;
 
-            var namespacesIncluded = namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.EXCLUSION_SYMBOL));
+            var namespacesIncluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.EXCLUSION_SYMBOL));
             var hasIncluded = namespacesIncluded.Any();
-            var namespacesExcluded = namespaces.Where(n => !String.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.EXCLUSION_SYMBOL));
+            var namespacesExcluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.EXCLUSION_SYMBOL));
 
             commandsTypes = commandsTypes.Where(c =>
             {
@@ -111,7 +111,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 
             bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL));
 
-            Regex dotRegex = new(@"\\.");
+            Regex dotRegex = DotMatcher();
 
             Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL))
                 .Select(filter =>
@@ -129,7 +129,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 
             commandsTypes = commandsTypes.Where(type =>
             {
-                bool included = (onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty)));
+                bool included = onlyExclude || filters.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
 
                 bool excluded = excludes.Any(rgx => rgx.IsMatch(type.FullName ?? string.Empty));
 
@@ -143,7 +143,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
         {
             const string STAR_PLACEHOLDER = "<-starplaceholder->";
 
-            return (@$"(.|^){wildcard}$")
+            return @$"(.|^){wildcard}$"
                 .Replace(".", @"\.")
                 .Replace(Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS, ".")
                 .Replace(Starter.ANY_CHAR_SYMBOL, @"\w")
@@ -158,5 +158,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 
             interfacePropertiesNames = typeof(IStarterCommand).GetProperties().Select(p => p.Name).ToList();
         }
+
+        [GeneratedRegex("\\\\.")]
+        private static partial Regex DotMatcher();
     }
 }
