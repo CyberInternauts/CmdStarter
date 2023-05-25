@@ -3,12 +3,12 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using System.Collections.Immutable;
 using System.Data;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Builder
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
 {
     internal class CommandsTreeBuilder
     {
         /// <summary>
-        /// Configure how to build the commands tree using one of <see cref="Builder.ClassesBuildingMode"/>
+        /// Configure how to build the commands tree using one of <see cref="Loader.ClassesBuildingMode"/>
         /// </summary>
         public ClassesBuildingMode ClassesBuildingMode { get; set; } = ClassesBuildingMode.Both;
 

@@ -1,4 +1,5 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types
 {

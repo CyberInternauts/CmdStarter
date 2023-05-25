@@ -11,25 +11,49 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 { 
+    /// <summary>
+    /// Abstract class that is the base of all. It transposes what's needed from the <see cref="IStarterCommand"/> object to System.CommandLine commands features.
+    /// </summary>
     public abstract class StarterCommand : Command, IStarterCommand
     {
+        /// <summary>
+        /// Options prefix
+        /// </summary>
         public const string OPTION_PREFIX = "--";
+
+        /// <summary>
+        /// Description joiner upon multiple attribute
+        /// </summary>
         public const string DESCRIPTION_JOINER = "\n";
 
         private const string TEMPORARY_NAME = "temp";
 
+        /// <summary>
+        /// <see cref="IStarterCommand"/> object that manages execution and from where the command features are filled
+        /// </summary>
         public IStarterCommand UnderlyingCommand { get; internal set; }
-        
+
+        /// <inheritdoc cref="IStarterCommand.HandlingMethod"/>
         public virtual Delegate HandlingMethod { get; } = IStarterCommand.EMPTY_EXECUTION;
 
+        /// <inheritdoc cref="IStarterCommand.GlobalOptionsManager"/>
         public virtual GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
+        /// <summary>
+        /// Constructor using its own type as command name
+        /// </summary>
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
             UnderlyingCommand = this;
             Name = this.GetType().Name.PascalToKebabCase();
         }
 
+        /// <summary>
+        /// Constructor with name and potentially description
+        /// </summary>
+        /// <param name="name">Name of the command</param>
+        /// <param name="description">Description of the command</param>
+        /// <exception cref="ArgumentException">Name can't be null, empty or only whitespace</exception>
         protected StarterCommand(string name, string? description = null) : base(TEMPORARY_NAME, description)
         {
             UnderlyingCommand = this;
@@ -59,7 +83,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return ((IStarterCommand)this).GetGlobalOptions<GlobalOptionsType>();
         }
 
-
+        /// <summary>
+        /// Get the full command path: this command name preceeded by all its parents names.
+        /// </summary>
+        /// <returns></returns>
         public string GetFullCommandString()
         {
             var parentsName = new List<string>();
@@ -132,7 +159,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// - This method has to have "internal" visibility not "private", otherwise it doesn't work because it uses a derived class as method container
         /// - This method cannot be static
         /// </remarks>
+#pragma warning disable CA1822 // Mark members as static
         internal void HandleCommandOptions<ParsingType>(InvocationContext context, ParsingType parsed) where ParsingType : IStarterCommand
+#pragma warning restore CA1822 // Mark members as static
         {
             var currentCommand = context.BindingContext.ParseResult.CommandResult.Command; // Using "this" is not the same object
             if (currentCommand is RootCommand)
@@ -154,6 +183,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
+        /// <summary>
+        /// Obtain an instance of a derived <see cref="StarterCommand"/>:<br/>
+        /// <list type="bullet">
+        /// <item>The type itself if it derives already from <see cref="StarterCommand"/></item>
+        /// <item>A <see cref="GenericStarterCommand{CommandType}"/> using <typeparamref name="CommandType"/></item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="CommandType">Command type to obtain a instance of</typeparam>
+        /// <returns>A derived instance of <see cref="StarterCommand"/></returns>
         public static StarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
         {
             var commandType = typeof(CommandType);

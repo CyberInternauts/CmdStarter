@@ -1,4 +1,5 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo;
 using System.ComponentModel;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types

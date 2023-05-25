@@ -21,7 +21,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ByInterface;
 using static com.cyberinternauts.csharp.CmdStarter.Tests.TestsCommon;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Builder;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {

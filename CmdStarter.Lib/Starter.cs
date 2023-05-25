@@ -9,7 +9,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Data;
 using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Builder;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {

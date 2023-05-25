@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Data;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Builder
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
 {
     /// <summary>
     /// 

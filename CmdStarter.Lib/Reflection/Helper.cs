@@ -4,11 +4,19 @@ using System.Text.RegularExpressions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 {
+    /// <summary>
+    /// Reflection helper class specific to <see cref="IStarterCommand"/>
+    /// </summary>
     public static class Helper
     {
 
         private static List<string>? interfacePropertiesNames = null;
 
+        /// <summary>
+        /// Find the most derived <see cref="IStarterCommand.GetInstance{CommandType}"/> or use default implementation
+        /// </summary>
+        /// <param name="commandType">Command type to look for <see cref="IStarterCommand.GetInstance{CommandType}"/></param>
+        /// <returns>A method info object of the method to execute</returns>
         public static MethodInfo FindGetInstanceMethod(Type commandType)
         {
             const string methodName = nameof(IStarterCommand.GetInstance);
@@ -35,11 +43,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             return method;
         }
 
+        /// <inheritdoc cref="GetProperties(Type)"/>
         public static IEnumerable<PropertyInfo> GetProperties(object obj)
         {
             return GetProperties(obj.GetType());
         }
 
+        /// <summary>
+        /// Retrieve properties on a type that are considered as options
+        /// </summary>
+        /// <param name="type">Type to look properties on</param>
+        /// <returns>A list of properties</returns>
         public static IEnumerable<PropertyInfo> GetProperties(Type type)
         {
             LoadInterfaceProperties();
@@ -58,6 +72,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             return properties;
         }
 
+        /// <summary>
+        /// Filter a list of types using namespaces
+        /// </summary>
+        /// <param name="commandsTypes">Commands types to filter</param>
+        /// <param name="namespaces">Namespaces to accept or reject</param>
+        /// <returns>The filtered list of commands types</returns>
         public static IEnumerable<Type> FilterTypesByNamespaces(IEnumerable<Type> commandsTypes, List<string> namespaces)
         {
             var nbCommands = commandsTypes.Count();
@@ -78,6 +98,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             return commandsTypes;
         }
 
+        /// <summary>
+        /// Filter a list of types using full classes names
+        /// </summary>
+        /// <param name="commandsTypes">Commands types to filter</param>
+        /// <param name="classes">Classes names to filter: Wildcard can be used (?, ??, *, **)</param>
+        /// <returns>The filtered list of commands types</returns>
         public static IEnumerable<Type> FilterTypesByClasses(IEnumerable<Type> commandsTypes, List<string> classes)
         {
             var nbCommands = commandsTypes.Count();

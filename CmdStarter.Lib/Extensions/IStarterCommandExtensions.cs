@@ -2,6 +2,9 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extensions
 {
+    /// <summary>
+    /// <see cref="IStarterCommand"/> extensions
+    /// </summary>
     public static class IStarterCommandExtensions
     {
         /// <summary>
