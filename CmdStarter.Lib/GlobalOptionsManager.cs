@@ -42,8 +42,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// </summary>
         /// <typeparam name="GlobalOptionsType">Global options container type to use as key</typeparam>
         /// <param name="globalOption"></param>
-        /// <remarks>This method has to be public even if there are no compilation error</remarks>
-        public void SetGlobalOptions<GlobalOptionsType>(GlobalOptionsType globalOption) where GlobalOptionsType : class, IGlobalOptionsContainer
+        internal void SetGlobalOptions<GlobalOptionsType>(GlobalOptionsType globalOption) where GlobalOptionsType : class, IGlobalOptionsContainer
         {
             var type = typeof(GlobalOptionsType);
 

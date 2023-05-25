@@ -128,7 +128,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             foreach (var globalOptionsType in GlobalOptionsManager.GlobalOptionsTypes)
             {
                 var handleGlobalOptions = GlobalOptionsManager.GetType()
-                    .GetMethod(nameof(GlobalOptionsManager.SetGlobalOptions), BindingFlags.Public | BindingFlags.Instance)!
+                    .GetMethod(nameof(GlobalOptionsManager.SetGlobalOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
                     .MakeGenericMethod(globalOptionsType);
                 await CommandHandler.Create(handleGlobalOptions, GlobalOptionsManager).InvokeAsync(context);
             }
