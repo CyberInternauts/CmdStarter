@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<Version>0.9.0-beta4.22272.1</Version>
+		<BasePackageName>cints</BasePackageName>
 		<BaseNamespace>com.cyberinternauts.csharp</BaseNamespace>
 		<Company>CyberInternauts</Company>
 		<Authors>Jonathan Boivin, Norbert Ormándi</Authors>

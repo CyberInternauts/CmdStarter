@@ -3,7 +3,7 @@
 	
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>$(BaseNamespace).$(SolutionName)</PackageId>
+    <PackageId>$(BasePackageName).$(SolutionName)</PackageId>
     <Title>$(SolutionName)</Title>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Description>Layer over System.CommandLine that simplifies integration.</Description>
