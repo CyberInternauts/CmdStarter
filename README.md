@@ -42,7 +42,7 @@ internal class Program
 Those methods allow classes with a constructor having parameters.
 - `IStarterCommand.GetInstance` method can be overriden
 - `Starter.SetFactory` can be used to change the default behavior of instantiation
-- `(new Starter().Start(IServiceManager, string[])` can be used having an object implementing `IServiceManager`
+- `(new Starter()).Start(IServiceManager, string[])` can be used having an object implementing `IServiceManager`
 
 Any of your prefered library can be used. This repository includes an example with Simple Injector.
 
