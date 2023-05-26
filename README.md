@@ -52,5 +52,5 @@ MIT License. See [LICENSE.txt](https://github.com/CyberInternauts/CmdStarter/blo
 
 ## Collaborators
 
-- [Jonathan Boivin](https://github.com/djon2003)
-- [Norbert Ormándi](https://github.com/skydeszka)
+- [Jonathan Boivin](https://github.com/djon2003): Project leader, main developer, reviewer
+- [Norbert Ormándi](https://github.com/skydeszka): Developer, reviewer. A special thank to him to have believed in this project!
