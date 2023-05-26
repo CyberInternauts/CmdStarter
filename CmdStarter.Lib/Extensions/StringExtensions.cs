@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extensions
 {
+    /// <summary>
+    /// Strings extensions
+    /// </summary>
     public static class StringExtensions
     {
         /// <summary>

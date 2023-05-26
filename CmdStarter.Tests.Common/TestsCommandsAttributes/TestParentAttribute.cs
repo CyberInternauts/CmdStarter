@@ -1,4 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes
 {

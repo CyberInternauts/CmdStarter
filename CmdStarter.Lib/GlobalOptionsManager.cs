@@ -1,10 +1,12 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
 using System.CommandLine;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
+    /// <summary>
+    /// Manager for all global options classes found
+    /// </summary>
     public class GlobalOptionsManager
     {
 
@@ -18,16 +20,29 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             FindTypes();
         }
 
+        /// <summary>
+        /// List of all global options types
+        /// </summary>
         public List<Type> GlobalOptionsTypes { get; private set; } = new();
 
+        /// <summary>
+        /// Retrieve a global options container of a specifict type
+        /// </summary>
+        /// <typeparam name="GlobalOptionsType">Global options container type to look for</typeparam>
+        /// <returns>An <see cref="IGlobalOptionsContainer"/> or null if nothing found</returns>
         public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
         {
             var type = typeof(GlobalOptionsType);
 
-            return globalOptions.ContainsKey(type) ? (GlobalOptionsType)globalOptions[type] : null;
+            return globalOptions.TryGetValue(type, out object? value) ? (GlobalOptionsType)value : null;
         }
 
-        public void SetGlobalOptions<GlobalOptionsType>(GlobalOptionsType globalOption) where GlobalOptionsType : class, IGlobalOptionsContainer
+        /// <summary>
+        /// Add/change a global options container object based on its type
+        /// </summary>
+        /// <typeparam name="GlobalOptionsType">Global options container type to use as key</typeparam>
+        /// <param name="globalOption"></param>
+        internal void SetGlobalOptions<GlobalOptionsType>(GlobalOptionsType globalOption) where GlobalOptionsType : class, IGlobalOptionsContainer
         {
             var type = typeof(GlobalOptionsType);
 
@@ -55,7 +70,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             foreach(var type in GlobalOptionsTypes)
             {
-                Loader.LoadOptions(type, receptacle);
+                Reflection.Loader.LoadOptions(type, receptacle);
             }
         }
 

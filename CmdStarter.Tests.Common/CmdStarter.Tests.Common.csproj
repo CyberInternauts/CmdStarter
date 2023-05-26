@@ -1,11 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <RootNamespace>com.cyberinternauts.csharp.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-  </PropertyGroup>
+	<Import Project="..\ProjectsCommon.props" />
 
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.13.3" />

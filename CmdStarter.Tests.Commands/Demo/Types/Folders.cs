@@ -1,4 +1,5 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types
 {
@@ -13,7 +14,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types
         private void Execute()
         {
             var globalInt = GetGlobalOptions<MainGlobalOptions>()?.IntGlobalOption;
-            var a = 1;
+            Console.WriteLine("globalInt=" + globalInt);
         }
     }
 }

@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.ObjectModel;
-using System.CommandLine.Binding;
+﻿using System.Collections.ObjectModel;
 using System.Data;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
 {
     /// <summary>
     /// 
@@ -16,27 +14,52 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private readonly List<TreeNode<T>> _children = new();
         private bool isImmutable = false;
 
+        /// <summary>
+        /// Constructor of the node
+        /// </summary>
+        /// <param name="value">value to assign to this node</param>
         public TreeNode(T? value)
         {
             _value = value;
         }
 
+        /// <summary>
+        /// Indexer accessor
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
         public TreeNode<T> this[int i]
         {
             get { return _children[i]; }
         }
 
+        /// <summary>
+        /// Set if the node is immutable
+        /// </summary>
         public bool IsImmutable { get => isImmutable; protected set => isImmutable = value; }
 
+        /// <summary>
+        /// Parent of the node or null if there is none
+        /// </summary>
         public TreeNode<T>? Parent { get; private set; }
 
+        /// <summary>
+        /// Value of the node or none if there is none
+        /// </summary>
         public T? Value { get { return _value; } }
 
+        /// <summary>
+        /// Children of the node
+        /// </summary>
         public ReadOnlyCollection<TreeNode<T>> Children
         {
             get { return _children.AsReadOnly(); }
         }
 
+        /// <summary>
+        /// Execution on execution on all nodes
+        /// </summary>
+        /// <param name="action"></param>
         public void Traverse(Action<T> action)
         {
             if (Value != null)
@@ -47,6 +70,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 child.Traverse(action);
         }
 
+        /// <summary>
+        /// List of this node and all its descendants
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<TreeNode<T>> FlattenNodes()
         {
             var valueAsArray = new[] { this };
@@ -54,6 +81,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return valueAsArray.Concat(_children.SelectMany(x => x.FlattenNodes()));
         }
 
+        /// <summary>
+        /// List of this node's value and all its descendants values
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<T> FlattenValues()
         {
             var valueAsArray = Array.Empty<T>();
@@ -62,6 +93,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return valueAsArray.Concat(_children.SelectMany(x => x.FlattenValues()));
         }
 
+        /// <summary>
+        /// Find a node using its value
+        /// </summary>
+        /// <param name="value">Value to find</param>
+        /// <returns><see cref="TreeNode{T}"/> if found otherwise null</returns>
         public TreeNode<T>? FindNode(T value)
         {
             if (value == null) return default;
@@ -79,6 +115,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return null;
         }
 
+        /// <summary>
+        /// Return the root node
+        /// </summary>
+        /// <returns></returns>
         public TreeNode<T> GetRootNode()
         {
             var root = this;
@@ -98,6 +138,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
+        /// <summary>
+        /// Add a child using a value
+        /// </summary>
+        /// <param name="value">Value of the node</param>
+        /// <returns>a newly created node</returns>
+        /// <exception cref="ReadOnlyException">The tree is locked for modification</exception>
         public TreeNode<T> AddChild(T value)
         {
             if (isImmutable) throw new ReadOnlyException();
@@ -107,6 +153,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return node;
         }
 
+        /// <summary>
+        /// Add a child using a node
+        /// </summary>
+        /// <param name="node">Node to add</param>
+        /// <returns>node passed</returns>
+        /// <exception cref="ReadOnlyException">The tree is locked for modification</exception>
         public TreeNode<T> AddChild(TreeNode<T> node)
         {
             if (isImmutable) throw new ReadOnlyException();
@@ -116,6 +168,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return node;
         }
 
+        /// <summary>
+        /// Add multiple children using a list of value
+        /// </summary>
+        /// <param name="values">List of values to will each create a node</param>
+        /// <returns>a list of newly created node</returns>
+        /// <exception cref="ReadOnlyException">The tree is locked for modification</exception>
         public TreeNode<T>[] AddChildren(params T[] values)
         {
             if (isImmutable) throw new ReadOnlyException();
@@ -123,6 +181,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return values.Select(AddChild).ToArray();
         }
 
+        /// <summary>
+        /// Remove a child using a node
+        /// </summary>
+        /// <param name="node">Node to remove</param>
+        /// <returns>true if removed</returns>
+        /// <exception cref="ReadOnlyException">The tree is locked for modification</exception>
         public bool RemoveChild(TreeNode<T> node)
         {
             if (isImmutable) throw new ReadOnlyException();
@@ -130,11 +194,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return _children.Remove(node);
         }
 
+        /// <summary>
+        /// Move the node to a new parent
+        /// </summary>
+        /// <param name="newParent">Node that will be the new parent</param>
+        /// <exception cref="ReadOnlyException">The tree is locked for modification</exception>
         public void MoveNode(TreeNode<T> newParent)
         {
             if (isImmutable) throw new ReadOnlyException();
 
-            this.Parent?.RemoveChild(this);
+            Parent?.RemoveChild(this);
             newParent.AddChild(this);
         }
     }

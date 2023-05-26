@@ -1,4 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming
 {
     [TestParent(ClassesBuildingMode.Both, typeof(Main))]
     [TestParent(ClassesBuildingMode.OnlyAttributes, null)]

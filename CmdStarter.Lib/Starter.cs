@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.CommandLine.Invocation;
@@ -10,22 +9,38 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Data;
 using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
-    public enum ClassesBuildingMode
-    {
-        Both = 0,
-        OnlyAttributes = 1,
-        OnlyNamespaces = 2
-    }
-
+    /// <summary>
+    /// Main class executing the command using the command line arguments
+    /// </summary>
     public class Starter
     {
+        /// <summary>
+        /// Exclusion symbol
+        /// </summary>
         public const string EXCLUSION_SYMBOL = "~";
+
+        /// <summary>
+        /// Any one character except dots
+        /// </summary>
         public const string ANY_CHAR_SYMBOL = "?";
+
+        /// <summary>
+        /// Any one character including dots
+        /// </summary>
         public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = "??";
+
+        /// <summary>
+        /// Any multi characters except dots
+        /// </summary>
         public const string MULTI_ANY_CHAR_SYMBOL = "*";
+
+        /// <summary>
+        /// Any multi characters including dots
+        /// </summary>
         public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = "**";
 
         private RootCommand rootCommand = new ();
@@ -39,13 +54,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
         private bool isRootingLonelyCommand = true;
 
+        /// <summary>
+        /// Constructor without filters
+        /// </summary>
         public Starter() : this(Array.Empty<string>())
         {
         }
 
+        /// <summary>
+        /// Constructor with namespace filter
+        /// </summary>
         public Starter(string[] namespaces) : this(new List<string>(namespaces))
         {
         }
+
+        /// <summary>
+        /// Constructor with namespace filter
+        /// </summary>
 
         public Starter(List<string> namespaces)
         {
@@ -53,6 +78,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             Namespaces = Namespaces.AddRange(namespaces);
         }
 
+        /// <summary>
+        /// Access to the global options manager
+        /// </summary>
         public GlobalOptionsManager GlobalOptionsManager { get; init; }
 
         /// <summary>
@@ -100,26 +128,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
-        /// <summary>
-        /// Configure how to build the commands tree: See remarks.
-        /// </summary>
-        /// <remarks>
-        /// (Order is important. Ending when ClassC is assigned)
-        /// 
-        /// - Both: Use (Parent|Children)Attributes and if nothing then namespaces.
-        ///     - If ClassC has a <see cref="ParentAttribute"/> set to ClassP ==> Assign ClassC as subcommand of ClassP.
-        ///     - If ClassP has a <see cref="ChildrenAttribute"/> set to the namespace of ClassC ==> Assign ClassC as subcommand of ClassP.
-        ///     - If ClassC's parent namespace has only one <see cref="IStarterCommand"/> (ClassP) AND :
-        ///         - ClassC doesn't have a <see cref="ParentAttribute"/> ==> Assign ClassC as subcommand of ClassP.
-        ///         - ClassC is not covered by a <see cref="ChildrenAttribute"/> ==> Assign ClassC as subcommand of ClassP.
-        /// 
-        /// - OnlyAttributes: Use only (Parent|Children)Attributes.
-        ///     - If ClassC has a <see cref="ParentAttribute"/>  set to ClassP ==> Assign ClassC as subcommand of ClassP.
-        ///     - If ClassP has a <see cref="ChildrenAttribute"/> set to the namespace of ClassC ==> Assign ClassC as subcommand of ClassP.
-        /// 
-        /// - OnlyNamespaces:
-        ///     - If ClassC's parent namespace has only one <see cref="IStarterCommand"/> (ClassP)
-        /// </remarks>
+        /// <inheritdoc cref="CommandsTreeBuilder.ClassesBuildingMode"/>
         public ClassesBuildingMode ClassesBuildingMode {
             get => classesBuildingMode;
 
@@ -143,6 +152,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
+        /// <summary>
+        /// Commands types that will be used to build the tree
+        /// </summary>
         public ImmutableList<Type> CommandsTypes { 
             get => commandsTypes;
             set
@@ -152,11 +164,25 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
         }
 
+        /// <summary>
+        /// Commands types tree that will be used to create the real commands tree under <see cref="RootCommand"/>
+        /// </summary>
         public TreeNode<Type> CommandsTypesTree { get; set; } = new(null);
 
+        /// <summary>
+        /// Access to the root command
+        /// </summary>
         public RootCommand RootCommand { get => rootCommand; }
 
+        /// <summary>
+        /// Change the factory used by <see cref="IStarterCommand.GetInstance{CommandType}"/> default implementation
+        /// </summary>
+        /// <param name="factory"></param>
         public static void SetFactory(Func<Type, IStarterCommand> factory) => FactoryBag.SetFactory(factory);
+
+        /// <summary>
+        /// Set back to default implementation the factory used by <see cref="IStarterCommand.GetInstance{CommandType}"/>
+        /// </summary>
         public static void SetDefaultFactory() => FactoryBag.SetDefaultFactory();
 
         /// <summary>
@@ -199,6 +225,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             return await Start(args);
         }
 
+        /// <summary>
+        /// Find a command using an <see cref="IStarterCommand"/> type
+        /// </summary>
+        /// <typeparam name="CommandType">Command type to find</typeparam>
+        /// <returns>a <see cref="StarterCommand"/> derived class</returns>
         public Command? FindCommand<CommandType>() where CommandType : IStarterCommand
         {
             var loopBody = (Command child) =>
@@ -304,11 +335,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             GlobalOptionsManager.LoadOptions(RootCommand);
         }
 
+        /// <summary>
+        /// Execute an action on all commands
+        /// </summary>
+        /// <param name="action">Action to execute</param>
         public void VisitCommands(Action<Command> action)
         {
             VisitCommands(RootCommand, action);
         }
 
+        /// <summary>
+        /// Execution an action on a node and below
+        /// </summary>
+        /// <param name="currentParent">Starting command</param>
+        /// <param name="action">Action to execute</param>
         public void VisitCommands(Command currentParent, Action<Command> action)
         {
             Command? loopBody(Command command)
@@ -357,20 +397,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             rootCommand = new();
         }
 
-        private string? GetParentNamespace(string? namespaceToCut)
-        {
-            if (namespaceToCut == null) return null;
-
-            var dotIndex = namespaceToCut.LastIndexOf(".");
-            if (dotIndex == -1) return null;
-
-            return namespaceToCut[..dotIndex];
-        }
-
         /// <summary>
         /// Visit commands from a specific command until not null is returned
         /// </summary>
-        /// <typeparam name="CommandType">Command type </typeparam>
         /// <param name="currentParent">Command where to start visiting</param>
         /// <param name="func">Function that is applied a command</param>
         /// <returns>A command if func returned one, otherwise null</returns>
