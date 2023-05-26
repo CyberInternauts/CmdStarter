@@ -46,6 +46,16 @@ Those methods allow classes with a constructor having parameters.
 
 Any of your prefered library can be used. This repository includes an example with Simple Injector.
 
+## Participation | Submit issues, ideas
+
+The project uses a free open source licence of Jira to manage its development.
+
+https://cyberinternauts.atlassian.net/browse/CMD
+
+If you want to participate, there are two options:
+- Fork this repository and submit a pull request
+- Ask to join the team
+
 ## License
 
 MIT License. See [LICENSE.txt](https://github.com/CyberInternauts/CmdStarter/blob/master/LICENSE.txt)
