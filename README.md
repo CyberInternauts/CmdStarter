@@ -1,1 +1,56 @@
 # CmdStarter
+
+This library is a layer over [System.CommandLine](https://github.com/dotnet/command-line-api) to ease integration 
+into existing projects. Currently, this dependency is still in beta version, hence this library's version will stay 
+in beta too.
+
+## Features
+- Implement commands using an abstract class or an interface
+- Filter classes to use in current execution by namespaces or by full class names
+- Classes using depencency injection are supported
+- Mark classes as global options container
+- Easy access to the global options inside the executing method
+- Lonely command can be rooted
+- Autowiring properties to System.CommandLine command options
+- Autowiring executing method parameters to System.CommandLine command arguments
+- Alias, Hidden, Description and AutoComplete attributes are offered to set command options/arguments properties
+- Automatic commands tree loading via namespaces or Parent|Children attributes
+
+## Usage
+
+- Import the nuget package. 
+> Ensure to check *Prerelease* checkbox
+- Command integration:
+  a) Create a new class inheriting from `StarterCommand`.
+  b) Add `IStarterCommand` interface to an existing class having a constructor without parameter.
+  > For dependency injection, see below.
+- Create the Program class below.
+
+```
+internal class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var starter = new CmdStarter.Lib.Starter();
+        await starter.Start(args);
+    }
+}
+```
+
+### Depencendy injection
+
+Those methods allow classes with a constructor having parameters.
+- `IStarterCommand.GetInstance` method can be overriden
+- `Starter.SetFactory` can be used to change the default behavior of instantiation
+- `(new Starter().Start(IServiceManager, string[])` can be used having an object implementing `IServiceManager`
+
+Any of your prefered library can be used. This repository includes an example with Simple Injector.
+
+## License
+
+MIT License. See [LICENSE.txt](https://github.com/CyberInternauts/CmdStarter/blob/master/LICENSE.txt)
+
+## Collaborators
+
+- [Jonathan Boivin](https://github.com/djon2003)
+- [Norbert Ormándi](https://github.com/skydeszka)
