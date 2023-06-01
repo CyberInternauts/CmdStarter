@@ -5,7 +5,7 @@
 Features:
 - Implement commands using an abstract class or an interface
 - Filter classes to use in current execution by namespaces or by full class names
-- Classes using depencency injection are supported
+- Classes using dependency injection are supported
 - Mark classes as global options container
 - Easy access to the global options inside the executing method
 - Lonely command can be rooted

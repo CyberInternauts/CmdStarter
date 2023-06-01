@@ -1,12 +1,12 @@
 <Project>
 
 	<PropertyGroup>
-		<Version>0.9.0.2-beta4.22272.1</Version>
+		<Version>0.9.0.3-beta4.22272.1</Version>
 		<BasePackageName>cints</BasePackageName>
 		<BaseNamespace>com.cyberinternauts.csharp</BaseNamespace>
 		<Company>CyberInternauts</Company>
-		<Authors>djon2003,skydeszka</Authors>
-		<Authors2>Jonathan Boivin (djon2003), Norbert Ormándi (skydeszka)</Authors2>
+		<Authors>Jonathan Boivin, Norbert Ormándi</Authors>
+		<Owners>djon2003, skydeszka</Owners>
 		<Copyright>$(Company)</Copyright>
 		<RepositoryUrl>https://github.com/CyberInternauts/CmdStarter</RepositoryUrl>
 	</PropertyGroup>
