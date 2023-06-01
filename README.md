@@ -44,7 +44,7 @@ Those methods allow classes with a constructor having parameters.
 - `Starter.SetFactory` can be used to change the default behavior of instantiation
 - `(new Starter()).Start(IServiceManager, string[])` can be used having an object implementing `IServiceManager`
 
-Any of your prefered library can be used. This repository includes an example with Simple Injector.
+Any of your preferred library can be used. This repository includes an example with Simple Injector.
 
 ## Participation | Submit issues, ideas
 
