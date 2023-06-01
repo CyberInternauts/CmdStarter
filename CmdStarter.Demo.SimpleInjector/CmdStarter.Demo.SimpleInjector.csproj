@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="cints.CmdStarter" Version="0.9.0-beta4.22272.1" />
+    <PackageReference Include="cints.CmdStarter" Version="0.9.0.2-beta4.22272.1" />
     <PackageReference Include="SimpleInjector" Version="5.4.1" />
   </ItemGroup>
 
