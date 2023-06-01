@@ -23,6 +23,7 @@
 - Alias, Hidden, Description and AutoComplete attributes are offered to set command options/arguments properties
 - Automatic commands tree loading via namespaces or Parent|Children attributes</PackageReleaseNotes>
     <PackageIcon>Icon.png</PackageIcon>
+    <PackageOutputPath>..\artefacts</PackageOutputPath>
   </PropertyGroup>
 	
   <ItemGroup>
