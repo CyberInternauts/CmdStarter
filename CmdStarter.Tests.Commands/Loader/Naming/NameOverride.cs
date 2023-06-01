@@ -2,6 +2,6 @@
 {
     public class NameOverride : StarterCommand
     {
-        public NameOverride() : base("NameOverriden") { }
+        public NameOverride() : base("NameOverridden") { }
     }
 }

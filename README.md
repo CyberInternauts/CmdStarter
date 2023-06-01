@@ -40,7 +40,7 @@ internal class Program
 ### Dependency injection
 
 Those methods allow classes with a constructor having parameters.
-- `IStarterCommand.GetInstance` method can be overriden
+- `IStarterCommand.GetInstance` method can be overridden
 - `Starter.SetFactory` can be used to change the default behavior of instantiation
 - `(new Starter()).Start(IServiceManager, string[])` can be used having an object implementing `IServiceManager`
 

@@ -154,7 +154,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         [TestCase<Word>("Word", "word")]
         [TestCase<NameFor>("NameFor", "name-for")]
-        [TestCase<NameOverride>("NameOverride", "name-overriden")]
+        [TestCase<NameOverride>("NameOverride", "name-overridden")]
         [TestCase<NameKebab>("NameKebab", "name-to-kebab")]
         [TestCase<FirstByInterface>("FirstByInterface", "first-by-interface")]
         public void EnsuresKebabCase<CommandType>(string originalName, string expectedName) where CommandType : IStarterCommand
