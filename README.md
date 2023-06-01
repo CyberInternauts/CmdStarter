@@ -18,12 +18,12 @@ in beta too.
 
 ## Usage
 
-- Import the nuget package. 
-> Ensure to check *Prerelease* checkbox
+- Import the [nuget package **cints.CmdStarter**](https://www.nuget.org/packages/cints.CmdStarter). 
+  > Ensure to check *Prerelease* checkbox
 - Command integration:
   a) Create a new class inheriting from `StarterCommand`.
   b) Add `IStarterCommand` interface to an existing class having a constructor without parameter.
-  > For dependency injection, see below.
+     > For dependency injection, see below.
 - Create the Program class below.
 
 ```
