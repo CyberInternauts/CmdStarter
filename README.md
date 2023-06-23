@@ -20,9 +20,9 @@ in beta too.
 
 - Import the [nuget package **cints.CmdStarter**](https://www.nuget.org/packages/cints.CmdStarter). 
   > Ensure to check *Prerelease* checkbox
-- Command integration:
-  a) Create a new class inheriting from `StarterCommand`.
-  b) Add `IStarterCommand` interface to an existing class having a constructor without parameter.
+- Command integration (Choose one):
+  - Create a new class inheriting from `StarterCommand`.
+  - Add `IStarterCommand` interface to an existing class having a constructor without parameter.
      > For dependency injection, see below.
 - Create the Program class below.
 
@@ -63,4 +63,4 @@ MIT License. See [LICENSE.txt](https://github.com/CyberInternauts/CmdStarter/blo
 ## Collaborators
 
 - [Jonathan Boivin](https://github.com/djon2003): Project leader, main developer, reviewer
-- [Norbert Orm·ndi](https://github.com/skydeszka): Developer, reviewer. A special thank to him to have believed in this project!
+- [Norbert Orm√°ndi](https://github.com/skydeszka): Developer, reviewer. A special thank to him to have believed in this project!
