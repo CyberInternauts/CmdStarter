@@ -4,9 +4,9 @@
     {
         [Option]
         public int OptionToInclude { get; set; }
-        public static string OPTION_TO_INCLUDE_KEBAB = "option-to-include";
+        public const string OPTION_TO_INCLUDE_KEBAB = "option-to-include";
 
         public int OptionToExclude { get; set; }
-        public static string OPTION_TO_EXCLUDE_KEBAB = "option-to-include";
+        public const string OPTION_TO_EXCLUDE_KEBAB = "option-to-include";
     }
 }
