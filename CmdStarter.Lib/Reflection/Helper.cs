@@ -79,14 +79,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             if (!hasAnyOptionAttribute)
             {
                 properties = properties.Where(property =>
-                    property.GetCustomAttribute<NotOptionAttribute>() is null);
+                    !Attribute.IsDefined(property, typeof(NotOptionAttribute)));
             }
             else
             {
                 properties = properties.Where(property =>
                 {
-                    return property.GetCustomAttribute<OptionAttribute>() is not null
-                        && property.GetCustomAttribute<NotOptionAttribute>() is null;
+                    return Attribute.IsDefined(property, typeof(OptionAttribute))
+                        && !Attribute.IsDefined(property, typeof(NotOptionAttribute));
                 });
             }
 
