@@ -126,5 +126,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 Assert.That(option, Is.Null);
             }
         }
+
+        [TestCase<OptByAttribute>(OptByAttribute.OPTION_TO_INCLUDE_KEBAB, OptByAttribute.OPTION_TO_EXCLUDE_KEBAB)]
+        [TestCase<OptByIncludeAttribute>(OptByIncludeAttribute.OPTION_TO_INCLUDE_KEBAB, OptByIncludeAttribute.OPTION_TO_EXCLUDE_KEBAB)]
+        [TestCase<OptByExcludeAttribute>(OptByExcludeAttribute.OPTION_TO_INCLUDE_KEBAB, OptByExcludeAttribute.OPTION_TO_EXCLUDE_KEBAB)]
+        public void EnsureOptionAttributes<OptClass>(string includedProperties, string excludedProperties) where OptClass : class, IStarterCommand
+        {
+            Assert.Fail();
+        }
     }
 }
