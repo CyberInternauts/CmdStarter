@@ -10,10 +10,11 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
-{ 
+{
     /// <summary>
     /// Abstract class that is the base of all. It transposes what's needed from the <see cref="IStarterCommand"/> object to System.CommandLine commands features.
     /// </summary>
+    [AllOptionsExcluded]
     public abstract class StarterCommand : Command, IStarterCommand
     {
         /// <summary>
@@ -31,7 +32,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <summary>
         /// <see cref="IStarterCommand"/> object that manages execution and from where the command features are filled
         /// </summary>
-        [NotOption]
         public IStarterCommand UnderlyingCommand { get; internal set; }
 
         /// <inheritdoc cref="IStarterCommand.HandlingMethod"/>
