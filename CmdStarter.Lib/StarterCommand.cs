@@ -31,6 +31,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// <summary>
         /// <see cref="IStarterCommand"/> object that manages execution and from where the command features are filled
         /// </summary>
+        [NotOption]
         public IStarterCommand UnderlyingCommand { get; internal set; }
 
         /// <inheritdoc cref="IStarterCommand.HandlingMethod"/>
