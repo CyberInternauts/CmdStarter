@@ -1,9 +1,13 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes.ClassExclusion
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes.ClassExclusion
 {
     [AllOptionsExcluded]
-    public class OptAllPropertiesExcluded : StarterCommand
+    public class OptAllPropertiesExcluded : StarterCommand, IOptByAttribute
     {
-        public const int OPTION_COUNT = 0;
+        public static string[] IncludedOptions => Array.Empty<string>();
+
+        public static string[] ExcludedOptions => new[] { nameof(OptionOne), nameof(OptionTwo), nameof(OptionThree), nameof(OptionFour) };
 
         public int OptionOne { get; set; }
         public int OptionTwo { get; set; }

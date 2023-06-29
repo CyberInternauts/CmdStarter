@@ -130,9 +130,12 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             }
         }
 
+        [TestCase<OptByLackOfAttribute>]
         [TestCase<OptByAttribute>]
         [TestCase<OptByIncludeAttribute>]
         [TestCase<OptByExcludeAttribute>]
+        [TestCase<OptAllPropertiesExcluded>]
+        [TestCase<OptAllPropertiesExcludedWithInheritance>]
         public void EnsureOptionAttributes<OptClass>() where OptClass : class, IStarterCommand, IOptByAttribute
         {
             starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
@@ -150,19 +153,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 Assert.That(optionCommand.Options.Any(option =>
                     option.Name.Equals(excludedOption.PascalToKebabCase())), Is.False);
             }
-        }
-
-        [TestCase<OptAllPropertiesExcluded>(OptAllPropertiesExcluded.OPTION_COUNT)]
-        [TestCase<OptAllPropertiesExcludedWithInheritance>(OptAllPropertiesExcludedWithInheritance.OPTION_COUNT)]
-        public void EnsureClassExcludeAttribute<OptClass>(int optionCount) where OptClass : class, IStarterCommand
-        {
-            starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
-            starter.InstantiateCommands();
-
-            var optionCommand = starter.FindCommand<OptClass>();
-            Assert.That(optionCommand, Is.Not.Null);
-
-            Assert.That(optionCommand.Options.Count, Is.EqualTo(optionCount));
         }
     }
 }
