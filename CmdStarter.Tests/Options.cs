@@ -1,5 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
@@ -127,12 +128,28 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             }
         }
 
-        [TestCase<OptByAttribute>(OptByAttribute.OPTION_TO_INCLUDE_KEBAB, OptByAttribute.OPTION_TO_EXCLUDE_KEBAB)]
-        [TestCase<OptByIncludeAttribute>(OptByIncludeAttribute.OPTION_TO_INCLUDE_KEBAB, OptByIncludeAttribute.OPTION_TO_EXCLUDE_KEBAB)]
-        [TestCase<OptByExcludeAttribute>(OptByExcludeAttribute.OPTION_TO_INCLUDE_KEBAB, OptByExcludeAttribute.OPTION_TO_EXCLUDE_KEBAB)]
-        public void EnsureOptionAttributes<OptClass>(string includedProperties, string excludedProperties) where OptClass : class, IStarterCommand
+        [TestCase<OptByAttribute>]
+        [TestCase<OptByIncludeAttribute>]
+        [TestCase<OptByExcludeAttribute>]
+        public void EnsureOptionAttributes<OptClass>() where OptClass : class, IStarterCommand, IOptByAttribute
         {
-            Assert.Fail();
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
+            starter.InstantiateCommands();
+
+            var optionCommand = starter.FindCommand<OptClass>();
+            Assert.That(optionCommand, Is.Not.Null);
+
+            foreach (var includedOption in OptClass.IncludedOptions)
+            {
+                Assert.That(optionCommand.Options.All(option =>
+                    option.Name.Equals(includedOption)), Is.True);
+            }
+
+            foreach (var excludedOption in OptClass.ExcludedOptions)
+            {
+                Assert.That(optionCommand.Options.Any(option =>
+                    option.Name.Equals(excludedOption)), Is.False);
+            }
         }
     }
 }
