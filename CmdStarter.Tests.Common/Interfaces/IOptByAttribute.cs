@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
 {
     public interface IOptByAttribute
     {

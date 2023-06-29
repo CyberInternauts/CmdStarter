@@ -1,4 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes
 {
     public sealed class OptByAttribute : StarterCommand, IOptByAttribute
     {
