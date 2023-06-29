@@ -141,11 +141,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
-            foreach (var includedOption in OptClass.IncludedOptions)
-            {
-                Assert.That(optionCommand.Options.All(option =>
-                    option.Name.Equals(includedOption.PascalToKebabCase())), Is.True);
-            }
+            TestsCommon.AssertIEnumerablesHaveSameElements(
+                optionCommand.Options.Select(o => o.Name),
+                OptClass.IncludedOptions.Select(o => o.PascalToKebabCase()));
 
             foreach (var excludedOption in OptClass.ExcludedOptions)
             {
