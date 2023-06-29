@@ -1,5 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -68,6 +69,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                       && !interfacePropertiesNames!.Contains(p.Name) // Can't be null because already loaded
                     ||
                     (p.DeclaringType?.IsAssignableTo(typeof(IGlobalOptionsContainer)) ?? false))
+                    &&
+                    !Attribute.IsDefined(p.DeclaringType, typeof(AllOptionsExcludedAttribute))
                 );
 
             bool hasAnyOptionAttribute = properties.Any(property =>
