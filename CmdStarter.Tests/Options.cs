@@ -142,13 +142,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             foreach (var includedOption in OptClass.IncludedOptions)
             {
                 Assert.That(optionCommand.Options.All(option =>
-                    option.Name.Equals(includedOption)), Is.True);
+                    option.Name.Equals(includedOption.PascalToKebabCase())), Is.True);
             }
 
             foreach (var excludedOption in OptClass.ExcludedOptions)
             {
                 Assert.That(optionCommand.Options.Any(option =>
-                    option.Name.Equals(excludedOption)), Is.False);
+                    option.Name.Equals(excludedOption.PascalToKebabCase())), Is.False);
             }
         }
     }
