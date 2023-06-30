@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Diagrams", "Diagrams", "{61
 		diagrams\Starter chaining sequence.vpd.png = diagrams\Starter chaining sequence.vpd.png
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Demo.Repl", "CmdStarter.Demo.Repl\CmdStarter.Demo.Repl.csproj", "{37953591-DDA9-4ED7-A427-8D853FCF5630}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3FC0E3A6-D407-452B-ADC5-1D3F133F38A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37953591-DDA9-4ED7-A427-8D853FCF5630}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37953591-DDA9-4ED7-A427-8D853FCF5630}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37953591-DDA9-4ED7-A427-8D853FCF5630}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37953591-DDA9-4ED7-A427-8D853FCF5630}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
