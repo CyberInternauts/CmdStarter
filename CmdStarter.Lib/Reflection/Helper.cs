@@ -1,4 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -61,13 +63,32 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p =>
                     p.CanWrite && p.CanRead
-                    && 
+                    &&
                     (
                       (p.DeclaringType?.IsAssignableTo(typeof(IStarterCommand)) ?? false)
                       && !interfacePropertiesNames!.Contains(p.Name) // Can't be null because already loaded
                     ||
                     (p.DeclaringType?.IsAssignableTo(typeof(IGlobalOptionsContainer)) ?? false))
+                    &&
+                    !Attribute.IsDefined(p.DeclaringType, typeof(AllOptionsExcludedAttribute))
                 );
+
+            bool hasAnyOptionAttribute = properties.Any(property =>
+                property.GetCustomAttribute<OptionAttribute>() is not null);
+
+            if (!hasAnyOptionAttribute)
+            {
+                properties = properties.Where(property =>
+                    !Attribute.IsDefined(property, typeof(NotOptionAttribute)));
+            }
+            else
+            {
+                properties = properties.Where(property =>
+                {
+                    return Attribute.IsDefined(property, typeof(OptionAttribute))
+                        && !Attribute.IsDefined(property, typeof(NotOptionAttribute));
+                });
+            }
 
             return properties;
         }

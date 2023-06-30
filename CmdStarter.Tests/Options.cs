@@ -1,5 +1,8 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes.ClassExclusion;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
@@ -124,6 +127,31 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             else
             {
                 Assert.That(option, Is.Null);
+            }
+        }
+
+        [TestCase<OptByLackOfAttribute>]
+        [TestCase<OptByAttribute>]
+        [TestCase<OptByIncludeAttribute>]
+        [TestCase<OptByExcludeAttribute>]
+        [TestCase<OptAllPropertiesExcluded>]
+        [TestCase<OptAllPropertiesExcludedWithInheritance>]
+        public void EnsureOptionAttributes<OptClass>() where OptClass : class, IStarterCommand, IOptByAttribute
+        {
+            starter.Namespaces = starter.Namespaces.Add(typeof(OptClass).Namespace!);
+            starter.InstantiateCommands();
+
+            var optionCommand = starter.FindCommand<OptClass>();
+            Assert.That(optionCommand, Is.Not.Null);
+
+            TestsCommon.AssertIEnumerablesHaveSameElements(
+                optionCommand.Options.Select(o => o.Name),
+                OptClass.IncludedOptions.Select(o => o.PascalToKebabCase()));
+
+            foreach (var excludedOption in OptClass.ExcludedOptions)
+            {
+                Assert.That(optionCommand.Options.Any(option =>
+                    option.Name.Equals(excludedOption.PascalToKebabCase())), Is.False);
             }
         }
     }
