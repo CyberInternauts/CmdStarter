@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<Import Project="..\ProjectsCommon.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.ComponentModel.Composition" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
+      <ProjectReference Include="..\CmdStarter.Tests.Commands\CmdStarter.Tests.Commands.csproj" />
+    </ItemGroup>
+
+  </Project>
