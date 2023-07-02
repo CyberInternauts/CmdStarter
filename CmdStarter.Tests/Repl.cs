@@ -19,5 +19,17 @@
         {
             starter = TestsCommon.CreateCmdStarter();
         }
+
+        [Test]
+        public void EnsureExecution()
+        {
+            Assert.Fail();
+        }
+
+        [Test]
+        public void EnsureExceptionHandling()
+        {
+            Assert.Fail();
+        }
     }
 }
