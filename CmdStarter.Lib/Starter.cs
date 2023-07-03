@@ -206,16 +206,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            var b = new CommandLineBuilder(RootCommand);
-
-            if (hasToUseDefaults)
-            {
-                hasToUseDefaults = false;
-                b.UseDefaults();
-            }
-
-            var parser = b.Build();
-
+            if (parser is null) CreateParser();
 
             return await parser.InvokeAsync(args);
         }
