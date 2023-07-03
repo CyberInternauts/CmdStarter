@@ -10,6 +10,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Data;
 using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using System.Diagnostics.CodeAnalysis;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -53,6 +54,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private bool hasToUseDefaults = true;
         private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
         private bool isRootingLonelyCommand = true;
+        private Parser? parser = null;
 
         /// <summary>
         /// Constructor without filters
@@ -192,16 +194,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            var b = new CommandLineBuilder(RootCommand);
-
-            if (hasToUseDefaults)
-            {
-                hasToUseDefaults = false;
-                b.UseDefaults();
-            }
-
-            var parser = b.Build();
-
+            if (parser is null) CreateParser();
 
             return await parser.InvokeAsync(args);
         }
@@ -417,6 +410,23 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Parser"/> into <see cref="parser"/>.
+        /// </summary>
+        [MemberNotNull(nameof(parser))]
+        private void CreateParser()
+        {
+            var b = new CommandLineBuilder(RootCommand);
+
+            if (hasToUseDefaults)
+            {
+                hasToUseDefaults = false;
+                b.UseDefaults();
+            }
+
+            parser = b.Build();
         }
     }
 }
