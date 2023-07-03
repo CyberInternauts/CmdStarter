@@ -10,6 +10,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         private readonly IReplInputProvider inputProvider;
 
         /// <summary>
+        /// If <see langword="true"/> REPL mode loop runs; otherwise it won't.
+        /// </summary>
+        private bool allowReplLoop = true;
+
+        /// <summary>
         /// Constructor without namespace filters.
         /// </summary>
         /// <remarks>
@@ -71,6 +76,37 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         public ReplStarter(IReplInputProvider inputProvider, List<string> namespaces) : base(namespaces)
         {
             this.inputProvider = inputProvider;
+        }
+
+        /// <summary>
+        /// Starts the REPL mode loop.
+        /// </summary>
+        /// <param name="terminator">
+        /// If this <see cref="string"/> is returned by the <see cref="IReplInputProvider"/> the REPL loop stops.
+        /// </param>
+        async public Task Launch(string? terminator = null)
+        {
+            allowReplLoop = true;
+
+            while (allowReplLoop)
+            {
+                var inputToBeParsed = inputProvider.GetInput();
+
+                if (string.Equals(terminator, inputToBeParsed)) return;
+
+                await Start(inputToBeParsed);
+            }
+        }
+
+        /// <summary>
+        /// Stops the REPL loop.
+        /// </summary>
+        /// <remarks>
+        /// Use <see cref="Launch"/> to start again.
+        /// </remarks>
+        public void Stop()
+        {
+            allowReplLoop = false;
         }
     }
 }
