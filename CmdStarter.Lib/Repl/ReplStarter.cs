@@ -79,6 +79,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         }
 
         /// <summary>
+        /// Runs the first command according to the args and starts the REPL mode loop.
+        /// </summary>
+        /// <param name="args">Arguments for the first command.</param>
+        /// <param name="terminator">
+        /// If this <see cref="string"/> is returned by the <see cref="IReplInputProvider"/> the REPL loop stops.
+        /// </param>
+        async public Task Launch(string[] args, string? terminator = null)
+        {
+            await Start(args);
+
+            await Launch(terminator);
+        }
+
+        /// <summary>
         /// Starts the REPL mode loop.
         /// </summary>
         /// <param name="terminator">
