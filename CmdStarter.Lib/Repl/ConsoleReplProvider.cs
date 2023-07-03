@@ -1,6 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extended
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
 {
     /// <summary>
     /// Provides command inputs from the default console.
@@ -13,7 +13,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extended
         /// <returns>A <see cref="string"/> with <see cref="Console.ReadLine"/>.</returns>
         public string GetInput()
         {
-            return Console.ReadLine();
+            return Console.ReadLine() ?? string.Empty;
         }
     }
 }
