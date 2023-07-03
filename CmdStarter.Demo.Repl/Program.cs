@@ -1,5 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.PreLogin;
 using com.cyberinternauts.csharp.CmdStarter.Lib;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo;
 using System.ComponentModel.Composition.Hosting;
 
@@ -7,7 +8,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl
 {
     internal class Program
     {
-        public static Starter starter = new CmdStarter.Lib.Starter(
+        public static ReplStarter starter = new ReplStarter(
                 new string[] { typeof(Login).Namespace! }
             );
 
@@ -17,9 +18,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl
 
             starter.IsRootingLonelyCommand = false;
 
-            var a = await starter.Start("-h");
+            args = new[] { "-h" };
 
-            Console.WriteLine(a);
+            await starter.Launch(args, "exit");
+
+            //Console.WriteLine(a);
         }
     }
 }
