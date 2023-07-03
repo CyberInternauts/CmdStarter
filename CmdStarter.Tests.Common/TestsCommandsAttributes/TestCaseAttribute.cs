@@ -18,4 +18,11 @@
         public TestCaseAttribute(params object[] arguments)
             : base(arguments) => TypeArguments = new[] { typeof(T1), typeof(T2) };
     }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public class TestCaseAttribute<T1, T2, T3> : TestCaseGenericAttribute
+    {
+        public TestCaseAttribute(params object[] arguments)
+            : base(arguments) => TypeArguments = new[] { typeof(T1), typeof(T2), typeof(T3) };
+    }
 }
