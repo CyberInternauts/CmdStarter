@@ -10,6 +10,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Data;
 using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using System.Diagnostics.CodeAnalysis;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -53,6 +54,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private bool hasToUseDefaults = true;
         private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
         private bool isRootingLonelyCommand = true;
+        private Parser? parser = null;
 
         /// <summary>
         /// Constructor without filters
