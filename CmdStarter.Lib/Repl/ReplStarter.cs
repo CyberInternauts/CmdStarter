@@ -97,7 +97,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
         public async new Task<int> Start(string[] args)
         {
-            var returnCode = await Start(args);
+            var returnCode = await base.Start(args);
 
             var eventArgs = new ReplCommandEventArgs(returnCode);
             OnCommandExecuted?.Invoke(this, eventArgs);
@@ -109,7 +109,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
         public async new Task<int> Start(string args)
         {
-            var returnCode = await Start(args);
+            var returnCode = await base.Start(args);
 
             var eventArgs = new ReplCommandEventArgs(returnCode);
             OnCommandExecuted?.Invoke(this, eventArgs);
