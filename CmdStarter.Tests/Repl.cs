@@ -43,7 +43,51 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [TestCase<PreCommand, CommandOne, CommandTwo, CommandThree>()]
-        public async Task EnsureExecutionWithPreCommand<PreCommand, CommandOne, CommandTwo, CommandThree>()
+        public async Task EnsureExecutionWithStringPreCommand<PreCommand, CommandOne, CommandTwo, CommandThree>()
+            where PreCommand : StarterCommand, IHasExpectedValue<int>
+            where CommandOne : StarterCommand, IHasExpectedValue<int>
+            where CommandTwo : StarterCommand, IHasExpectedValue<int>
+            where CommandThree : StarterCommand, IHasExpectedValue<int>
+        {
+            var executionQueue = new Queue<IHasExpectedValue<int>>();
+
+            starter.Namespaces = starter.Namespaces.Add(typeof(CommandOne).Namespace!);
+            starter.InstantiateCommands();
+
+            starter.OnCommandExecuted += (object? sender, ReplCommandEventArgs eventArgs) =>
+            {
+                if (!executionQueue.TryDequeue(out var command))
+                {
+                    starter.Stop();
+                    return;
+                }
+
+                var actualReturnCode = eventArgs.ReturnCode;
+
+                Assert.That(actualReturnCode, Is.EqualTo(command.ExpectedValue));
+            };
+
+            var preCommand = (PreCommand)starter.FindCommand<PreCommand>()!;
+            var commandOne = (CommandOne)starter.FindCommand<CommandOne>()!;
+            var commandTwo = (CommandTwo)starter.FindCommand<CommandTwo>()!;
+            var commandThree = (CommandThree)starter.FindCommand<CommandThree>()!;
+
+            executionQueue.Enqueue(preCommand);
+            executionQueue.Enqueue(commandOne);
+            executionQueue.Enqueue(commandTwo);
+            executionQueue.Enqueue(commandThree);
+
+            inputProvider.CommandQueue.Enqueue(commandOne.Name);
+            inputProvider.CommandQueue.Enqueue(commandTwo.Name);
+            inputProvider.CommandQueue.Enqueue(commandThree.Name);
+
+            var args = preCommand.Name;
+
+            await starter.Launch(args);
+        }
+
+        [TestCase<PreCommand, CommandOne, CommandTwo, CommandThree>()]
+        public async Task EnsureExecutionWithArrayPreCommand<PreCommand, CommandOne, CommandTwo, CommandThree>()
             where PreCommand : StarterCommand, IHasExpectedValue<int>
             where CommandOne : StarterCommand, IHasExpectedValue<int>
             where CommandTwo : StarterCommand, IHasExpectedValue<int>
