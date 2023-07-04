@@ -124,6 +124,5 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             await starter.Launch();
         }
-
     }
 }
