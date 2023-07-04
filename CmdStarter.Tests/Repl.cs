@@ -26,7 +26,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             Starter.SetDefaultFactory();
 
-            starter = new ReplStarter(); // Reset object to a new one, not to interfer between tests
+            starter = new ReplStarter(inputProvider); // Reset object to a new one, not to interfer between tests
             SetDefaultNamespaces(starter);
         }
 
