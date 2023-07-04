@@ -3,7 +3,6 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
