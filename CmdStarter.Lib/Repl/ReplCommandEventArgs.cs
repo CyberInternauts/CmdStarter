@@ -13,7 +13,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         /// <param name="returnCode">The return code of the command execution.</param>
         public ReplCommandEventArgs(int returnCode)
         {
-            Command = command;
             ReturnCode = returnCode;
         }
 
