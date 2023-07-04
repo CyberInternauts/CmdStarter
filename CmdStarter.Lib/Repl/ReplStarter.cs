@@ -124,7 +124,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         /// Stops the REPL loop.
         /// </summary>
         /// <remarks>
-        /// Use <see cref="Launch"/> to start again.
+        /// Use <see cref="Launch(string?)"/> or <see cref="Launch(string[], string?)"/> to start again.
         /// </remarks>
         public void Stop()
         {
