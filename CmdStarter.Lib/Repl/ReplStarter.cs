@@ -78,10 +78,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
 
                 if (string.Equals(terminator, inputToBeParsed)) return;
 
-                var returnCode = await Start(inputToBeParsed);
-                
-                var eventArgs = new ReplCommandEventArgs(returnCode);
-                OnCommandExecuted?.Invoke(this, eventArgs);
+                await Start(inputToBeParsed);
             }
         }
 
@@ -94,6 +91,30 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         public void Stop()
         {
             allowReplLoop = false;
+        }
+
+        /// <inheritdoc cref="Starter.Start(string[])"/>
+        /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
+        public async new Task<int> Start(string[] args)
+        {
+            var returnCode = await Start(args);
+
+            var eventArgs = new ReplCommandEventArgs(returnCode);
+            OnCommandExecuted?.Invoke(this, eventArgs);
+
+            return returnCode;
+        }
+
+        /// <inheritdoc cref="Starter.Start(string)"/>
+        /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
+        public async new Task<int> Start(string args)
+        {
+            var returnCode = await Start(args);
+
+            var eventArgs = new ReplCommandEventArgs(returnCode);
+            OnCommandExecuted?.Invoke(this, eventArgs);
+
+            return returnCode;
         }
     }
 }
