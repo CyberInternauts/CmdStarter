@@ -21,7 +21,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl
 
             args = new[] { "-h" };
 
-            await starter.Launch(args, "exit");
+            await starter.Launch(args);
 
             //Console.WriteLine(a);
         }
