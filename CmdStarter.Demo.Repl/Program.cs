@@ -9,6 +9,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl
     internal class Program
     {
         public static ReplStarter starter = new ReplStarter(
+                new ConsoleReplProvider(),
                 new string[] { typeof(Login).Namespace! }
             );
 
