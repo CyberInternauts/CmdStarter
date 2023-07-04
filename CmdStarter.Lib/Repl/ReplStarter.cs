@@ -51,32 +51,33 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         /// <summary>
         /// Runs the first command according to the args and starts the REPL mode loop.
         /// </summary>
-        /// <param name="args">Arguments for the first command.</param>
-        /// <param name="terminator">
-        /// If this <see cref="string"/> is returned by the <see cref="IReplInputProvider"/> the REPL loop stops.
-        /// </param>
-        async public Task Launch(string[] args, string? terminator = null)
+        /// <param name="args">Arguments for the first command, executed before the REPL mode.</param>
+        async public Task Launch(string[] args)
         {
             await Start(args);
-
-            await Launch(terminator);
+            await Launch();
         }
 
         /// <summary>
-        /// Starts the REPL mode loop.
+        /// Runs the first command according to the args and starts the REPL mode loop.
         /// </summary>
-        /// <param name="terminator">
-        /// If this <see cref="string"/> is returned by the <see cref="IReplInputProvider"/> the REPL loop stops.
-        /// </param>
-        async public Task Launch(string? terminator = null)
+        /// <param name="args">Arguments for the first command, executed before the REPL mode.</param>
+        public async Task Launch(string args)
+        {
+            await Start(args);
+            await Launch();
+        }
+
+        /// <summary>
+        /// Starts the  REPL mode loop.
+        /// </summary>
+        public async Task Launch()
         {
             allowReplLoop = true;
 
             while (allowReplLoop)
             {
                 var inputToBeParsed = inputProvider.GetInput();
-
-                if (string.Equals(terminator, inputToBeParsed)) return;
 
                 await Start(inputToBeParsed);
             }
