@@ -7,6 +7,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
     /// </summary>
     public sealed class ReplStarter : Starter
     {
+        /// <summary>
+        /// Gets invoked after the execution of a command.
+        /// </summary>
+        public event EventHandler<ReplCommandEventArgs>? OnCommandExecuted;
+
         private readonly IReplInputProvider inputProvider;
 
         /// <summary>
@@ -108,7 +113,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
 
                 if (string.Equals(terminator, inputToBeParsed)) return;
 
-                await Start(inputToBeParsed);
+                var returnCode = await Start(inputToBeParsed);
+                
+                var eventArgs = new ReplCommandEventArgs(returnCode);
+                OnCommandExecuted?.Invoke(this, eventArgs);
             }
         }
 
