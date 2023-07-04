@@ -2,7 +2,7 @@
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -13,9 +13,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
     public class Repl
     {
         public static ReplStarter starter;
-        private TestInputProvider inputProvider = new();
-
-        private Queue<int> ensureExecutionTestReturnCodeQueue = new Queue<int>();
+        private TestInputProvider inputProvider;
 
         [OneTimeSetUp]
         public void GlobalSetup()
@@ -28,6 +26,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             Starter.SetDefaultFactory();
 
+            inputProvider = new TestInputProvider();
             starter = new ReplStarter(inputProvider); // Reset object to a new one, not to interfer between tests
             SetDefaultNamespaces(starter);
         }
@@ -43,41 +42,88 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Dependent1).Namespace!);
         }
 
-        [TestCase<CommandOne, CommandTwo, CommandThree>(CommandOne.EXPECTED_RETURN, CommandTwo.EXPECTED_RETURN, CommandThree.EXPECTED_RETURN)]
-        public async Task EnsureExecution<CommandOne, CommandTwo, CommandThree>(
-            int expectedValueOne, int expectedValueTwo, int expectedValueThree)
-            where CommandOne : StarterCommand
-            where CommandTwo : StarterCommand
-            where CommandThree : StarterCommand
+        [TestCase<PreCommand, CommandOne, CommandTwo, CommandThree>()]
+        public async Task EnsureExecutionWithPreCommand<PreCommand, CommandOne, CommandTwo, CommandThree>()
+            where PreCommand : StarterCommand, IHasExpectedValue<int>
+            where CommandOne : StarterCommand, IHasExpectedValue<int>
+            where CommandTwo : StarterCommand, IHasExpectedValue<int>
+            where CommandThree : StarterCommand, IHasExpectedValue<int>
         {
+            var executionQueue = new Queue<IHasExpectedValue<int>>();
+
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandOne).Namespace!);
             starter.InstantiateCommands();
 
-            starter.OnCommandExecuted += Starter_OnCommandExecuted_Assert;
+            starter.OnCommandExecuted += (object? sender, ReplCommandEventArgs eventArgs) =>
+            {
+                if(!executionQueue.TryDequeue(out var command))
+                {
+                    starter.Stop();
+                    return;
+                }
 
-            ensureExecutionTestReturnCodeQueue.Clear();
-            ensureExecutionTestReturnCodeQueue.Enqueue(expectedValueOne);
-            ensureExecutionTestReturnCodeQueue.Enqueue(expectedValueTwo);
-            ensureExecutionTestReturnCodeQueue.Enqueue(expectedValueThree);
+                var actualReturnCode = eventArgs.ReturnCode;
 
-            inputProvider.CommandQueue.Enqueue(typeof(CommandOne).Name.PascalToKebabCase());
-            inputProvider.CommandQueue.Enqueue(typeof(CommandTwo).Name.PascalToKebabCase());
-            inputProvider.CommandQueue.Enqueue(typeof(CommandThree).Name.PascalToKebabCase());
+                Assert.That(actualReturnCode, Is.EqualTo(command.ExpectedValue));
+            };
+
+            var preCommand = (PreCommand)starter.FindCommand<PreCommand>()!;
+            var commandOne = (CommandOne)starter.FindCommand<CommandOne>()!;
+            var commandTwo = (CommandTwo)starter.FindCommand<CommandTwo>()!;
+            var commandThree = (CommandThree)starter.FindCommand<CommandThree>()!;
+
+            executionQueue.Enqueue(preCommand);
+            executionQueue.Enqueue(commandOne);
+            executionQueue.Enqueue(commandTwo);
+            executionQueue.Enqueue(commandThree);
+
+            inputProvider.CommandQueue.Enqueue(commandOne.Name);
+            inputProvider.CommandQueue.Enqueue(commandTwo.Name);
+            inputProvider.CommandQueue.Enqueue(commandThree.Name);
+
+            var args = new string[] { preCommand.Name };
+
+            await starter.Launch(args);
+        }
+
+        [TestCase<CommandOne, CommandTwo, CommandThree>()]
+        public async Task EnsureExecution<CommandOne, CommandTwo, CommandThree>()
+            where CommandOne : StarterCommand, IHasExpectedValue<int>
+            where CommandTwo : StarterCommand, IHasExpectedValue<int>
+            where CommandThree : StarterCommand, IHasExpectedValue<int>
+        {
+            var executionQueue = new Queue<IHasExpectedValue<int>>();
+
+            starter.Namespaces = starter.Namespaces.Add(typeof(CommandOne).Namespace!);
+            starter.InstantiateCommands();
+
+            starter.OnCommandExecuted += (object? sender, ReplCommandEventArgs eventArgs) =>
+            {
+                if (!executionQueue.TryDequeue(out var command))
+                {
+                    starter.Stop();
+                    return;
+                }
+
+                var actualReturnCode = eventArgs.ReturnCode;
+
+                Assert.That(actualReturnCode, Is.EqualTo(command.ExpectedValue));
+            };
+
+            var commandOne = (CommandOne)starter.FindCommand<CommandOne>()!;
+            var commandTwo = (CommandTwo)starter.FindCommand<CommandTwo>()!;
+            var commandThree = (CommandThree)starter.FindCommand<CommandThree>()!;
+
+            executionQueue.Enqueue(commandOne);
+            executionQueue.Enqueue(commandTwo);
+            executionQueue.Enqueue(commandThree);
+
+            inputProvider.CommandQueue.Enqueue(commandOne.Name);
+            inputProvider.CommandQueue.Enqueue(commandTwo.Name);
+            inputProvider.CommandQueue.Enqueue(commandThree.Name);
 
             await starter.Launch();
         }
 
-        private void Starter_OnCommandExecuted_Assert(object? sender, ReplCommandEventArgs e)
-        {
-            if(!ensureExecutionTestReturnCodeQueue.TryDequeue(out int expectedReturnCode))
-            {
-                starter.Stop();
-                return;
-            }
-
-            var actualReturnCode = e.ReturnCode;
-
-            Assert.That(actualReturnCode, Is.EqualTo(expectedReturnCode));
-        }
     }
 }
