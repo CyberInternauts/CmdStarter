@@ -22,41 +22,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
         /// <summary>
         /// Constructor without namespace filters.
         /// </summary>
-        /// <remarks>
-        /// Uses the default <see cref="ConsoleReplProvider"/>.
-        /// </remarks>
-        public ReplStarter() : base()
-        {
-            inputProvider = new ConsoleReplProvider();
-        }
-
-        /// <summary>
-        /// Constructor with namespace filters.
-        /// </summary>
-        /// <remarks>
-        /// Uses the default <see cref="ConsoleReplProvider"/>.
-        /// </remarks>
-        /// <param name="namespaces">Array of included namespaces.</param>
-        public ReplStarter(string[] namespaces) : base(namespaces)
-        {
-            inputProvider = new ConsoleReplProvider();
-        }
-
-        /// <summary>
-        /// Constructor with namespace filters.
-        /// </summary>
-        /// <remarks>
-        /// Uses the default <see cref="ConsoleReplProvider"/>.
-        /// </remarks>
-        /// <param name="namespaces">Array of included namespaces.</param>
-        public ReplStarter(List<string> namespaces) : base(namespaces)
-        {
-            inputProvider = new ConsoleReplProvider();
-        }
-
-        /// <summary>
-        /// Constructor without namespace filters.
-        /// </summary>
         /// <param name="inputProvider">Provides input for command parsing.</param>
         public ReplStarter(IReplInputProvider inputProvider) : base()
         {
