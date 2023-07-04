@@ -2,6 +2,13 @@
 {
     public sealed class CommandOne : StarterCommand
     {
-        public override Delegate HandlingMethod => base.HandlingMethod;
+        public const int EXPECTED_RETURN = 111;
+
+        public override Delegate HandlingMethod => Execute;
+
+        public int Execute()
+        {
+            return EXPECTED_RETURN;
+        }
     }
 }
