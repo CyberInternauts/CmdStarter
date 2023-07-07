@@ -206,7 +206,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            if (parser is null) CreateParser();
+            CreateParser();
 
             return await parser.InvokeAsync(args);
         }

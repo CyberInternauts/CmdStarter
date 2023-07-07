@@ -29,6 +29,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Account
                     Console.WriteLine("Incorrect password.");
                     return -1;
                 case Authenticator.LoginStatus.LoggedIn:
+                    Program.starter.Classes = Program.starter.Classes.Clear();
                     Console.WriteLine($"You are now logged in as {username}.");
                     return 0;
                 default:
