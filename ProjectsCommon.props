@@ -6,7 +6,7 @@
 		<BaseNamespace>com.cyberinternauts.csharp</BaseNamespace>
 		<Company>CyberInternauts</Company>
 		<Authors>Jonathan Boivin, Norbert Ormándi</Authors>
-		<Owners>djon2003, skydeszka</Owners>
+		<Owners>djon2003, DeszkaCodes</Owners>
 		<Copyright>$(Company)</Copyright>
 		<RepositoryUrl>https://github.com/CyberInternauts/CmdStarter</RepositoryUrl>
 	</PropertyGroup>
