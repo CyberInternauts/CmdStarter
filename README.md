@@ -4,6 +4,12 @@ This library is a layer over [System.CommandLine](https://github.com/dotnet/comm
 into existing projects. Currently, this dependency is still in beta version, hence this library's version will stay 
 in beta too.
 
+## Links
+
+- Article: https://www.codeproject.com/Articles/5361921/Integrate-System-CommandLine-Easily-with-CmdStarte
+- Nuget package: https://www.nuget.org/packages/cints.CmdStarter
+- Jira: https://cyberinternauts.atlassian.net/browse/CMD
+
 ## Features
 - Implement commands using an abstract class or an interface
 - Filter classes to use in current execution by namespaces or by full class names
