@@ -34,5 +34,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var secondaryOption = starter.RootCommand.Options.FirstOrDefault(o => o.Name == SecondaryGlobalOptions.SECONDARY_INT_GLOBAL_OPTION_KEBAB);
             Assert.That(secondaryOption, Is.Not.Null);
         }
+
+        [TestCase<OptionlessCommand>()]
+        public void EnsureGlobalOptionsFilter<Command>() where Command : IStarterCommand
+        {
+            starter.Classes = starter.Classes.Clear().Add(nameof(OptionlessCommand));
+            starter.InstantiateCommands();
+
+            var command = starter.FindCommand<Command>();
+
+            
+        }
     }
 }
