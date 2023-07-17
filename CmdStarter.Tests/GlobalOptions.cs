@@ -1,4 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
@@ -35,15 +37,42 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(secondaryOption, Is.Not.Null);
         }
 
-        [TestCase<OptionlessCommand>()]
-        public void EnsureGlobalOptionsFilter<Command>() where Command : IStarterCommand
+        [TestCase<OptionlessCommand, GlobalOptionsFilterOnlyInclude>()]
+        [TestCase<OptionlessCommand, GlobalOptionsFilterOnlyExclude>()]
+        [TestCase<OptionlessCommand, GlobalOptionFilterExcludeAll>()]
+        public void EnsureGlobalOptionsFilter<Command, GlobalContainer>() 
+            where Command : IStarterCommand
+            where GlobalContainer : IGlobalOptionsContainer, IOptByAttribute
         {
-            starter.Classes = starter.Classes.Clear().Add(nameof(OptionlessCommand));
+            starter.Classes = starter.Classes.Clear().Add($"~{nameof(MainGlobalOptions)}");
+            starter.Classes = starter.Classes.Add($"~{nameof(SecondaryGlobalOptions)}");
+            starter.Classes = starter.Classes.Add($"~{nameof(GlobalOptionsFilterOnlyInclude)}");
+            starter.Classes = starter.Classes.Add($"~{nameof(GlobalOptionsFilterOnlyExclude)}");
+            starter.Classes = starter.Classes.Add($"~{nameof(GlobalOptionFilterExcludeAll)}");
+
+            starter.Classes = starter.Classes.Remove($"~{typeof(GlobalContainer).Name}");
+
             starter.InstantiateCommands();
 
-            var command = starter.FindCommand<Command>();
-
+            // TODO: FIX AFTER CMD-50
+            // This command should be the generic Command type.
+            var command = starter.RootCommand;
             
+            foreach(var option in GlobalContainer.IncludedOptions)
+            {
+                var includedOption = command.Options.FirstOrDefault(o =>
+                    o.Name == option);
+
+                Assert.That(includedOption, Is.Not.Null);
+            }
+
+            foreach (var option in GlobalContainer.ExcludedOptions)
+            {
+                var excludedOption = command.Options.FirstOrDefault(o =>
+                    o.Name == option);
+
+                Assert.That(excludedOption, Is.Null);
+            }
         }
     }
 }
