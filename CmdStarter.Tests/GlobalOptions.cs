@@ -1,4 +1,5 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Commands;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
@@ -44,7 +45,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             where GlobalContainer : IGlobalOptionsContainer, IOptByAttribute
         {
             starter.Classes = starter.Classes.Clear().Add(typeof(GlobalContainer).FullName!);
-            starter.Classes = starter.Classes.Add(nameof(OptionlessCommand));
+            starter.Classes = starter.Classes.Add(nameof(EmptyCommand));
 
             starter.InstantiateCommands();
 
