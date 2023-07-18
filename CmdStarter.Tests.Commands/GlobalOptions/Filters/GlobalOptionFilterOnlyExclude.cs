@@ -2,7 +2,7 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions.Filters
 {
-    public sealed class GlobalOptionsFilterOnlyExclude : IGlobalOptionsContainer, IOptByAttribute
+    public sealed class GlobalOptionFilterOnlyExclude : IGlobalOptionsContainer, IOptByAttribute
     {
         public static string[] IncludedOptions => new string[] { INCLUDED_OPTION };
 
