@@ -42,6 +42,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         [TestCase<GlobalOptionsFilterOnlyInclude>()]
         [TestCase<GlobalOptionsFilterOnlyExclude>()]
         [TestCase<GlobalOptionFilterExcludeAll>()]
+        [TestCase<GlobalOptionFilterByLackOfAttribute>()]
         public void EnsureGlobalOptionsFilter<GlobalContainer>() 
             where GlobalContainer : IGlobalOptionsContainer, IOptByAttribute
         {
