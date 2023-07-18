@@ -54,8 +54,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             starter.InstantiateCommands();
 
-            // TODO: FIX AFTER CMD-50
-            // This command should be the generic Command type.
             var command = starter.RootCommand;
             
             foreach(var option in GlobalContainer.IncludedOptions)
