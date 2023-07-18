@@ -37,20 +37,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(secondaryOption, Is.Not.Null);
         }
 
-        [TestCase<OptionlessCommand, GlobalOptionsFilterOnlyInclude>()]
-        [TestCase<OptionlessCommand, GlobalOptionsFilterOnlyExclude>()]
-        [TestCase<OptionlessCommand, GlobalOptionFilterExcludeAll>()]
-        public void EnsureGlobalOptionsFilter<Command, GlobalContainer>() 
-            where Command : IStarterCommand
+        [TestCase<GlobalOptionsFilterOnlyInclude>()]
+        [TestCase<GlobalOptionsFilterOnlyExclude>()]
+        [TestCase<GlobalOptionFilterExcludeAll>()]
+        public void EnsureGlobalOptionsFilter<GlobalContainer>() 
             where GlobalContainer : IGlobalOptionsContainer, IOptByAttribute
         {
-            starter.Classes = starter.Classes.Clear().Add($"~{nameof(MainGlobalOptions)}");
-            starter.Classes = starter.Classes.Add($"~{nameof(SecondaryGlobalOptions)}");
-            starter.Classes = starter.Classes.Add($"~{nameof(GlobalOptionsFilterOnlyInclude)}");
-            starter.Classes = starter.Classes.Add($"~{nameof(GlobalOptionsFilterOnlyExclude)}");
-            starter.Classes = starter.Classes.Add($"~{nameof(GlobalOptionFilterExcludeAll)}");
-
-            starter.Classes = starter.Classes.Remove($"~{typeof(GlobalContainer).Name}");
+            starter.Classes = starter.Classes.Clear().Add(typeof(GlobalContainer).FullName!);
+            starter.Classes = starter.Classes.Add(nameof(OptionlessCommand));
 
             starter.InstantiateCommands();
 
