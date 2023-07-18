@@ -1,5 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Commands;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions.Filters;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 

@@ -1,6 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions.Filters
 {
     public sealed class GlobalOptionsFilterOnlyInclude : IGlobalOptionsContainer, IOptByAttribute
     {
