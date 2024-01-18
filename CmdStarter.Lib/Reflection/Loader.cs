@@ -1,5 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
 using System.ComponentModel;
@@ -32,7 +33,15 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 LoadDescription(property, option);
                 LoadAliases(property, option);
                 LoadAutoCompletes(property, (completion) => option.AddCompletions(completion));
-                receptacle.AddOption(option);
+
+                if (typeof(IGlobalOptionsContainer).IsAssignableFrom(from))
+                {
+                    receptacle.AddGlobalOption(option);
+                }
+                else
+                {
+                    receptacle.AddOption(option);
+                }
             }
         }
 
