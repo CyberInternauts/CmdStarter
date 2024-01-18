@@ -26,7 +26,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         public List<Type> GlobalOptionsTypes { get; private set; } = new();
 
         /// <summary>
-        /// Retrieve a global options container of a specifict type
+        /// Retrieve a global options container of a specific type
         /// </summary>
         /// <typeparam name="GlobalOptionsType">Global options container type to look for</typeparam>
         /// <returns>An <see cref="IGlobalOptionsContainer"/> or null if nothing found</returns>
