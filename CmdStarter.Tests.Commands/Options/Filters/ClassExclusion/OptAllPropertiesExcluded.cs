@@ -1,6 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes.ClassExclusion
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion
 {
     [AllOptionsExcluded]
     public class OptAllPropertiesExcluded : StarterCommand, IOptByAttribute

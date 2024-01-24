@@ -1,6 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters
 {
     public sealed class OptByLackOfAttribute : StarterCommand, IOptByAttribute
     {
