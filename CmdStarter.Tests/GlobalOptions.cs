@@ -51,11 +51,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             starter.InstantiateCommands();
 
-            var command = starter.RootCommand;
+            var rootCommand = starter.RootCommand;
             
             foreach(var option in GlobalContainer.IncludedOptions)
             {
-                var includedOption = command.Options.FirstOrDefault(o =>
+                var includedOption = rootCommand.Options.FirstOrDefault(o =>
                     o.Name == option);
 
                 Assert.That(includedOption, Is.Not.Null);
@@ -63,7 +63,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
             foreach (var option in GlobalContainer.ExcludedOptions)
             {
-                var excludedOption = command.Options.FirstOrDefault(o =>
+                var excludedOption = rootCommand.Options.FirstOrDefault(o =>
                     o.Name == option);
 
                 Assert.That(excludedOption, Is.Null);
