@@ -1,7 +1,7 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Attributes.ClassExclusion;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
