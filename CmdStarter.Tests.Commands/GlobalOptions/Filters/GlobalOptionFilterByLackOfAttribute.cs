@@ -8,10 +8,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions.Fil
 
         public static string[] ExcludedOptions => Array.Empty<string>();
 
-        public int IncludedOption1 { get; set; }
-        public const string INCLUDED_OPTION_1 = "included-option-1";
+        public int NoAttrIncludedOption1 { get; set; }
+        public const string INCLUDED_OPTION_1 = "no-attr-included-option-1";
 
-        public int IncludedOption2 { get; set; }
-        public const string INCLUDED_OPTION_2 = "included-option-2";
+        public int NoAttrIncludedOption2 { get; set; }
+        public const string INCLUDED_OPTION_2 = "no-attr-included-option-2";
     }
 }
