@@ -172,6 +172,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
                 );
         }
 
+        public static string PrintOptionAsIs(string optionName, object expectedValue)
+        {
+            return string.Join(" ", PrepareOption(optionName, expectedValue));
+        }
+
         /// <summary>
         /// This method use reflexion and thus shall not be used to test reflexion of a method
         /// </summary>

@@ -48,8 +48,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             starter = TestsCommon.CreateCmdStarter();
             starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
 
-            var argsString = commandName + " " + TestsCommon.PrintOption(optionName, expectedValue);
-            await starter.Start(argsString.Split(" ", 2));
+            var args = TestsCommon.PrintOptionAsIs(optionName, expectedValue).Split(" ", 2).ToList();
+            args.Insert(0, commandName);
+            await starter.Start(args.ToArray());
 
             optionCommand = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(optionCommand, Is.Not.Null);
