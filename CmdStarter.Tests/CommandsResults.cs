@@ -1,4 +1,5 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
+﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
@@ -69,6 +70,16 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(actualReturn, Is.EqualTo(handleTester.ExpectedReturn));
 
             TestsCommon.AssertIEnumerablesHaveSameElements(handleTester.ActualHandlerData, handleTester.ExpectedHandlerData);
+        }
+
+        [TestCase("list files PATH_TO_LIST")]
+        [TestCase("list files PATH_TO_LIST " + "--" + Files.FILES_PATTERN_NAME + " \"abc def\"")]
+        public async Task EnsuresStartUsingConcatenatedString(string args)
+        {
+            starter.ClassesBuildingMode = Lib.Loader.ClassesBuildingMode.Both;
+            starter.InstantiateCommands();
+
+            await starter.Start(args);
         }
 
         [TestCase<Dependent1, DependentService1>]

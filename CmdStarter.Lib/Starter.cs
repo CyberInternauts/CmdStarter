@@ -192,18 +192,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            var b = new CommandLineBuilder(RootCommand);
+            return await BuildParser().InvokeAsync(args);
+        }
 
-            if (hasToUseDefaults)
-            {
-                hasToUseDefaults = false;
-                b.UseDefaults();
-            }
+        /// <summary>
+        /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
+        /// </summary>
+        public async Task<int> Start(string args)
+        {
+            InstantiateCommands();
 
-            var parser = b.Build();
-
-
-            return await parser.InvokeAsync(args);
+            return await BuildParser().InvokeAsync(args);
         }
 
         /// <summary>
@@ -211,16 +210,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         /// </summary>
         public async Task<int> Start(IServiceManager serviceManager, string[] args)
         {
-            // Set factory
-            var creationMethod = (Type commandType) =>
-            {
-                return serviceManager.GetService(commandType) as IStarterCommand;
-            };
-            Starter.SetFactory(creationMethod);
+            SetFactory(serviceManager);
 
-            // Register commands
-            FindCommandsTypes();
-            CommandsTypes.ForEach(type => serviceManager.SetService(type));
+            return await Start(args);
+        }
+
+        /// <summary>
+        /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
+        /// </summary>
+        public async Task<int> Start(IServiceManager serviceManager, string args)
+        {
+            SetFactory(serviceManager);
 
             return await Start(args);
         }
@@ -417,6 +417,33 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             }
 
             return null;
+        }
+
+        private void SetFactory(IServiceManager serviceManager)
+        {
+            // Set factory
+            var creationMethod = (Type commandType) =>
+            {
+                return serviceManager.GetService(commandType) as IStarterCommand;
+            };
+            SetFactory(creationMethod);
+
+            // Register commands
+            FindCommandsTypes();
+            CommandsTypes.ForEach(type => serviceManager.SetService(type));
+        }
+
+        private Parser BuildParser()
+        {
+            var b = new CommandLineBuilder(RootCommand);
+
+            if (hasToUseDefaults)
+            {
+                hasToUseDefaults = false;
+                b.UseDefaults();
+            }
+
+            return b.Build();
         }
     }
 }
