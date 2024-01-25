@@ -162,7 +162,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 
         public static string PrintOption(string optionName, object expectedValue)
         {
-            return string.Join(" ", PrepareOption(optionName, expectedValue));
+            return PrepareOption(optionName, expectedValue).Aggregate(
+                (current, next) => 
+                    current +
+                    (string.IsNullOrEmpty(current) ? string.Empty : " ") +
+                    (next.Contains(' ') ? "\"" : string.Empty) +
+                    next.Replace("\"", "\\\"") +
+                    (next.Contains(' ') ? "\"" : string.Empty)
+                );
         }
 
         /// <summary>
