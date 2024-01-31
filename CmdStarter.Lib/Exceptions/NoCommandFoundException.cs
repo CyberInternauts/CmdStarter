@@ -3,7 +3,7 @@
     /// <summary>
     /// No command found exception after applying a <see cref="Filter"/>
     /// </summary>
-    public class NoCommandFoundException : Exception
+    public sealed class NoCommandFoundException : Exception
     {
         /// <summary>
         /// Possible filters
