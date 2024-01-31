@@ -7,7 +7,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     /// <summary>
     /// Manager for all global options classes found
     /// </summary>
-    public class GlobalOptionsManager
+    public sealed class GlobalOptionsManager
     {
 
         private static IEnumerable<Type>? foundTypes;
