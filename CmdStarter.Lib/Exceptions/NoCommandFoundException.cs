@@ -8,7 +8,7 @@
         /// <summary>
         /// Possible filters
         /// </summary>
-        public enum Filter
+        public enum Filter : byte
         {
             /// <summary>
             /// Namespaces filter

@@ -6,7 +6,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
     /// <summary>
     /// Building mode (Order is important. Ending when ClassC is assigned)
     /// </summary>
-    public enum ClassesBuildingMode
+    public enum ClassesBuildingMode : byte
     {
         /// <summary>
         /// Use (Parent|Children)Attributes and if nothing then namespaces.
