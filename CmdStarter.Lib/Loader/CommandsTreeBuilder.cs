@@ -5,7 +5,7 @@ using System.Data;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
 {
-    internal class CommandsTreeBuilder
+    internal sealed class CommandsTreeBuilder
     {
         /// <summary>
         /// Configure how to build the commands tree using one of <see cref="Loader.ClassesBuildingMode"/>

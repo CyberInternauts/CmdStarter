@@ -8,7 +8,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
     /// Ref: https://stackoverflow.com/a/10442244/214898
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class TreeNode<T> where T : class
+    public sealed class TreeNode<T> where T : class
     {
         private readonly T? _value;
         private readonly List<TreeNode<T>> _children = new();

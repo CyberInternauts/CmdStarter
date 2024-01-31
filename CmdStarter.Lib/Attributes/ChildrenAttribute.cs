@@ -37,7 +37,7 @@
     /// </summary>
     /// <typeparam name="ClassForNamespace"></typeparam>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class ChildrenAttribute<ClassForNamespace> : ChildrenAttribute where ClassForNamespace : class
+    public sealed class ChildrenAttribute<ClassForNamespace> : ChildrenAttribute where ClassForNamespace : class
     {
         /// <summary>
         /// <see cref="ChildrenAttribute.ChildrenAttribute(Type)"/>
