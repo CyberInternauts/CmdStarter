@@ -50,7 +50,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             // All methods have to ensure commands where found
             starter = new CmdStarter.Lib.Starter();
             starter.FindCommandsTypes();
-            Assert.That(starter.CommandsTypes, Is.Not.Empty, "FIX THIS FIRST!!!!!", null);
+            Assert.That(starter.CommandsTypes, Is.Not.Empty, "FIX THIS FIRST!!!!!");
         }
 
         [Test]
