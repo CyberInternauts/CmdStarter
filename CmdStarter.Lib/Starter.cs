@@ -17,7 +17,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
     /// <summary>
     /// Main class executing the command using the command line arguments
     /// </summary>
-    public sealed class Starter
+    public class Starter
     {
         /// <summary>
         /// Exclusion symbol
