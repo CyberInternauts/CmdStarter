@@ -1,8 +1,7 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
+
+[Description(DESC)]
+public class SingleDesc : StarterCommand
 {
-    [Description(DESC)]
-    public class SingleDesc : StarterCommand
-    {
-        public const string DESC = "One liner";
-    }
+    public const string DESC = "One liner";
 }

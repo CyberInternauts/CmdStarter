@@ -1,6 +1,5 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
+
+public class NoDesc : StarterCommand
 {
-    public class NoDesc : StarterCommand
-    {
-    }
 }

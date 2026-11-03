@@ -1,9 +1,8 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
-{
-    public interface IErrorRunner
-    {
-        Type TypeOfException { get; }
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
-        void ErrorInvoker();
-    }
+public interface IErrorRunner
+{
+    Type TypeOfException { get; }
+
+    void ErrorInvoker();
 }

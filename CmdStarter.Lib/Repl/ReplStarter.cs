@@ -1,121 +1,120 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
+
+/// <summary>
+/// Main class executing the command using the command line arguments in REPL mode.
+/// </summary>
+public sealed class ReplStarter : Starter
 {
     /// <summary>
-    /// Main class executing the command using the command line arguments in REPL mode.
+    /// Gets invoked after the execution of a command.
     /// </summary>
-    public sealed class ReplStarter : Starter
+    public event EventHandler<ReplCommandEventArgs>? OnCommandExecuted;
+
+    private readonly IReplInputProvider inputProvider;
+
+    /// <summary>
+    /// If <see langword="true"/> REPL mode loop runs; otherwise it won't.
+    /// </summary>
+    private bool allowReplLoop = true;
+
+    /// <summary>
+    /// Constructor without namespace filters.
+    /// </summary>
+    /// <param name="inputProvider">Provides input for command parsing.</param>
+    public ReplStarter(IReplInputProvider inputProvider) : base()
     {
-        /// <summary>
-        /// Gets invoked after the execution of a command.
-        /// </summary>
-        public event EventHandler<ReplCommandEventArgs>? OnCommandExecuted;
+        this.inputProvider = inputProvider;
+    }
 
-        private readonly IReplInputProvider inputProvider;
+    /// <summary>
+    /// Constructor with namespace filters.
+    /// </summary>
+    /// <param name="inputProvider">Provides input for command parsing.</param>
+    /// <param name="namespaces">Array of included namespaces.</param>
+    public ReplStarter(IReplInputProvider inputProvider, string[] namespaces) : base(namespaces)
+    {
+        this.inputProvider = inputProvider;
+    }
 
-        /// <summary>
-        /// If <see langword="true"/> REPL mode loop runs; otherwise it won't.
-        /// </summary>
-        private bool allowReplLoop = true;
+    /// <summary>
+    /// Constructor with namespace filters.
+    /// </summary>
+    /// <param name="inputProvider">Provides input for command parsing.</param>
+    /// <param name="namespaces">Array of included namespaces.</param>
+    public ReplStarter(IReplInputProvider inputProvider, List<string> namespaces) : base(namespaces)
+    {
+        this.inputProvider = inputProvider;
+    }
 
-        /// <summary>
-        /// Constructor without namespace filters.
-        /// </summary>
-        /// <param name="inputProvider">Provides input for command parsing.</param>
-        public ReplStarter(IReplInputProvider inputProvider) : base()
+    /// <summary>
+    /// Runs the first command according to the args and starts the REPL mode loop.
+    /// </summary>
+    /// <param name="args">Arguments for the first command, executed before the REPL mode.</param>
+    async public Task Launch(string[] args)
+    {
+        await Start(args);
+        await Launch();
+    }
+
+    /// <summary>
+    /// Runs the first command according to the args and starts the REPL mode loop.
+    /// </summary>
+    /// <param name="args">Arguments for the first command, executed before the REPL mode.</param>
+    public async Task Launch(string args)
+    {
+        await Start(args);
+        await Launch();
+    }
+
+    /// <summary>
+    /// Starts the  REPL mode loop.
+    /// </summary>
+    public async Task Launch()
+    {
+        allowReplLoop = true;
+
+        while (allowReplLoop)
         {
-            this.inputProvider = inputProvider;
+            var inputToBeParsed = inputProvider.GetInput();
+
+            await Start(inputToBeParsed);
         }
+    }
 
-        /// <summary>
-        /// Constructor with namespace filters.
-        /// </summary>
-        /// <param name="inputProvider">Provides input for command parsing.</param>
-        /// <param name="namespaces">Array of included namespaces.</param>
-        public ReplStarter(IReplInputProvider inputProvider, string[] namespaces) : base(namespaces)
-        {
-            this.inputProvider = inputProvider;
-        }
+    /// <summary>
+    /// Stops the REPL loop.
+    /// </summary>
+    /// <remarks>
+    /// Use <see cref="Launch(string?)"/> or <see cref="Launch(string[])"/> to start again.
+    /// </remarks>
+    public void Stop()
+    {
+        allowReplLoop = false;
+    }
 
-        /// <summary>
-        /// Constructor with namespace filters.
-        /// </summary>
-        /// <param name="inputProvider">Provides input for command parsing.</param>
-        /// <param name="namespaces">Array of included namespaces.</param>
-        public ReplStarter(IReplInputProvider inputProvider, List<string> namespaces) : base(namespaces)
-        {
-            this.inputProvider = inputProvider;
-        }
+    /// <inheritdoc cref="Starter.Start(string[])"/>
+    /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
+    public async new Task<int> Start(string[] args)
+    {
+        var returnCode = await base.Start(args);
 
-        /// <summary>
-        /// Runs the first command according to the args and starts the REPL mode loop.
-        /// </summary>
-        /// <param name="args">Arguments for the first command, executed before the REPL mode.</param>
-        async public Task Launch(string[] args)
-        {
-            await Start(args);
-            await Launch();
-        }
+        var eventArgs = new ReplCommandEventArgs(returnCode);
+        OnCommandExecuted?.Invoke(this, eventArgs);
 
-        /// <summary>
-        /// Runs the first command according to the args and starts the REPL mode loop.
-        /// </summary>
-        /// <param name="args">Arguments for the first command, executed before the REPL mode.</param>
-        public async Task Launch(string args)
-        {
-            await Start(args);
-            await Launch();
-        }
+        return returnCode;
+    }
 
-        /// <summary>
-        /// Starts the  REPL mode loop.
-        /// </summary>
-        public async Task Launch()
-        {
-            allowReplLoop = true;
+    /// <inheritdoc cref="Starter.Start(string)"/>
+    /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
+    public async new Task<int> Start(string args)
+    {
+        var returnCode = await base.Start(args);
 
-            while (allowReplLoop)
-            {
-                var inputToBeParsed = inputProvider.GetInput();
+        var eventArgs = new ReplCommandEventArgs(returnCode);
+        OnCommandExecuted?.Invoke(this, eventArgs);
 
-                await Start(inputToBeParsed);
-            }
-        }
-
-        /// <summary>
-        /// Stops the REPL loop.
-        /// </summary>
-        /// <remarks>
-        /// Use <see cref="Launch(string?)"/> or <see cref="Launch(string[])"/> to start again.
-        /// </remarks>
-        public void Stop()
-        {
-            allowReplLoop = false;
-        }
-
-        /// <inheritdoc cref="Starter.Start(string[])"/>
-        /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
-        public async new Task<int> Start(string[] args)
-        {
-            var returnCode = await base.Start(args);
-
-            var eventArgs = new ReplCommandEventArgs(returnCode);
-            OnCommandExecuted?.Invoke(this, eventArgs);
-
-            return returnCode;
-        }
-
-        /// <inheritdoc cref="Starter.Start(string)"/>
-        /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
-        public async new Task<int> Start(string args)
-        {
-            var returnCode = await base.Start(args);
-
-            var eventArgs = new ReplCommandEventArgs(returnCode);
-            OnCommandExecuted?.Invoke(this, eventArgs);
-
-            return returnCode;
-        }
+        return returnCode;
     }
 }

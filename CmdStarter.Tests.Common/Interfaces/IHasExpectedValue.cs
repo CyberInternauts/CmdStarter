@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+
+public interface IHasExpectedValue<ExpectedT>
 {
-    public interface IHasExpectedValue<ExpectedT>
-    {
-        ExpectedT ExpectedValue { get; }
-    }
+    ExpectedT ExpectedValue { get; }
 }

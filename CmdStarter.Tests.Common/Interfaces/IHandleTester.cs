@@ -1,11 +1,10 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+
+public interface IHandleTester
 {
-    public interface IHandleTester
-    {
-        int ExpectedReturn { get; }
+    int ExpectedReturn { get; }
 
-        List<HandlerData> ExpectedHandlerData { get; }
+    List<HandlerData> ExpectedHandlerData { get; }
 
-        List<HandlerData> ActualHandlerData { get; }
-    }
+    List<HandlerData> ActualHandlerData { get; }
 }

@@ -1,0 +1,16 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = crlf
+
+[*.cs]
+indent_size = 4
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_new_line_before_open_brace = all
+
+[*.{csproj,props,targets,xml,config,json}]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2

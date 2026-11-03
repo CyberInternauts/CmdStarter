@@ -3,40 +3,39 @@ using System.CommandLine.Completions;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+
+public sealed class LonelyFeederAutoCompletion : StarterCommand, IHasAutoComplete
 {
-    public sealed class LonelyFeederAutoCompletion : StarterCommand, IHasAutoComplete
+    [AutoComplete<AutoCompletionOptionFeeder>()]
+    public string PersonName { get; set; } = null!;
+    public const string OPTION_NAME = "person-name";
+
+    public override Delegate HandlingMethod => Execute;
+
+    private void Execute([AutoComplete<AutoCompletionArgumentFeeder>()] int age = 18)
+    { }
+    public const string ARGUMENT_NAME = "age";
+
+    public IEnumerable<CompletionItem> OptionCompletionsExpected()
     {
-        [AutoComplete<AutoCompletionOptionFeeder>()]
-        public string PersonName { get; set; } = null!;
-        public const string OPTION_NAME = "person-name";
+        Option<string> expected = new(OPTION_NAME);
 
-        public override Delegate HandlingMethod => Execute;
+        var instance = AutoCompletionOptionFeeder.GetInstance();
 
-        private void Execute([AutoComplete<AutoCompletionArgumentFeeder>()] int age = 18)
-        { }
-        public const string ARGUMENT_NAME = "age";
+        expected.CompletionSources.Add(instance.GetAutoCompletes());
 
-        public IEnumerable<CompletionItem> OptionCompletionsExpected()
-        {
-            Option<string> expected = new(OPTION_NAME);
+        return expected.GetCompletions(CompletionContext.Empty);
+    }
 
-            var instance = AutoCompletionOptionFeeder.GetInstance();
+    public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
+    {
+        Argument<int> expected = new("age");
 
-            expected.CompletionSources.Add(instance.GetAutoCompletes());
+        var instance = AutoCompletionArgumentFeeder.GetInstance();
 
-            return expected.GetCompletions(CompletionContext.Empty);
-        }
+        expected.CompletionSources.Add(instance.GetAutoCompletes());
 
-        public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
-        {
-            Argument<int> expected = new("age");
-
-            var instance = AutoCompletionArgumentFeeder.GetInstance();
-
-            expected.CompletionSources.Add(instance.GetAutoCompletes());
-
-            return expected.GetCompletions(CompletionContext.Empty);
-        }
+        return expected.GetCompletions(CompletionContext.Empty);
     }
 }

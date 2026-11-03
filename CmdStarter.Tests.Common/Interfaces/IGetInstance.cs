@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+
+public interface IGetInstance<T> where T : IGetInstance<T>
 {
-    public interface IGetInstance<T> where T : IGetInstance<T>
-    {
-        static abstract T GetInstance();
-    }
+    static abstract T GetInstance();
 }

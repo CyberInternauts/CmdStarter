@@ -1,7 +1,6 @@
-﻿namespace CmdStarter.Demo.SimpleInjector.Services
+﻿namespace CmdStarter.Demo.SimpleInjector.Services;
+
+internal class Service2 : IService
 {
-    internal class Service2 : IService
-    {
-        public int GetInt() => 2;
-    }
+    public int GetInt() => 2;
 }

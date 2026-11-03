@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
+
+public class NoArgs : StarterCommand
 {
-    public class NoArgs : StarterCommand
-    {
-        public override Delegate HandlingMethod => () => { };
-    }
+    public override Delegate HandlingMethod => () => { };
 }

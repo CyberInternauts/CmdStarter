@@ -1,39 +1,38 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+
+/// <summary>
+/// No command found exception after applying a <see cref="Filter"/>
+/// </summary>
+public sealed class NoCommandFoundException : Exception
 {
     /// <summary>
-    /// No command found exception after applying a <see cref="Filter"/>
+    /// Possible filters
     /// </summary>
-    public sealed class NoCommandFoundException : Exception
+    public enum Filter : byte
     {
         /// <summary>
-        /// Possible filters
+        /// Namespaces filter
         /// </summary>
-        public enum Filter : byte
-        {
-            /// <summary>
-            /// Namespaces filter
-            /// </summary>
-            Namespaces,
-
-            /// <summary>
-            /// Classes filter
-            /// </summary>
-            Classes
-        }
+        Namespaces,
 
         /// <summary>
-        /// Last filter applied
+        /// Classes filter
         /// </summary>
-        public Filter LastFilterApplied { get; init; }
-
-        /// <summary>
-        /// Constructor with <see cref="Filter"/> that was applied to obtained no command
-        /// </summary>
-        /// <param name="lastFilterApplied"></param>
-        public NoCommandFoundException(Filter lastFilterApplied)
-        {
-            LastFilterApplied = lastFilterApplied;
-        }
-
+        Classes
     }
+
+    /// <summary>
+    /// Last filter applied
+    /// </summary>
+    public Filter LastFilterApplied { get; init; }
+
+    /// <summary>
+    /// Constructor with <see cref="Filter"/> that was applied to obtained no command
+    /// </summary>
+    /// <param name="lastFilterApplied"></param>
+    public NoCommandFoundException(Filter lastFilterApplied)
+    {
+        LastFilterApplied = lastFilterApplied;
+    }
+
 }

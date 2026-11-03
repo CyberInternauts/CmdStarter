@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
+
+[Parent(null)]
+public class WrongTypeForChidlren
 {
-    [Parent(null)]
-    public class WrongTypeForChidlren
-    {
-    }
 }

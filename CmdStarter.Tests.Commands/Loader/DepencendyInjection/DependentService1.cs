@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+
+public class DependentService1 : IDependentService
 {
-    public class DependentService1 : IDependentService
-    {
-        public int GetInt() { return 1; }
-    }
+    public int GetInt() { return 1; }
 }

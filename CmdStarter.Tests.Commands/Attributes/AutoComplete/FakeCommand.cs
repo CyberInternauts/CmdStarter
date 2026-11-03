@@ -1,6 +1,5 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+
+internal sealed class FakeCommand : StarterCommand
 {
-    internal sealed class FakeCommand : StarterCommand
-    {
-    }
 }

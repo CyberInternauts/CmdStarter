@@ -1,24 +1,23 @@
 ﻿using System.CommandLine;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
+
+/// <summary>
+/// Event arguments for a REPL command execution event.
+/// </summary>
+public sealed class ReplCommandEventArgs : EventArgs
 {
     /// <summary>
-    /// Event arguments for a REPL command execution event.
+    /// Initializes a new instance of the <see cref="ReplCommandEventArgs"/> class.
     /// </summary>
-    public sealed class ReplCommandEventArgs : EventArgs
+    /// <param name="returnCode">The return code of the command execution.</param>
+    public ReplCommandEventArgs(int returnCode)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ReplCommandEventArgs"/> class.
-        /// </summary>
-        /// <param name="returnCode">The return code of the command execution.</param>
-        public ReplCommandEventArgs(int returnCode)
-        {
-            ReturnCode = returnCode;
-        }
-
-        /// <summary>
-        /// Gets the return code of the command execution.
-        /// </summary>
-        public int ReturnCode { get; }
+        ReturnCode = returnCode;
     }
+
+    /// <summary>
+    /// Gets the return code of the command execution.
+    /// </summary>
+    public int ReturnCode { get; }
 }

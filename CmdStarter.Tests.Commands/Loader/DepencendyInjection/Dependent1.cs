@@ -1,14 +1,13 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+
+public class Dependent1 : IStarterCommand
 {
-    public class Dependent1 : IStarterCommand
-    {
-        private readonly IDependentService service;
+    private readonly IDependentService service;
 
-        public Dependent1(IDependentService service) { this.service = service; }
+    public Dependent1(IDependentService service) { this.service = service; }
 
-        public GlobalOptionsManager? GlobalOptionsManager { get; set; }
+    public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
 
-        public Delegate HandlingMethod => () => service.GetInt();
-    }
+    public Delegate HandlingMethod => () => service.GetInt();
 }

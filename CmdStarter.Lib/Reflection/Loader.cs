@@ -10,117 +10,116 @@ using System.Text;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
+namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+
+internal static class Loader
 {
-    internal static class Loader
+
+    internal static List<OptionBinding> LoadOptions(Type from, Command receptacle)
     {
+        var bindings = new List<OptionBinding>();
+        var properties = GetProperties(from);
 
-        internal static List<OptionBinding> LoadOptions(Type from, Command receptacle)
+        foreach (var property in properties)
         {
-            var bindings = new List<OptionBinding>();
-            var properties = GetProperties(from);
+            var isList = property.PropertyType.GetInterfaces()
+                .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
 
-            foreach (var property in properties)
+            var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
+            var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string[]) });
+            var optionName = StarterCommand.OPTION_PREFIX + property.Name.PascalToKebabCase();
+            var option = (Option)constructor!.Invoke(new object[] { optionName, Array.Empty<string>() });
+            option.Required = Attribute.IsDefined(property, typeof(RequiredAttribute));
+            option.Hidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
+            option.AllowMultipleArgumentsPerToken = isList;
+            LoadDescription(property, option);
+            LoadAliases(property, option.Aliases);
+            LoadAutoCompletes(property, completion => option.CompletionSources.Add(completion));
+
+            if (typeof(IGlobalOptionsContainer).IsAssignableFrom(from))
             {
-                var isList = property.PropertyType.GetInterfaces()
-                    .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
-
-                var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
-                var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string[]) });
-                var optionName = StarterCommand.OPTION_PREFIX + property.Name.PascalToKebabCase();
-                var option = (Option)constructor!.Invoke(new object[] { optionName, Array.Empty<string>() });
-                option.Required = Attribute.IsDefined(property, typeof(RequiredAttribute));
-                option.Hidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
-                option.AllowMultipleArgumentsPerToken = isList;
-                LoadDescription(property, option);
-                LoadAliases(property, option.Aliases);
-                LoadAutoCompletes(property, completion => option.CompletionSources.Add(completion));
-
-                if (typeof(IGlobalOptionsContainer).IsAssignableFrom(from))
-                {
-                    option.Recursive = true;
-                    receptacle.Options.Add(option);
-                }
-                else
-                {
-                    receptacle.Options.Add(option);
-                }
-                bindings.Add(new OptionBinding(property, option));
+                option.Recursive = true;
+                receptacle.Options.Add(option);
             }
-            return bindings;
-        }
-
-        internal static Argument?[] LoadArguments(MethodInfo method, Command receptacle)
-        {
-            var parameters = method.GetParameters();
-            var arguments = new Argument?[parameters.Length];
-            for (var i = 0; i < parameters.Length; i++)
+            else
             {
-                var parameter = parameters[i];
-                if (parameter.Name == null) continue; // Skipping param without name
-
-                var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
-                var constructor = argumentType.GetConstructor(new[] { typeof(string) });
-                var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name });
-                argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
-                if (parameter.DefaultValue is not System.DBNull)
-                {
-                    typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
-                        .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { argument, parameter.DefaultValue });
-                }
-                LoadDescription(parameter, argument);
-                LoadAutoCompletes(parameter, completion => argument.CompletionSources.Add(completion));
-                receptacle.Arguments.Add(argument);
-                arguments[i] = argument;
+                receptacle.Options.Add(option);
             }
-            return arguments;
+            bindings.Add(new OptionBinding(property, option));
         }
+        return bindings;
+    }
 
-        internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)
+    internal static Argument?[] LoadArguments(MethodInfo method, Command receptacle)
+    {
+        var parameters = method.GetParameters();
+        var arguments = new Argument?[parameters.Length];
+        for (var i = 0; i < parameters.Length; i++)
         {
-            var descriptions = provider.GetCustomAttributes(false)
-                .Where(a => a is DescriptionAttribute)
-                .Select(a => ((DescriptionAttribute)a).Description);
-            var description = descriptions?.Aggregate(
-                    new StringBuilder(),
-                    (current, next) => current.Append(current.Length == 0 ? "" : StarterCommand.DESCRIPTION_JOINER).Append(next)
-                ).ToString() ?? string.Empty;
+            var parameter = parameters[i];
+            if (parameter.Name == null) continue; // Skipping param without name
 
-            receptacle.Description = description;
-        }
-
-        internal static void LoadAliases(ICustomAttributeProvider provider, ICollection<string> aliasesTarget)
-        {
-            var aliases = provider.GetCustomAttributes(false)
-                .Where(a => a is AliasAttribute)
-                .Cast<AliasAttribute>()
-                .SelectMany(a => a.Aliases);
-
-            foreach (var alias in aliases)
+            var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
+            var constructor = argumentType.GetConstructor(new[] { typeof(string) });
+            var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name });
+            argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
+            if (parameter.DefaultValue is not System.DBNull)
             {
-                aliasesTarget.Add(alias);
+                typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
+                    .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { argument, parameter.DefaultValue });
             }
+            LoadDescription(parameter, argument);
+            LoadAutoCompletes(parameter, completion => argument.CompletionSources.Add(completion));
+            receptacle.Arguments.Add(argument);
+            arguments[i] = argument;
         }
+        return arguments;
+    }
 
-        internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Action<Func<CompletionContext, IEnumerable<CompletionItem>>> action)
+    internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)
+    {
+        var descriptions = provider.GetCustomAttributes(false)
+            .Where(a => a is DescriptionAttribute)
+            .Select(a => ((DescriptionAttribute)a).Description);
+        var description = descriptions?.Aggregate(
+                new StringBuilder(),
+                (current, next) => current.Append(current.Length == 0 ? "" : StarterCommand.DESCRIPTION_JOINER).Append(next)
+            ).ToString() ?? string.Empty;
+
+        receptacle.Description = description;
+    }
+
+    internal static void LoadAliases(ICustomAttributeProvider provider, ICollection<string> aliasesTarget)
+    {
+        var aliases = provider.GetCustomAttributes(false)
+            .Where(a => a is AliasAttribute)
+            .Cast<AliasAttribute>()
+            .SelectMany(a => a.Aliases);
+
+        foreach (var alias in aliases)
         {
-            var completionDelegates = GetAutoCompleteAttributes(provider)
-                .Select(attribute => attribute.Context);
-
-            foreach (var completion in completionDelegates)
-            {
-                action(completion);
-            }
+            aliasesTarget.Add(alias);
         }
+    }
 
-        private static void SetDefaultValue<T>(Argument<T> argument, object? value) =>
-            argument.DefaultValueFactory = _ => (T)value!;
+    internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Action<Func<CompletionContext, IEnumerable<CompletionItem>>> action)
+    {
+        var completionDelegates = GetAutoCompleteAttributes(provider)
+            .Select(attribute => attribute.Context);
 
-        private static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
+        foreach (var completion in completionDelegates)
         {
-            return provider.GetCustomAttributes(false)
-                .Where(attribute => attribute is AutoCompleteAttribute)
-                .Cast<AutoCompleteAttribute>();
+            action(completion);
         }
+    }
+
+    private static void SetDefaultValue<T>(Argument<T> argument, object? value) =>
+        argument.DefaultValueFactory = _ => (T)value!;
+
+    private static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
+    {
+        return provider.GetCustomAttributes(false)
+            .Where(attribute => attribute is AutoCompleteAttribute)
+            .Cast<AutoCompleteAttribute>();
     }
 }

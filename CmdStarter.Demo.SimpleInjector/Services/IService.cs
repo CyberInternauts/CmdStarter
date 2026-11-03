@@ -1,7 +1,6 @@
-﻿namespace CmdStarter.Demo.SimpleInjector.Services
+﻿namespace CmdStarter.Demo.SimpleInjector.Services;
+
+internal interface IService
 {
-    internal interface IService
-    {
-        int GetInt();
-    }
+    int GetInt();
 }

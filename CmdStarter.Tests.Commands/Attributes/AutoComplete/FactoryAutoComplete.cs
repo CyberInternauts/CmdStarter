@@ -3,50 +3,49 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
+namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+
+public sealed class FactoryAutoComplete : StarterCommand, IHasAutoComplete
 {
-    public sealed class FactoryAutoComplete : StarterCommand, IHasAutoComplete
+    private const string OPTION_COMPLETION_1 = "BobOrFrank";
+
+    private const string ARGUMENT_COMPLETION_1 = "18";
+
+    [AutoComplete<AutoCompleteOptionFactory>(OPTION_COMPLETION_1)]
+    public string PersonName { get; set; } = null!;
+    public const string OPTION_NAME = "person-name";
+
+    public override Delegate HandlingMethod => Execute;
+
+    private void Execute([AutoComplete<AutoCompleteArgumentFactory>(ARGUMENT_COMPLETION_1)] int age = 18)
+    { }
+    public const string ARGUMENT_NAME = "age";
+
+    public IEnumerable<CompletionItem> OptionCompletionsExpected()
     {
-        private const string OPTION_COMPLETION_1 = "BobOrFrank";
+        Option<string> expected = new(OPTION_NAME);
 
-        private const string ARGUMENT_COMPLETION_1 = "18";
+        var item = new CompletionItem(
+            OPTION_COMPLETION_1,
+            detail: OPTION_COMPLETION_1 + AutoCompleteOptionFactory.DETAIL,
+            insertText: OPTION_COMPLETION_1.ToUpper()
+            );
 
-        [AutoComplete<AutoCompleteOptionFactory>(OPTION_COMPLETION_1)]
-        public string PersonName { get; set; } = null!;
-        public const string OPTION_NAME = "person-name";
+        expected.CompletionSources.Add((ctx) => new CompletionItem[] { item });
 
-        public override Delegate HandlingMethod => Execute;
+        return expected.GetCompletions(CompletionContext.Empty);
+    }
 
-        private void Execute([AutoComplete<AutoCompleteArgumentFactory>(ARGUMENT_COMPLETION_1)] int age = 18)
-        { }
-        public const string ARGUMENT_NAME = "age";
+    public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
+    {
+        Argument<int> expected = new("age");
 
-        public IEnumerable<CompletionItem> OptionCompletionsExpected()
-        {
-            Option<string> expected = new(OPTION_NAME);
+        var item = new CompletionItem(
+            ARGUMENT_COMPLETION_1,
+            documentation: AutoCompleteArgumentFactory.DOCUMENTATION_EU);
 
-            var item = new CompletionItem(
-                OPTION_COMPLETION_1,
-                detail: OPTION_COMPLETION_1 + AutoCompleteOptionFactory.DETAIL,
-                insertText: OPTION_COMPLETION_1.ToUpper()
-                );
+        expected.CompletionSources.Add((ctx) => new CompletionItem[] { item });
 
-            expected.CompletionSources.Add((ctx) => new CompletionItem[] { item });
-
-            return expected.GetCompletions(CompletionContext.Empty);
-        }
-
-        public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
-        {
-            Argument<int> expected = new("age");
-
-            var item = new CompletionItem(
-                ARGUMENT_COMPLETION_1,
-                documentation: AutoCompleteArgumentFactory.DOCUMENTATION_EU);
-
-            expected.CompletionSources.Add((ctx) => new CompletionItem[] { item });
-
-            return expected.GetCompletions(CompletionContext.Empty);
-        }
+        return expected.GetCompletions(CompletionContext.Empty);
     }
 }

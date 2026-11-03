@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming.MultilevelSame.Child
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming.MultilevelSame.Child;
+
+[Parent<Do>]
+public class DoMore : StarterCommand
 {
-    [Parent<Do>]
-    public class DoMore : StarterCommand
-    {
-    }
 }

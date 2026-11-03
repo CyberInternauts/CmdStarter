@@ -4,59 +4,58 @@ using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using SimpleInjector;
 
-namespace CmdStarter.Demo.SimpleInjector
+namespace CmdStarter.Demo.SimpleInjector;
+
+internal class Program : IServiceManager
 {
-    internal class Program : IServiceManager
+    private Starter starter = new();
+    private Container container = new();
+
+    internal Program()
     {
-        private Starter starter = new();
-        private Container container = new();
+        // Register services
+        container.Register<IService, Service2>(Lifestyle.Singleton);
+    }
 
-        internal Program()
+    static async Task<int> Main(string[] args)
+    {
+        var program = new Program();
+
+        //return await program.StartManually(args);
+
+        return await program.StartAutomatically(args);
+    }
+
+    public async Task<int> StartManually(string[] args)
+    {
+        // Set factory
+        var creationMethod = (Type commandType) =>
         {
-            // Register services
-            container.Register<IService, Service2>(Lifestyle.Singleton);
-        }
+            return container.GetInstance(commandType) as IStarterCommand;
+        };
+        Starter.SetFactory(creationMethod);
 
-        static async Task<int> Main(string[] args)
-        {
-            var program = new Program();
+        // Find commands
+        starter.FindCommandsTypes();
 
-            //return await program.StartManually(args);
+        // Place the code here because I should iterate through all commands
+        container.Register<CmdService>(Lifestyle.Singleton);
 
-            return await program.StartAutomatically(args);
-        }
+        return await starter.Start(args);
+    }
 
-        public async Task<int> StartManually(string[] args)
-        {
-            // Set factory
-            var creationMethod = (Type commandType) =>
-            {
-                return container.GetInstance(commandType) as IStarterCommand;
-            };
-            Starter.SetFactory(creationMethod);
+    public async Task<int> StartAutomatically(string[] args)
+    {
+        return await starter.Start(this, args);
+    }
 
-            // Find commands
-            starter.FindCommandsTypes();
+    public object? GetService(Type serviceType)
+    {
+        return container.GetInstance(serviceType);
+    }
 
-            // Place the code here because I should iterate through all commands
-            container.Register<CmdService>(Lifestyle.Singleton);
-
-            return await starter.Start(args);
-        }
-
-        public async Task<int> StartAutomatically(string[] args)
-        {
-            return await starter.Start(this, args);
-        }
-
-        public object? GetService(Type serviceType)
-        {
-            return container.GetInstance(serviceType);
-        }
-
-        public void SetService(Type service)
-        {
-            container.Register(service, service, Lifestyle.Singleton);
-        }
+    public void SetService(Type service)
+    {
+        container.Register(service, service, Lifestyle.Singleton);
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming;
+
+public class NameOverride : StarterCommand
 {
-    public class NameOverride : StarterCommand
-    {
-        public NameOverride() : base("NameOverridden") { }
-    }
+    public NameOverride() : base("NameOverridden") { }
 }

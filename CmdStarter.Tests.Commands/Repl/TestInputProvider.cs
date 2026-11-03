@@ -1,15 +1,14 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl;
+
+public sealed class TestInputProvider : IReplInputProvider
 {
-    public sealed class TestInputProvider : IReplInputProvider
+    public readonly Queue<string> CommandQueue = new Queue<string>();
+
+    public string GetInput()
     {
-        public readonly Queue<string> CommandQueue = new Queue<string>();
+        var command = CommandQueue.Dequeue();
+        CommandQueue.Enqueue(command);
 
-        public string GetInput()
-        {
-            var command = CommandQueue.Dequeue();
-            CommandQueue.Enqueue(command);
-
-            return command;
-        }
+        return command;
     }
 }

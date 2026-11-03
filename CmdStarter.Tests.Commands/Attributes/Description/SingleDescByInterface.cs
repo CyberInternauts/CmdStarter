@@ -1,12 +1,11 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description
+﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
+
+[Description(DESC)]
+public class SingleDescByInterface : IStarterCommand
 {
-    [Description(DESC)]
-    public class SingleDescByInterface : IStarterCommand
-    {
-        public const string DESC = "One liner";
+    public const string DESC = "One liner";
 
-        public GlobalOptionsManager? GlobalOptionsManager { get; set; }
+    public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
-    }
+    public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
 }
