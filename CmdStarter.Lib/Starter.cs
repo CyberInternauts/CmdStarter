@@ -41,7 +41,7 @@ public class Starter
     /// </summary>
     public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = "**";
 
-    private RootCommand rootCommand = new ();
+    private RootCommand rootCommand = new();
     private ImmutableList<string> namespaces = ImmutableList<string>.Empty;
     private ImmutableList<string> classes = ImmutableList<string>.Empty;
     private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
@@ -93,7 +93,8 @@ public class Starter
     public ImmutableList<string> Namespaces
     {
         get => namespaces;
-        set {
+        set
+        {
             ResetCommands();
             namespaces = value ?? ImmutableList<string>.Empty;
         }
@@ -126,7 +127,8 @@ public class Starter
     }
 
     /// <inheritdoc cref="CommandsTreeBuilder.ClassesBuildingMode"/>
-    public ClassesBuildingMode ClassesBuildingMode {
+    public ClassesBuildingMode ClassesBuildingMode
+    {
         get => classesBuildingMode;
 
         set
@@ -152,7 +154,8 @@ public class Starter
     /// <summary>
     /// Commands types that will be used to build the tree
     /// </summary>
-    public ImmutableList<Type> CommandsTypes { 
+    public ImmutableList<Type> CommandsTypes
+    {
         get => commandsTypes;
         set
         {
@@ -251,12 +254,12 @@ public class Starter
         var specialCommandsNamespace = typeof(GenericStarterCommand<>).Namespace;
         var commandsTypes = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(a => a.GetTypes()
-                        .Where(t => 
-                            t.IsClass && 
-                            !t.IsAbstract && 
+                        .Where(t =>
+                            t.IsClass &&
+                            !t.IsAbstract &&
                             t.IsAssignableTo(typeof(IStarterCommand)) &&
                             t.Namespace != null &&
-                            t.Namespace != specialCommandsNamespace && 
+                            t.Namespace != specialCommandsNamespace &&
                             !t.Namespace.StartsWith(specialCommandsNamespace + ".")
                         )
                     );
@@ -310,7 +313,7 @@ public class Starter
             command.Initialize(RootCommand);
             RootCommand.Add(command);
             RootCommand.SetAction((parseResult, cancellationToken) => command.HandleCommandAsync(parseResult));
-        } 
+        }
         else
         {
             AddLevel(RootCommand, CommandsTypesTree);

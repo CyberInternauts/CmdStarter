@@ -46,7 +46,7 @@ public abstract class StarterCommand : Command, IStarterCommand
     /// <summary>
     /// Constructor using its own type as command name
     /// </summary>
-    protected StarterCommand() : base(TEMPORARY_NAME) 
+    protected StarterCommand() : base(TEMPORARY_NAME)
     {
         UnderlyingCommand = this;
         SymbolNameSetter.SetName(this, this.GetType().Name.PascalToKebabCase());
@@ -95,7 +95,7 @@ public abstract class StarterCommand : Command, IStarterCommand
     {
         var parentsName = new List<string>();
         var currentCommand = (Symbol)this;
-        
+
         while (currentCommand != null)
         {
             parentsName.Add(currentCommand.Name);

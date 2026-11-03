@@ -17,7 +17,7 @@ public sealed class GlobalOptionsManager
     private readonly Dictionary<Type, List<OptionBinding>> optionBindings = new();
     private readonly Starter starter;
 
-    internal GlobalOptionsManager(Starter starter) 
+    internal GlobalOptionsManager(Starter starter)
     {
         this.starter = starter;
         FindTypes();
@@ -49,7 +49,7 @@ public sealed class GlobalOptionsManager
     {
         var type = typeof(GlobalOptionsType);
 
-        if (globalOptions.ContainsKey(type)) 
+        if (globalOptions.ContainsKey(type))
         {
             globalOptions[type] = globalOption;
         }
@@ -72,7 +72,7 @@ public sealed class GlobalOptionsManager
     internal void LoadOptions(Command receptacle)
     {
         optionBindings.Clear();
-        foreach(var type in GlobalOptionsTypes)
+        foreach (var type in GlobalOptionsTypes)
         {
             optionBindings[type] = Reflection.Loader.LoadOptions(type, receptacle);
         }

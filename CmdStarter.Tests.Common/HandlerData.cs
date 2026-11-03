@@ -33,7 +33,7 @@ public class HandlerData
             {
                 valueHash = HashCode.Combine(valueHash, item.GetHashCode());
             }
-        } 
+        }
         else
         {
             valueHash = Value.GetHashCode();

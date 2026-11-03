@@ -20,7 +20,7 @@ public sealed class Login : StarterCommand
 
         var loginStatus = Authenticator.Authenticate(username, password);
 
-        switch(loginStatus)
+        switch (loginStatus)
         {
             case Authenticator.LoginStatus.WrongUsername:
                 Console.WriteLine("User doesn't exist.");

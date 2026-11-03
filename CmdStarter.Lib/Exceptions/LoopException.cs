@@ -22,7 +22,7 @@ public sealed class LoopException : Exception
     /// </summary>
     /// <param name="cmd1">First command in the loop</param>
     /// <param name="cmd2">Last command that loops back to the first one</param>
-    public LoopException(Type cmd1,  Type cmd2) 
+    public LoopException(Type cmd1, Type cmd2)
         : base("Commands tree loop between \"" + cmd1.FullName + "\" and \"" + cmd2.FullName + "\"")
     {
         Command1 = cmd1;

@@ -43,7 +43,7 @@ public class GlobalOptions
     [TestCase<GlobalOptionFilterOnlyExclude>()]
     [TestCase<GlobalOptionFilterExcludeAll>()]
     [TestCase<GlobalOptionFilterByLackOfAttribute>()]
-    public void EnsureGlobalOptionsFilter<GlobalContainer>() 
+    public void EnsureGlobalOptionsFilter<GlobalContainer>()
         where GlobalContainer : IGlobalOptionsContainer, IOptByAttribute
     {
         starter.Classes = starter.Classes.Clear().Add(typeof(GlobalContainer).FullName!);
@@ -52,8 +52,8 @@ public class GlobalOptions
         starter.InstantiateCommands();
 
         var rootCommand = starter.RootCommand;
-        
-        foreach(var option in GlobalContainer.IncludedOptions)
+
+        foreach (var option in GlobalContainer.IncludedOptions)
         {
             var includedOption = TestsCommon.FindOption(rootCommand, option);
 

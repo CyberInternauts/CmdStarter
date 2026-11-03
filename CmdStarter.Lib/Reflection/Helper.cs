@@ -27,8 +27,8 @@ public static partial class Helper
         MethodInfo? methodInfo = null;
         var currentType = commandType;
         while (
-            methodInfo == null 
-            && currentType != null 
+            methodInfo == null
+            && currentType != null
             && currentType.IsAssignableTo(typeof(IStarterCommand))
             && !currentType.Equals(typeof(StarterCommand)) // Ensures not looping back
             )

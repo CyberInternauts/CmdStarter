@@ -14,7 +14,7 @@ public sealed class Add : StarterCommand
         [Required][Description("The names of the book to be added.")]
         string[] books)
     {
-        if(!Authenticator.IsCurrentlyLoggedIn)
+        if (!Authenticator.IsCurrentlyLoggedIn)
         {
             Console.WriteLine("You are not logged in.");
             return -1;

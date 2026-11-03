@@ -100,7 +100,7 @@ public class Repl
 
         starter.OnCommandExecuted += (object? sender, ReplCommandEventArgs eventArgs) =>
         {
-            if(!executionQueue.TryDequeue(out var command))
+            if (!executionQueue.TryDequeue(out var command))
             {
                 starter.Stop();
                 return;

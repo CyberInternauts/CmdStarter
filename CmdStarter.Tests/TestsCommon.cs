@@ -167,7 +167,7 @@ public static class TestsCommon
     public static string PrintOption(string optionName, object expectedValue)
     {
         return PrepareOption(optionName, expectedValue).Aggregate(
-            (current, next) => 
+            (current, next) =>
                 current +
                 (string.IsNullOrEmpty(current) ? string.Empty : " ") +
                 (next.Contains(' ') ? "\"" : string.Empty) +

@@ -171,18 +171,20 @@ public class CommandsBasics
     }
 
     [Test]
-    public void ThrowsOnDuplicateNames([Values]ClassesBuildingMode mode)
+    public void ThrowsOnDuplicateNames([Values] ClassesBuildingMode mode)
     {
         starter.ClassesBuildingMode = mode;
         // Normal case
         starter.InstantiateCommands();
-        starter.VisitCommands(command => {
+        starter.VisitCommands(command =>
+        {
             var starterCommand = command as StarterCommand;
             if (starterCommand == null) return;
 
             var cmdString = starterCommand.GetFullCommandString();
             Assert.DoesNotThrowAsync(
-                async () => {
+                async () =>
+                {
                     try
                     {
                         await starter.Start(cmdString.Split(" "));
@@ -238,7 +240,7 @@ public class CommandsBasics
     }
 
     [Test]
-    public void EnsuresOrderViaTestParentAttribute([Values]ClassesBuildingMode classesBuildingMode)
+    public void EnsuresOrderViaTestParentAttribute([Values] ClassesBuildingMode classesBuildingMode)
     {
         starter.ClassesBuildingMode = classesBuildingMode;
         starter.InstantiateCommands();
@@ -337,7 +339,7 @@ public class CommandsBasics
             + " my 222"; // Arguments  ==> FROM FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
         Assert.DoesNotThrowAsync(async () => await starter.Start(successArgs.Split(" ")));
         Assert.That(command.MyOpt, Is.EqualTo(optionValue));
-        
+
         var failingArgs = (isRootingLonelyCommand ? Array.Empty<string>() : new string[] { commandName });
         Assert.That(await starter.Start(failingArgs), Is.Not.EqualTo(0));
     }

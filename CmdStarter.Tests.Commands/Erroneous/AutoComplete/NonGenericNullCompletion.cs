@@ -6,7 +6,7 @@ public sealed class NonGenericNullCompletion : IErrorRunner, IGetInstance<NonGen
 {
     public Type TypeOfException => typeof(NotSupportedException);
 
-    public void ErrorInvoker() => new AutoCompleteAttribute(new object[]{ null! });
+    public void ErrorInvoker() => new AutoCompleteAttribute(new object[] { null! });
 
     public static NonGenericNullCompletion GetInstance() => new();
 }

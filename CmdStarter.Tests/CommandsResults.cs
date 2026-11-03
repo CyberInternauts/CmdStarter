@@ -84,8 +84,8 @@ public class CommandsResults
 
     [TestCase<Dependent1, DependentService1>]
     [TestCase<Dependent1, DependentService2>]
-    public async Task UsesDependencyInjection<CommandType, DependentServiceType>() 
-        where CommandType : IStarterCommand 
+    public async Task UsesDependencyInjection<CommandType, DependentServiceType>()
+        where CommandType : IStarterCommand
         where DependentServiceType : IDependentService
     {
         var dependentService = (IDependentService)Activator.CreateInstance(typeof(DependentServiceType))!;
@@ -103,7 +103,7 @@ public class CommandsResults
 
         return command.ExpectedHandlerData
             .Where(d => d.Feature == feature)
-            .SelectMany(d => 
+            .SelectMany(d =>
             {
                 var list = new List<string>();
                 if (isOption)

@@ -17,7 +17,8 @@ internal class CmdService : IStarterCommand
 
     public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-    public Delegate HandlingMethod => () => { 
+    public Delegate HandlingMethod => () =>
+    {
         Console.WriteLine(service.GetType().Name + "=" + service.GetInt());
         Console.WriteLine(nameof(MyInt) + "=" + MyInt);
     };
