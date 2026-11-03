@@ -19,15 +19,15 @@ internal static class CommandBinder
             return false;
         }
 
-        var getter = optionGetters.GetOrAdd(option.ValueType, _ => FindGetter(typeof(Option<>)));
-        value = getter.MakeGenericMethod(option.ValueType).Invoke(parseResult, new object[] { option });
+        var getter = optionGetters.GetOrAdd(option.ValueType, valueType => FindGetter(typeof(Option<>)).MakeGenericMethod(valueType));
+        value = getter.Invoke(parseResult, new object[] { option });
         return true;
     }
 
     internal static object? GetArgumentValue(ParseResult parseResult, Argument argument)
     {
-        var getter = argumentGetters.GetOrAdd(argument.ValueType, _ => FindGetter(typeof(Argument<>)));
-        return getter.MakeGenericMethod(argument.ValueType).Invoke(parseResult, new object[] { argument });
+        var getter = argumentGetters.GetOrAdd(argument.ValueType, valueType => FindGetter(typeof(Argument<>)).MakeGenericMethod(valueType));
+        return getter.Invoke(parseResult, new object[] { argument });
     }
 
     private static MethodInfo FindGetter(Type symbolType) => typeof(ParseResult)

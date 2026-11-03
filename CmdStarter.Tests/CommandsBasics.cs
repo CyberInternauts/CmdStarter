@@ -310,7 +310,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         }
 
         [Test]
-        public void IsLonelyCommandRooted([Values] bool isRootingLonelyCommand)
+        public async Task IsLonelyCommandRooted([Values] bool isRootingLonelyCommand)
         {
             starter.IsRootingLonelyCommand = isRootingLonelyCommand;
             starter.Classes = starter.Classes.Add(typeof(FullArgs).FullName!);
@@ -339,7 +339,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(command.MyOpt, Is.EqualTo(optionValue));
             
             var failingArgs = (isRootingLonelyCommand ? Array.Empty<string>() : new string[] { commandName });
-            Assert.That(async () => await starter.Start(failingArgs), Throws.Exception);
+            Assert.That(await starter.Start(failingArgs), Is.Not.EqualTo(0));
         }
 
         [TestCase<NoDesc>("")]

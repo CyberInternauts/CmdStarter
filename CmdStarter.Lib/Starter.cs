@@ -189,12 +189,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            var parseResult = RootCommand.Parse(args);
-            if (parseResult.Errors.Count > 0)
-            {
-                throw new InvalidOperationException(parseResult.Errors[0].Message);
-            }
-            return await parseResult.InvokeAsync();
+            return await RootCommand.Parse(args).InvokeAsync();
         }
 
         /// <summary>
@@ -204,12 +199,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            var parseResult = RootCommand.Parse(args);
-            if (parseResult.Errors.Count > 0)
-            {
-                throw new InvalidOperationException(parseResult.Errors[0].Message);
-            }
-            return await parseResult.InvokeAsync();
+            return await RootCommand.Parse(args).InvokeAsync();
         }
 
         /// <summary>

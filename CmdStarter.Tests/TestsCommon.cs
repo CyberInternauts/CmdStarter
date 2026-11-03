@@ -4,6 +4,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInje
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
 using System.Collections;
 using System.CommandLine;
+using System.CommandLine.Help;
 using System.ComponentModel.Composition.Hosting;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests
@@ -182,15 +183,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         /// <param name="commandToGetOptions"></param>
         public static void AssertOptionsPresence(Command commandToGetProperties, Command commandToGetOptions)
         {
-            var properties = Helper.GetProperties(commandToGetProperties);
-            var propertyList = properties?.ToList() ?? new List<System.Reflection.PropertyInfo>();
-            var commandOptions = commandToGetOptions.Options
-                .Where(option => propertyList.Any(property => option.Name.TrimStart('-') == property.Name.PascalToKebabCase()))
+            var properties = Helper.GetProperties(commandToGetProperties).ToList();
+            var options = commandToGetOptions.Options
+                .Where(option => option is not HelpOption && option is not VersionOption && !option.Recursive)
                 .ToList();
-            Assert.That(commandOptions, Has.Count.EqualTo(propertyList.Count));
-            foreach (var property in propertyList)
+            Assert.That(options, Has.Count.EqualTo(properties.Count));
+            for (var index = 0; index < properties.Count; index++)
             {
-                Assert.That(FindOption(commandToGetOptions, property.Name.PascalToKebabCase()), Is.Not.Null);
+                Assert.That(options[index].Name, Is.EqualTo(StarterCommand.OPTION_PREFIX + properties[index].Name.PascalToKebabCase()));
             }
         }
 
