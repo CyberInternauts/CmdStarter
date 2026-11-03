@@ -1,4 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
 using System.CommandLine.Completions;
 using System.CommandLine;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
@@ -23,20 +23,20 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
 
             var instance = AutoCompletionOptionFeeder.GetInstance();
 
-            expected.AddCompletions(instance.GetAutoCompletes());
+            expected.CompletionSources.Add(instance.GetAutoCompletes());
 
-            return expected.GetCompletions();
+            return expected.GetCompletions(CompletionContext.Empty);
         }
 
         public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
         {
-            Argument<int> expected = new();
+            Argument<int> expected = new("age");
 
             var instance = AutoCompletionArgumentFeeder.GetInstance();
 
-            expected.AddCompletions(instance.GetAutoCompletes());
+            expected.CompletionSources.Add(instance.GetAutoCompletes());
 
-            return expected.GetCompletions();
+            return expected.GetCompletions(CompletionContext.Empty);
         }
     }
 }

@@ -1,12 +1,12 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
+using com.cyberinternauts.csharp.CmdStarter.Lib;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Queries
 {
+    [Description("Removes a book from the database.\nCan only be used when logged in.")]
     public sealed class Remove : StarterCommand
     {
-        public override string? Description => "Removes a book from the database.\nCan only be used when logged in.";
 
         public override Delegate HandlingMethod => Execute;
 

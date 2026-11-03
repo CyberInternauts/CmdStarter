@@ -10,6 +10,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
 {
     public static class TestsCommon
     {
+        public static Option? FindOption(Command command, string nameWithoutPrefix) =>
+            command.Options.FirstOrDefault(option => option.Name.TrimStart('-') == nameWithoutPrefix);
+
         public const int NUMBER_OF_COMMANDS_IN_DEMO = 3; // Using a hardcoded value otherwise the test would be about the same code as the tested one.
         public const string ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL;
         public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS;
@@ -180,19 +183,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         public static void AssertOptionsPresence(Command commandToGetProperties, Command commandToGetOptions)
         {
             var properties = Helper.GetProperties(commandToGetProperties);
-            if (properties == null || !properties.Any())
+            var propertyList = properties?.ToList() ?? new List<System.Reflection.PropertyInfo>();
+            var commandOptions = commandToGetOptions.Options
+                .Where(option => propertyList.Any(property => option.Name.TrimStart('-') == property.Name.PascalToKebabCase()))
+                .ToList();
+            Assert.That(commandOptions, Has.Count.EqualTo(propertyList.Count));
+            foreach (var property in propertyList)
             {
-                Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(0));
-                return;
-            }
-
-            Assert.That(commandToGetOptions.Options, Has.Count.EqualTo(properties.Count()));
-            var index = 0;
-            foreach (var property in properties)
-            {
-                var option = commandToGetOptions.Options[index];
-                Assert.That(option.Name, Is.EqualTo(property.Name.PascalToKebabCase()));
-                index++;
+                Assert.That(FindOption(commandToGetOptions, property.Name.PascalToKebabCase()), Is.Not.Null);
             }
         }
 

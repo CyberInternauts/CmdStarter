@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using System.CommandLine.Invocation;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.Reflection;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
@@ -9,6 +8,7 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -49,7 +49,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         protected StarterCommand() : base(TEMPORARY_NAME) 
         {
             UnderlyingCommand = this;
-            Name = this.GetType().Name.PascalToKebabCase();
+            SymbolNameSetter.SetName(this, this.GetType().Name.PascalToKebabCase());
         }
 
         /// <summary>
@@ -69,11 +69,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             if (name.Contains('-'))
             {
-                Name = name.ToLower();
+                SymbolNameSetter.SetName(this, name.ToLower());
             }
             else
             {
-                Name = name.PascalToKebabCase();
+                SymbolNameSetter.SetName(this, name.PascalToKebabCase());
             }
         }
 
@@ -113,7 +113,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
-                this.SetHandler(async context => context.ExitCode = await HandleCommandAsync(context.ParseResult));
+                this.SetAction((parseResult, cancellationToken) => HandleCommandAsync(parseResult));
                 handlerArguments = LoadArguments(HandlingMethod.Method, receptacle);
             }
 
@@ -124,9 +124,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 binding.InitialValue = binding.Property.GetValue(UnderlyingCommand);
             }
             LoadDescription(commandType, receptacle);
-            LoadAliases(commandType, receptacle);
+            LoadAliases(commandType, receptacle.Aliases);
 
-            IsHidden = Attribute.IsDefined(UnderlyingCommand.GetType(), typeof(HiddenAttribute));
+            Hidden = Attribute.IsDefined(UnderlyingCommand.GetType(), typeof(HiddenAttribute));
         }
 
         internal async Task<int> HandleCommandAsync(ParseResult parseResult)

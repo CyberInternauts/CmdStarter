@@ -68,9 +68,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
-            var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
+            var option = TestsCommon.FindOption(optionCommand, optionName);
             Assert.That(option, Is.Not.Null);
-            Assert.That(option.IsRequired, Is.EqualTo(isRequired));
+            Assert.That(option.Required, Is.EqualTo(isRequired));
         }
 
         [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, "")]
@@ -85,7 +85,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
-            var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
+            var option = TestsCommon.FindOption(optionCommand, optionName);
             Assert.That(option, Is.Not.Null);
             Assert.That(option.Description, Is.EqualTo(description));
         }
@@ -119,7 +119,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var optionCommand = starter.FindCommand<OptClass>();
             Assert.That(optionCommand, Is.Not.Null);
 
-            var option = optionCommand.Options.FirstOrDefault(o => o.Name == optionName);
+            var option = TestsCommon.FindOption(optionCommand, optionName);
             if (shallBePresent)
             {
                 Assert.That(option, Is.Not.Null);
@@ -145,13 +145,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(optionCommand, Is.Not.Null);
 
             TestsCommon.AssertIEnumerablesHaveSameElements(
-                optionCommand.Options.Select(o => o.Name),
+                optionCommand.Options.Select(o => o.Name.TrimStart('-')),
                 OptClass.IncludedOptions.Select(o => o.PascalToKebabCase()));
 
             foreach (var excludedOption in OptClass.ExcludedOptions)
             {
                 Assert.That(optionCommand.Options.Any(option =>
-                    option.Name.Equals(excludedOption.PascalToKebabCase())), Is.False);
+                    option.Name.TrimStart('-').Equals(excludedOption.PascalToKebabCase())), Is.False);
             }
         }
     }

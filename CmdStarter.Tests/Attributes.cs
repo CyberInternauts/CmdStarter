@@ -1,4 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
@@ -42,11 +42,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
             var expectation = (IHasAliases)command.UnderlyingCommand;
-            TestsCommon.AssertIEnumerablesHaveSameElements(command.Aliases, expectation.ExpectedCommandAliases);
+            TestsCommon.AssertIEnumerablesHaveSameElements(new[] { command.Name }.Concat(command.Aliases), expectation.ExpectedCommandAliases);
 
-            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
+            var option = TestsCommon.FindOption(command, optionName);
             Assert.That(option, Is.Not.Null);
-            TestsCommon.AssertIEnumerablesHaveSameElements(option.Aliases, expectation.ExpectedOptionAliases);
+            TestsCommon.AssertIEnumerablesHaveSameElements(new[] { option.Name }.Concat(option.Aliases), expectation.ExpectedOptionAliases);
         }
 
         [TestCase<HiddenCommand>(HiddenCommand.NAME_OF_OPTION, HiddenCommand.OPTION_IS_HIDDEN, HiddenCommand.NAME_OF_PARAMETER, HiddenCommand.PARAMETER_IS_HIDDEN, HiddenCommand.COMMAND_IS_HIDDEN)]
@@ -63,17 +63,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             //Test command
             var command = starter.FindCommand<CommandType>() as StarterCommand;
             Assert.That(command, Is.Not.Null);
-            Assert.That(command.IsHidden, Is.EqualTo(commandHidden));
+            Assert.That(command.Hidden, Is.EqualTo(commandHidden));
 
             //Test argument
             var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
             Assert.That(argument, Is.Not.Null);
-            Assert.That(argument.IsHidden, Is.EqualTo(isArgumentHidden));
+            Assert.That(argument.Hidden, Is.EqualTo(isArgumentHidden));
 
             //Test option
-            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
+            var option = TestsCommon.FindOption(command, optionName);
             Assert.That(option, Is.Not.Null);
-            Assert.That(option.IsHidden, Is.EqualTo(isOptionHidden));
+            Assert.That(option.Hidden, Is.EqualTo(isOptionHidden));
         }
 
         [TestCase<NoAutoComplete>(NoAutoComplete.OPTION_NAME, NoAutoComplete.ARGUMENT_NAME)]
@@ -97,13 +97,13 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             Assert.That(command, Is.Not.Null);
             var autoCompleteCommand = (IHasAutoComplete)command.UnderlyingCommand;
 
-            var option = command.Options.FirstOrDefault(option => option.Name == optionName);
+            var option = TestsCommon.FindOption(command, optionName);
             Assert.That(option, Is.Not.Null);
-            AssertCompletionItemsEqual(option.GetCompletions(), autoCompleteCommand.OptionCompletionsExpected());
+            AssertCompletionItemsEqual(option.GetCompletions(CompletionContext.Empty), autoCompleteCommand.OptionCompletionsExpected());
 
             var argument = command.Arguments.FirstOrDefault(argument => argument.Name == argumentName);
             Assert.That(argument, Is.Not.Null);
-            AssertCompletionItemsEqual(argument.GetCompletions(), autoCompleteCommand.ArgumentCompletionsExpected());
+            AssertCompletionItemsEqual(argument.GetCompletions(CompletionContext.Empty), autoCompleteCommand.ArgumentCompletionsExpected());
         }
 
         [TestCase<NonGenericNullCompletion>]

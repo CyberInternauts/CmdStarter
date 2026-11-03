@@ -32,10 +32,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
         {
             starter.InstantiateCommands();
 
-            var mainOption = starter.RootCommand.Options.FirstOrDefault(o => o.Name == MainGlobalOptions.INT_GLOBAL_OPTION_KEBAB);
+            var mainOption = TestsCommon.FindOption(starter.RootCommand, MainGlobalOptions.INT_GLOBAL_OPTION_KEBAB);
             Assert.That(mainOption, Is.Not.Null);
 
-            var secondaryOption = starter.RootCommand.Options.FirstOrDefault(o => o.Name == SecondaryGlobalOptions.SECONDARY_INT_GLOBAL_OPTION_KEBAB);
+            var secondaryOption = TestsCommon.FindOption(starter.RootCommand, SecondaryGlobalOptions.SECONDARY_INT_GLOBAL_OPTION_KEBAB);
             Assert.That(secondaryOption, Is.Not.Null);
         }
 
@@ -55,16 +55,14 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests
             
             foreach(var option in GlobalContainer.IncludedOptions)
             {
-                var includedOption = rootCommand.Options.FirstOrDefault(o =>
-                    o.Name == option);
+                var includedOption = TestsCommon.FindOption(rootCommand, option);
 
                 Assert.That(includedOption, Is.Not.Null);
             }
 
             foreach (var option in GlobalContainer.ExcludedOptions)
             {
-                var excludedOption = rootCommand.Options.FirstOrDefault(o =>
-                    o.Name == option);
+                var excludedOption = TestsCommon.FindOption(rootCommand, option);
 
                 Assert.That(excludedOption, Is.Null);
             }

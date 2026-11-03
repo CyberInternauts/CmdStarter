@@ -18,7 +18,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
         /// <summary>
         /// Return a completion delegate that provides the items of possible completions.
         /// </summary>
-        public CompletionDelegate Context
+        public Func<CompletionContext, IEnumerable<CompletionItem>> Context
         {
             get
             {

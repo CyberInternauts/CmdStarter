@@ -1,4 +1,4 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
 
@@ -34,22 +34,22 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoCo
         {
             Option<string> expected = new(OPTION_NAME);
 
-            expected.AddCompletions(
+            expected.CompletionSources.Add(
                 OPTION_COMPLETION_1, OPTION_COMPLETION_2,
                 OPTION_COMPLETION_3, OPTION_COMPLETION_4);
 
-            return expected.GetCompletions();
+            return expected.GetCompletions(CompletionContext.Empty);
         }
 
         public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
         {
-            Argument<int> expected = new();
+            Argument<int> expected = new("age");
 
-            expected.AddCompletions(
+            expected.CompletionSources.Add(
                 ARGUMENT_COMPLETION_1, ARGUMENT_COMPLETION_2,
                 ARGUMENT_COMPLETION_3, ARGUMENT_COMPLETION_4);
 
-            return expected.GetCompletions();
+            return expected.GetCompletions(CompletionContext.Empty);
         }
     }
 }

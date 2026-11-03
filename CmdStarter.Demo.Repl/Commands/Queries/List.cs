@@ -1,10 +1,11 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
+using com.cyberinternauts.csharp.CmdStarter.Lib;
+using System.ComponentModel;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Queries
 {
+    [Description("Lists all the books in the database.")]
     public sealed class List : StarterCommand
     {
-        public override string? Description => "Lists all the books in the database.";
 
         public override Delegate HandlingMethod => Execute;
 

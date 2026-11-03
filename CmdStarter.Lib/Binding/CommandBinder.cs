@@ -2,25 +2,39 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Collections.Concurrent;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
 
 internal static class CommandBinder
 {
+    private static readonly ConcurrentDictionary<Type, MethodInfo> optionGetters = new();
+    private static readonly ConcurrentDictionary<Type, MethodInfo> argumentGetters = new();
+
     internal static bool TryGetOptionValue(ParseResult parseResult, Option option, out object? value)
     {
-        if (parseResult.FindResultFor(option) is null)
+        if (parseResult.GetResult(option) is null)
         {
             value = null;
             return false;
         }
 
-        value = parseResult.GetValueForOption(option);
+        var getter = optionGetters.GetOrAdd(option.ValueType, _ => FindGetter(typeof(Option<>)));
+        value = getter.MakeGenericMethod(option.ValueType).Invoke(parseResult, new object[] { option });
         return true;
     }
 
-    internal static object? GetArgumentValue(ParseResult parseResult, Argument argument) =>
-        parseResult.GetValueForArgument(argument);
+    internal static object? GetArgumentValue(ParseResult parseResult, Argument argument)
+    {
+        var getter = argumentGetters.GetOrAdd(argument.ValueType, _ => FindGetter(typeof(Argument<>)));
+        return getter.MakeGenericMethod(argument.ValueType).Invoke(parseResult, new object[] { argument });
+    }
+
+    private static MethodInfo FindGetter(Type symbolType) => typeof(ParseResult)
+        .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+        .Where(method => method.Name == "GetValue" && method.IsGenericMethodDefinition)
+        .First(method => method.GetParameters() is [{ ParameterType.IsGenericType: true } parameter]
+            && parameter.ParameterType.GetGenericTypeDefinition() == symbolType);
 
     internal static void BindOptions(ParseResult parseResult, object target, IEnumerable<OptionBinding> bindings)
     {

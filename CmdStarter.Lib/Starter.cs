@@ -1,8 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
-using System.CommandLine.Invocation;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
@@ -50,10 +48,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         private bool hasToFindCommands = true;
         private bool hasToBuildTree = true;
         private bool hasToInstantiate = true;
-        private bool hasToUseDefaults = true;
         private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
         private bool isRootingLonelyCommand = true;
-        private Parser? parser = null;
 
         /// <summary>
         /// Constructor without filters
@@ -193,7 +189,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            return await BuildParser().InvokeAsync(args);
+            return await RootCommand.Parse(args).InvokeAsync();
         }
 
         /// <summary>
@@ -203,7 +199,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         {
             InstantiateCommands();
 
-            return await BuildParser().InvokeAsync(args);
+            return await RootCommand.Parse(args).InvokeAsync();
         }
 
         /// <summary>
@@ -310,10 +306,10 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             if (IsRootingLonelyCommand && CommandsTypes.Count == 1)
             {
                 var command = CreateCommand(CommandsTypes[0])!;
-                command.IsHidden = true;
+                command.Hidden = true;
                 command.Initialize(RootCommand);
                 RootCommand.Add(command);
-                RootCommand.SetHandler(async context => context.ExitCode = await command.HandleCommandAsync(context.ParseResult));
+                RootCommand.SetAction((parseResult, cancellationToken) => command.HandleCommandAsync(parseResult));
             } 
             else
             {
@@ -365,7 +361,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 var command = CreateCommand(childNode.Value!); // childNode.Value can't be null, because only the root has a null Value
                 if (command != null)
                 {
-                    currentParent.AddCommand(command);
+                    currentParent.Subcommands.Add(command);
                     AddLevel(currentParent.Subcommands[currentParent.Subcommands.Count - 1], childNode);
                 }
             }
@@ -389,7 +385,6 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private void ResetTrees()
         {
-            hasToUseDefaults = true;
             hasToBuildTree = true;
             hasToInstantiate = true;
             this.CommandsTypesTree = new TreeNode<Type>(null);
@@ -432,17 +427,5 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
             CommandsTypes.ForEach(type => serviceManager.SetService(type));
         }
 
-        private Parser BuildParser()
-        {
-            var b = new CommandLineBuilder(RootCommand);
-
-            if (hasToUseDefaults)
-            {
-                hasToUseDefaults = false;
-                b.UseDefaults();
-            }
-
-            return b.Build();
-        }
     }
 }

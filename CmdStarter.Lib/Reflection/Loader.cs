@@ -26,23 +26,24 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                     .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
 
                 var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
-                var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string) });
+                var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string[]) });
                 var optionName = StarterCommand.OPTION_PREFIX + property.Name.PascalToKebabCase();
-                var option = (Option)constructor!.Invoke(new object[] { optionName, string.Empty });
-                option.IsRequired = Attribute.IsDefined(property, typeof(RequiredAttribute));
-                option.IsHidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
+                var option = (Option)constructor!.Invoke(new object[] { optionName, Array.Empty<string>() });
+                option.Required = Attribute.IsDefined(property, typeof(RequiredAttribute));
+                option.Hidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
                 option.AllowMultipleArgumentsPerToken = isList;
                 LoadDescription(property, option);
-                LoadAliases(property, option);
-                LoadAutoCompletes(property, (completion) => option.AddCompletions(completion));
+                LoadAliases(property, option.Aliases);
+                LoadAutoCompletes(property, completion => option.CompletionSources.Add(completion));
 
                 if (typeof(IGlobalOptionsContainer).IsAssignableFrom(from))
                 {
-                    receptacle.AddGlobalOption(option);
+                    option.Recursive = true;
+                    receptacle.Options.Add(option);
                 }
                 else
                 {
-                    receptacle.AddOption(option);
+                    receptacle.Options.Add(option);
                 }
                 bindings.Add(new OptionBinding(property, option));
             }
@@ -59,17 +60,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 if (parameter.Name == null) continue; // Skipping param without name
 
                 var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
-                var constructor = argumentType.GetConstructor(Type.EmptyTypes);
-                var argument = (Argument)constructor!.Invoke(null);
-                argument.Name = parameter.Name;
-                argument.IsHidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
+                var constructor = argumentType.GetConstructor(new[] { typeof(string) });
+                var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name });
+                argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
                 if (parameter.DefaultValue is not System.DBNull)
                 {
-                    argument.SetDefaultValue(parameter.DefaultValue);
+                    typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
+                        .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { argument, parameter.DefaultValue });
                 }
                 LoadDescription(parameter, argument);
-                LoadAutoCompletes(parameter, (completion) => argument.AddCompletions(completion));
-                receptacle.Add(argument);
+                LoadAutoCompletes(parameter, completion => argument.CompletionSources.Add(completion));
+                receptacle.Arguments.Add(argument);
                 arguments[i] = argument;
             }
             return arguments;
@@ -88,7 +89,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
             receptacle.Description = description;
         }
 
-        internal static void LoadAliases(ICustomAttributeProvider provider, IdentifierSymbol receptacle)
+        internal static void LoadAliases(ICustomAttributeProvider provider, ICollection<string> aliasesTarget)
         {
             var aliases = provider.GetCustomAttributes(false)
                 .Where(a => a is AliasAttribute)
@@ -97,11 +98,11 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 
             foreach (var alias in aliases)
             {
-                receptacle.AddAlias(alias);
+                aliasesTarget.Add(alias);
             }
         }
 
-        internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Action<CompletionDelegate> action)
+        internal static void LoadAutoCompletes(ICustomAttributeProvider provider, Action<Func<CompletionContext, IEnumerable<CompletionItem>>> action)
         {
             var completionDelegates = GetAutoCompleteAttributes(provider)
                 .Select(attribute => attribute.Context);
@@ -111,6 +112,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 action(completion);
             }
         }
+
+        private static void SetDefaultValue<T>(Argument<T> argument, object? value) =>
+            argument.DefaultValueFactory = _ => (T)value!;
 
         private static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
         {
