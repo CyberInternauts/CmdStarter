@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Text;
+using System.Globalization;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 
@@ -31,7 +32,7 @@ public static class StringExtensions
             }
             else if (i == 0) // if current char is the first char
             {
-                builder.Append(char.ToLower(source[i]));
+                builder.Append(char.ToLower(source[i], CultureInfo.CurrentCulture));
             }
             else if (char.IsDigit(source[i]) && !char.IsDigit(source[i - 1])) // if current char is a number and the previous is not
             {
@@ -45,16 +46,16 @@ public static class StringExtensions
             else if (char.IsLower(source[i - 1])) // if current char is upper and previous char is lower
             {
                 builder.Append('-');
-                builder.Append(char.ToLower(source[i]));
+                builder.Append(char.ToLower(source[i], CultureInfo.CurrentCulture));
             }
             else if (i + 1 == source.Length || char.IsUpper(source[i + 1])) // if current char is upper and next char doesn't exist or is upper
             {
-                builder.Append(char.ToLower(source[i]));
+                builder.Append(char.ToLower(source[i], CultureInfo.CurrentCulture));
             }
             else // if current char is upper and next char is lower
             {
                 builder.Append('-');
-                builder.Append(char.ToLower(source[i]));
+                builder.Append(char.ToLower(source[i], CultureInfo.CurrentCulture));
             }
         }
         return builder.ToString();

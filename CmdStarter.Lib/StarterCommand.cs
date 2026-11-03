@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
@@ -69,7 +70,7 @@ public abstract class StarterCommand : Command, IStarterCommand
 
         if (name.Contains('-'))
         {
-            SymbolNameSetter.SetName(this, name.ToLower());
+            SymbolNameSetter.SetName(this, name.ToLower(CultureInfo.CurrentCulture));
         }
         else
         {

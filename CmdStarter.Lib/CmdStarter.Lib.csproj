@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\ProjectsCommon.props" />
 	
   <PropertyGroup>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>$(BasePackageName).$(SolutionName)</PackageId>
     <Title>$(SolutionName)</Title>

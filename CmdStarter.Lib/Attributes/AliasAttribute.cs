@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Text;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
@@ -18,7 +18,7 @@ public sealed class AliasAttribute : Attribute, IEnumerable<string>
 
     private readonly string[] _aliases;
     private readonly bool _usePrefix;
-    private readonly string? _prefix = null;
+    private readonly string? _prefix;
 
     private bool _wasPrefixed;
 

@@ -14,3 +14,15 @@ indent_size = 2
 
 [*.{yml,yaml}]
 indent_size = 2
+
+[CmdStarter.Lib/**.cs]
+# Lot 004 : à revoir avec la nouvelle API publique — ajouter IEnumerable<T> aux types publics modifierait leurs contrats publics.
+dotnet_diagnostic.CA1010.severity = none
+# Lot 004 : à revoir avec la nouvelle API publique — les constantes et membres publics existants contiennent des traits de soulignement.
+dotnet_diagnostic.CA1707.severity = none
+# Lot 004 : à revoir avec la nouvelle API publique — renommer les paramètres génériques publics casserait la compatibilité source.
+dotnet_diagnostic.CA1715.severity = none
+# Lot 004 : à revoir avec la nouvelle API publique — modifier les namespaces publics casserait la compatibilité des consommateurs.
+dotnet_diagnostic.CA1716.severity = none
+# Lot 004 : à revoir avec la nouvelle API publique — rendre VisitCommands statique changerait sa signature publique.
+dotnet_diagnostic.CA1822.severity = none

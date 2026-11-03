@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
@@ -260,7 +260,7 @@ public class Starter
                             t.IsAssignableTo(typeof(IStarterCommand)) &&
                             t.Namespace != null &&
                             t.Namespace != specialCommandsNamespace &&
-                            !t.Namespace.StartsWith(specialCommandsNamespace + ".")
+                            !t.Namespace.StartsWith(specialCommandsNamespace + ".", StringComparison.CurrentCulture)
                         )
                     );
 

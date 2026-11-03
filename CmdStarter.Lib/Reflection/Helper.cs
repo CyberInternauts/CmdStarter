@@ -1,6 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Data;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -12,7 +13,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
 public static partial class Helper
 {
 
-    private static List<string>? interfacePropertiesNames = null;
+    private static List<string>? interfacePropertiesNames;
 
     /// <summary>
     /// Find the most derived <see cref="IStarterCommand.GetInstance{CommandType}"/> or use default implementation
@@ -102,16 +103,16 @@ public static partial class Helper
     public static IEnumerable<Type> FilterTypesByNamespaces(IEnumerable<Type> commandsTypes, List<string> namespaces)
     {
         var nbCommands = commandsTypes.Count();
-        if (nbCommands == 0 || !namespaces.Any()) return commandsTypes;
+        if (nbCommands == 0 || namespaces.Count == 0) return commandsTypes;
 
-        var namespacesIncluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.EXCLUSION_SYMBOL));
+        var namespacesIncluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture));
         var hasIncluded = namespacesIncluded.Any();
-        var namespacesExcluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.EXCLUSION_SYMBOL));
+        var namespacesExcluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture));
 
         commandsTypes = commandsTypes.Where(c =>
         {
-            var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..]) ?? false);
-            var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n) ?? false);
+            var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..], StringComparison.CurrentCulture) ?? false);
+            var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n, StringComparison.CurrentCulture) ?? false);
 
             return !outNamespaces && inNamespaces;
         });
@@ -128,20 +129,20 @@ public static partial class Helper
     public static IEnumerable<Type> FilterTypesByClasses(IEnumerable<Type> commandsTypes, List<string> classes)
     {
         var nbCommands = commandsTypes.Count();
-        if (nbCommands == 0 || !classes.Any()) return commandsTypes;
+        if (nbCommands == 0 || classes.Count == 0) return commandsTypes;
 
-        bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL));
+        bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture));
 
         Regex dotRegex = DotMatcher();
 
-        Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL))
+        Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter[1..]);
                 return new Regex(pattern, RegexOptions.RightToLeft);
             }).ToArray();
 
-        Regex[] filters = classes.Where(filter => !filter.StartsWith(Starter.EXCLUSION_SYMBOL))
+        Regex[] filters = classes.Where(filter => !filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter);

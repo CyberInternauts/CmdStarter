@@ -12,7 +12,7 @@ public sealed class TreeNode<T> where T : class
 {
     private readonly T? _value;
     private readonly List<TreeNode<T>> _children = new();
-    private bool isImmutable = false;
+    private bool isImmutable;
 
     /// <summary>
     /// Constructor of the node
