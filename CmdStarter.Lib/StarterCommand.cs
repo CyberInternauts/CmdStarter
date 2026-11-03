@@ -1,5 +1,5 @@
 using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
+using System.CommandLine.Parsing;
 using System.CommandLine.Invocation;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using System.Reflection;
@@ -8,6 +8,7 @@ using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Loader;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -28,6 +29,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
         public const string DESCRIPTION_JOINER = "\n";
 
         private const string TEMPORARY_NAME = "temp";
+        private List<OptionBinding> optionBindings = new();
+        private Argument?[] handlerArguments = Array.Empty<Argument?>();
 
         /// <summary>
         /// <see cref="IStarterCommand"/> object that manages execution and from where the command features are filled
@@ -110,78 +113,27 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
             if (this.Subcommands.Count == 0) // Only leaves can execute code
             {
-                Handler = CommandHandler.Create(HandleCommand);
-                LoadArguments(HandlingMethod.Method, receptacle);
+                this.SetHandler(async context => context.ExitCode = await HandleCommandAsync(context.ParseResult));
+                handlerArguments = LoadArguments(HandlingMethod.Method, receptacle);
             }
 
             var commandType = UnderlyingCommand.GetType();
-            LoadOptions(commandType, receptacle);
+            optionBindings = LoadOptions(commandType, receptacle);
+            foreach (var binding in optionBindings)
+            {
+                binding.InitialValue = binding.Property.GetValue(UnderlyingCommand);
+            }
             LoadDescription(commandType, receptacle);
             LoadAliases(commandType, receptacle);
 
             IsHidden = Attribute.IsDefined(UnderlyingCommand.GetType(), typeof(HiddenAttribute));
         }
 
-        private async Task HandleGlobalOptions(InvocationContext context)
+        internal async Task<int> HandleCommandAsync(ParseResult parseResult)
         {
-            if (GlobalOptionsManager == null) return;
-
-            foreach (var globalOptionsType in GlobalOptionsManager.GlobalOptionsTypes)
-            {
-                var handleGlobalOptions = GlobalOptionsManager.GetType()
-                    .GetMethod(nameof(GlobalOptionsManager.SetGlobalOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
-                    .MakeGenericMethod(globalOptionsType);
-                await CommandHandler.Create(handleGlobalOptions, GlobalOptionsManager).InvokeAsync(context);
-            }
-        }
-
-        private async Task<int> HandleCommand(InvocationContext context)
-        {
-            // Handle global options
-            await HandleGlobalOptions(context);
-
-            // Handle options
-            var handleCommandOptionsMethod = typeof(HandlerStarterCommand) // Using <see cref="HandlerStarterCommand"> because it is not abstract nor generic
-                .GetMethod(nameof(HandleCommandOptions), BindingFlags.NonPublic | BindingFlags.Instance)!
-                .MakeGenericMethod(UnderlyingCommand.GetType());
-            await CommandHandler.Create(handleCommandOptionsMethod).InvokeAsync(context);
-
-            // Handle command execution
-            return await CommandHandler.Create(HandlingMethod).InvokeAsync(context);
-        }
-
-        /// <summary>
-        /// Copy the parsed properties to a receptable
-        /// </summary>
-        /// <typeparam name="ParsingType">Type of the object to fill from parsing</typeparam>
-        /// <param name="context">Parsing context</param>
-        /// <param name="parsed">Filled object provided by System.CommandLine</param>
-        /// <remarks>
-        /// - This method has to have "internal" visibility not "private", otherwise it doesn't work because it uses a derived class as method container
-        /// - This method cannot be static
-        /// </remarks>
-#pragma warning disable CA1822 // Mark members as static
-        internal void HandleCommandOptions<ParsingType>(InvocationContext context, ParsingType parsed) where ParsingType : IStarterCommand
-#pragma warning restore CA1822 // Mark members as static
-        {
-            var currentCommand = context.BindingContext.ParseResult.CommandResult.Command; // Using "this" is not the same object
-            if (currentCommand is RootCommand)
-            {
-                currentCommand = currentCommand.Subcommands[0];
-            }
-            var starterCommand = currentCommand as StarterCommand;
-            var receptable = starterCommand?.UnderlyingCommand ?? (object)currentCommand;
-            var parsedProperties = GetProperties(parsed);
-            var receptacleProperties = GetProperties(receptable);
-
-            foreach ( var parsedProperty in parsedProperties )
-            {
-                var receptacleProperty = receptacleProperties.FirstOrDefault(p => p.Equals(parsedProperty));
-                if (receptacleProperty == null) continue;
-
-                var value = parsedProperty.GetValue(parsed);
-                receptacleProperty.SetValue(receptable, value);
-            }
+            GlobalOptionsManager?.BindGlobalOptions(parseResult);
+            CommandBinder.BindOptions(parseResult, UnderlyingCommand, optionBindings);
+            return await CommandBinder.InvokeHandlerAsync(parseResult, HandlingMethod, handlerArguments);
         }
 
         /// <summary>

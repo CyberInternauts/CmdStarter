@@ -1,6 +1,8 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib
 {
@@ -12,6 +14,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         private static IEnumerable<Type>? foundTypes;
         private readonly Dictionary<Type, object> globalOptions = new();
+        private readonly Dictionary<Type, List<OptionBinding>> optionBindings = new();
         private readonly Starter starter;
 
         internal GlobalOptionsManager(Starter starter) 
@@ -68,9 +71,21 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
 
         internal void LoadOptions(Command receptacle)
         {
+            optionBindings.Clear();
             foreach(var type in GlobalOptionsTypes)
             {
-                Reflection.Loader.LoadOptions(type, receptacle);
+                optionBindings[type] = Reflection.Loader.LoadOptions(type, receptacle);
+            }
+        }
+
+        internal void BindGlobalOptions(ParseResult parseResult)
+        {
+            foreach (var type in GlobalOptionsTypes)
+            {
+                if (optionBindings.TryGetValue(type, out var bindings))
+                {
+                    globalOptions[type] = CommandBinder.CreateGlobalOptions(parseResult, type, bindings);
+                }
             }
         }
 

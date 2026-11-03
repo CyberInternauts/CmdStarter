@@ -8,14 +8,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
 {
     internal static class Loader
     {
 
-        internal static void LoadOptions(Type from, Command receptacle)
+        internal static List<OptionBinding> LoadOptions(Type from, Command receptacle)
         {
+            var bindings = new List<OptionBinding>();
             var properties = GetProperties(from);
 
             foreach (var property in properties)
@@ -42,14 +44,18 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 {
                     receptacle.AddOption(option);
                 }
+                bindings.Add(new OptionBinding(property, option));
             }
+            return bindings;
         }
 
-        internal static void LoadArguments(MethodInfo method, Command receptacle)
+        internal static Argument?[] LoadArguments(MethodInfo method, Command receptacle)
         {
             var parameters = method.GetParameters();
-            foreach (var parameter in parameters)
+            var arguments = new Argument?[parameters.Length];
+            for (var i = 0; i < parameters.Length; i++)
             {
+                var parameter = parameters[i];
                 if (parameter.Name == null) continue; // Skipping param without name
 
                 var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
@@ -64,7 +70,9 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection
                 LoadDescription(parameter, argument);
                 LoadAutoCompletes(parameter, (completion) => argument.AddCompletions(completion));
                 receptacle.Add(argument);
+                arguments[i] = argument;
             }
+            return arguments;
         }
 
         internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)

@@ -3,7 +3,6 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.CommandLine.Invocation;
-using System.CommandLine.NamingConventionBinder;
 using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
@@ -314,9 +313,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib
                 command.IsHidden = true;
                 command.Initialize(RootCommand);
                 RootCommand.Add(command);
-                RootCommand.Handler = CommandHandler.Create((InvocationContext context) => {
-                    return command.Handler?.Invoke(context);
-                });
+                RootCommand.SetHandler(async context => context.ExitCode = await command.HandleCommandAsync(context.ParseResult));
             } 
             else
             {
