@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Data;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
@@ -36,7 +36,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader
         /// <summary>
         /// Set if the node is immutable
         /// </summary>
-        public bool IsImmutable { get => isImmutable; protected set => isImmutable = value; }
+        public bool IsImmutable { get => isImmutable; private set => isImmutable = value; }
 
         /// <summary>
         /// Parent of the node or null if there is none
