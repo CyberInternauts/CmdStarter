@@ -86,7 +86,6 @@ public class CommandsResults
         await starter.Start(args);
     }
 
-#pragma warning disable CS0618
     [TestCase<Dependent1, DependentService1>]
     [TestCase<Dependent1, DependentService2>]
     public async Task UsesDependencyInjection<CommandType, DependentServiceType>()
@@ -94,10 +93,10 @@ public class CommandsResults
         where DependentServiceType : IDependentService
     {
         var dependentService = (IDependentService)Activator.CreateInstance(typeof(DependentServiceType))!;
-        var serviceManager = new ServiceManager(dependentService);
+        starter.SetFactory(type => (IStarterCommand)Activator.CreateInstance(type, (object)dependentService)!);
 
         starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
-        var actualReturn = await starter.Start(serviceManager, []);
+        var actualReturn = await starter.Start([]);
 
         Assert.That(dependentService.GetInt(), Is.EqualTo(actualReturn));
     }
@@ -108,14 +107,13 @@ public class CommandsResults
         where DependentServiceType : IDependentService
     {
         var dependentService = (IDependentService)Activator.CreateInstance(typeof(DependentServiceType))!;
-        var serviceManager = new ServiceManager(dependentService);
+        starter.SetFactory(type => (IStarterCommand)Activator.CreateInstance(type, (object)dependentService)!);
 
         starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
-        var actualReturn = await starter.Start(serviceManager, string.Empty);
+        var actualReturn = await starter.Start(string.Empty);
 
         Assert.That(dependentService.GetInt(), Is.EqualTo(actualReturn));
     }
-#pragma warning restore CS0618
 
     private static IEnumerable<string> SelectHandlerDataByFeature(IHandleTester command, HandlerData.CommandFeature feature)
     {

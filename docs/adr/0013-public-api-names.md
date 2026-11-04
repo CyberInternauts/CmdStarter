@@ -3,6 +3,8 @@
 Status: Accepted
 Date: 2026-11-03
 
+Amendment (2026-11-04): `IServiceManager` and the `Start(IServiceManager, …)` overloads are removed before 1.0 ships (lot 035); the obsolete period described below never reached a release.
+
 ## Context
 
 CmdStarter 2.0 accepts public API breaking changes. The previous Java-style namespaces and underscore-separated public constants conflict with .NET naming rules, and `IServiceManager` duplicates the newer provider and factory configuration paths.

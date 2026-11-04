@@ -579,30 +579,6 @@ public class Starter
     protected virtual InvocationConfiguration? CreateInvocationConfiguration() => null;
 
     /// <summary>
-    /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
-    /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
-    /// </summary>
-    [Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]
-    public async Task<int> Start(IServiceManager serviceManager, string[] args)
-    {
-        UseServiceManager(serviceManager);
-
-        return await Start(args);
-    }
-
-    /// <summary>
-    /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
-    /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
-    /// </summary>
-    [Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]
-    public async Task<int> Start(IServiceManager serviceManager, string args)
-    {
-        UseServiceManager(serviceManager);
-
-        return await Start(args);
-    }
-
-    /// <summary>
     /// Find a command using an <see cref="IStarterCommand"/> type
     /// </summary>
     /// <typeparam name="TCommand">Command type to find</typeparam>
@@ -1530,21 +1506,6 @@ public class Starter
     private static void ReleaseScope(AsyncServiceScope? scope)
     {
         if (scope.HasValue) scope.Value.DisposeAsync().AsTask().GetAwaiter().GetResult();
-    }
-
-    [Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]
-    private void UseServiceManager(IServiceManager serviceManager)
-    {
-        // Set factory
-        var creationMethod = (Type commandType) =>
-        {
-            return serviceManager.GetService(commandType) as IStarterCommand;
-        };
-        SetFactory(creationMethod);
-
-        // Register commands
-        FindCommandsTypes();
-        CommandsTypes.ForEach(type => serviceManager.SetService(type));
     }
 
     private sealed record FilterRegistration(ICommandFilter? Instance, [param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)][property: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type? FilterType);

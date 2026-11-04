@@ -119,10 +119,6 @@ To use another container, set a factory with `Starter.SetFactory`. The applicati
 starter.SetFactory(type => (IStarterCommand)container.GetInstance(type));
 ```
 
-## `IServiceManager` is obsolete
-
-`IServiceManager` is obsolete. The `Starter.Start` overloads that take an `IServiceManager` are marked `[Obsolete]`, and they still work. Use `Starter.ServiceProvider`, `CmdStarterBuilder` or `Starter.SetFactory` instead.
-
 ## See also
 
 - Examples: [DependencyInjection](../../samples/CmdStarter.Samples.DependencyInjection), [ScopedServices](../../samples/CmdStarter.Samples.ScopedServices), [DevOpsTool](../../samples/CmdStarter.Samples.DevOpsTool).

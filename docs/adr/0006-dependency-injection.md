@@ -4,6 +4,8 @@ Status: Accepted
 Date: 2026-11-03
 Amended: 2026-11-04 (see Consequences)
 
+Amendment (2026-11-04): `IServiceManager` and the `Start(IServiceManager, …)` overloads are removed before 1.0 ships (lot 035); the obsolete period described below never reached a release.
+
 ## Context
 Applications need per-invocation service scopes while CmdStarter should remain usable without a specific container.
 
