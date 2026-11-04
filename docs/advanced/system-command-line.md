@@ -32,4 +32,4 @@ The console of an execution is attached to the configuration instance that `Crea
 
 - Neighbouring pages: [Commands](../concepts/commands.md), [Command console](../guides/command-console.md), [Errors and exit codes](../guides/errors-and-exit-codes.md), [Performance](performance.md).
 - ADRs: [0002, System.CommandLine 2.0 stable](../adr/0002-system-commandline-2-stable.md), [0005, breaking changes and adapter](../adr/0005-breaking-changes-and-adapter.md).
-- Migration: [1.x to 2.0](../migration/1.x-to-2.0.md).
+- Migration: [0.9 to 1.0](../migration/0.9-to-1.0.md).

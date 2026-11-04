@@ -31,3 +31,4 @@
 | 0027 | [Command Catalog Generated at Compile Time](0027-command-catalog.md) | Accepted |
 | 0028 | [Typed Symbol Factories](0028-typed-symbol-factories.md) | Accepted |
 | 0029 | [Trimming and Native AOT, Second Evaluation](0029-trimming-and-native-aot-second-evaluation.md) | Accepted |
+| 0030 | [Version Number of the Rewrite](0030-version-number-of-the-rewrite.md) | Accepted |

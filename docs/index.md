@@ -14,7 +14,7 @@ CmdStarter turns plain C# code into a command-line application, on top of System
 - **Generic Host** integration in the `cints.CmdStarter.Hosting` package.
 - **A Roslyn analyzer** that reports definition mistakes at compile time.
 
-The package is `cints.CmdStarter`, for .NET 10. Version 2.0 accepts breaking changes, listed in the [migration guide](migration/1.x-to-2.0.md).
+The package is `cints.CmdStarter`, for .NET 10. Version 1.0 accepts breaking changes, listed in the [migration guide](migration/0.9-to-1.0.md).
 
 Start with [Getting started](getting-started.md).
 
@@ -53,7 +53,7 @@ Start with [Getting started](getting-started.md).
 
 ## Reference
 
-- [Migration from 1.x to 2.0](migration/1.x-to-2.0.md)
+- [Migration from 0.9 to 1.0](migration/0.9-to-1.0.md)
 - [Architecture decisions](adr/README.md)
 - [Samples](../samples/README.md)
 

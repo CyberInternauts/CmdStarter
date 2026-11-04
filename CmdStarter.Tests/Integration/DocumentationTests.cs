@@ -150,7 +150,7 @@ public sealed class DocumentationTests
             Assert.That(IsBrokenLink(root, "samples/README.md"), Is.False);
             Assert.That(IsBrokenLink(root, "samples/README.md#top"), Is.False);
             Assert.That(IsBrokenLink(root, "samples"), Is.False);
-            Assert.That(IsBrokenLink(root, "docs/migration/1.x-to-2.0.md"), Is.False);
+            Assert.That(IsBrokenLink(root, "docs/migration/0.9-to-1.0.md"), Is.False);
             Assert.That(IsBrokenLink(root, "https://example.com/missing"), Is.False);
             Assert.That(IsBrokenLink(root, "mailto:someone@example.com"), Is.False);
             Assert.That(IsBrokenLink(root, "#section"), Is.False);

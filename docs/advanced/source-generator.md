@@ -138,7 +138,7 @@ Every searched assembly has its catalog attribute read. Without `Assemblies`, ev
 
 ## Trimming and Native AOT
 
-With the catalog and the factories, version 2.0 supports trimming and Native AOT for an application on win-x64: [Trimming](trimming.md) and [Native AOT](native-aot.md) give the measures, and [ADR 0029](../adr/0029-trimming-and-native-aot-second-evaluation.md) the decision. What an application needs:
+With the catalog and the factories, version 1.0 supports trimming and Native AOT for an application on win-x64: [Trimming](trimming.md) and [Native AOT](native-aot.md) give the measures, and [ADR 0029](../adr/0029-trimming-and-native-aot-second-evaluation.md) the decision. What an application needs:
 
 - **The package and the generator.** The package `cints.CmdStarter` carries the generator, and it is active by default. An application that declares `CommandCatalogAttribute` itself replaces the generated catalog: it then has to declare in its catalog everything that the application uses, the commands, the classes of method commands, the global options containers and the value types.
 - **Catalogs on.** `Starter.UseCommandCatalogs` stays `true`. In a runtime that does not support dynamic code, as a Native AOT executable, only the catalogs are read: no assembly is scanned, so an assembly without a catalog gives no command, and setting `Starter.UseCommandCatalogs` to `false` there makes the search throw a `CmdStarterException`.

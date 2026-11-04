@@ -54,7 +54,7 @@ Next steps:
 - [Documentation index](docs/index.md)
 - [Getting started](docs/getting-started.md)
 - [Samples](samples/README.md)
-- [Migration from 1.x to 2.0](docs/migration/1.x-to-2.0.md)
+- [Migration from 0.9 to 1.0](docs/migration/0.9-to-1.0.md)
 
 ## Participation | Submit issues, ideas
 

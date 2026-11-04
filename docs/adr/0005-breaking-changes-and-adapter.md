@@ -7,6 +7,8 @@ Date: 2026-11-03
 StarterCommand currently inherits from System.CommandLine.Command, coupling user instances to the CLI tree and limiting per-run construction.
 
 ## Decision
+Note (2026-11-04): the rewrite ships as version 1.0, see [ADR 0030](0030-version-number-of-the-rewrite.md).
+
 CmdStarter 2.0 accepts breaking changes. StarterCommand no longer derives from Command; an internal adapter builds the System.CommandLine tree. Document the changes in a migration guide.
 
 ## Consequences

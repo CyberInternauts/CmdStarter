@@ -1,6 +1,6 @@
 # Trimming
 
-This page says where CmdStarter stands with trimming. It holds two evaluations, both of 2026-11-04. The first, from the start of the page to its conclusion, was made before the command catalog and the typed factories of symbols existed, and found that trimming did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 2.0 supports trimming for an application that has the command catalog.
+This page says where CmdStarter stands with trimming. It holds two evaluations, both of 2026-11-04. The first, from the start of the page to its conclusion, was made before the command catalog and the typed factories of symbols existed, and found that trimming did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 1.0 supports trimming for an application that has the command catalog.
 
 ## What the library does with reflection
 
@@ -30,7 +30,7 @@ The analysis is the build of the library project with `IsAotCompatible` set on t
 
 ## Method
 
-The measures use an application outside the repository. It references the package `cints.CmdStarter` 2.0.0-preview.1, built in `artefacts/`, and its sources are copied from the HelloWorld and DevOpsTool samples. This is the case of a package user.
+The measures use an application outside the repository. It references the package `cints.CmdStarter` built in `artefacts/`, and its sources are copied from the HelloWorld and DevOpsTool samples. This is the case of a package user.
 
 The publication is not run inside the repository: a property given on the command line is global, so it also reaches the analyzer project, which targets netstandard2.0. That project refuses trimming (NETSDK1124) and Native AOT (NETSDK1207). The analyzer is not a runtime dependency of an application.
 
@@ -70,7 +70,7 @@ The trimmer removes the command classes (`Hello` in HelloWorld, and the commands
 
 ## Conclusion of the first evaluation
 
-When these measures were taken, version 2.0 did not support trimming. The library was not annotated with `RequiresUnreferencedCode` or `RequiresDynamicCode`, and `IsTrimmable` and `IsAotCompatible` were not set in the project files of `CmdStarter.Lib` or `CmdStarter.Hosting`.
+When these measures were taken, the library did not support trimming. The library was not annotated with `RequiresUnreferencedCode` or `RequiresDynamicCode`, and `IsTrimmable` and `IsAotCompatible` were not set in the project files of `CmdStarter.Lib` or `CmdStarter.Hosting`.
 
 - A trimmed application did not find its commands, as shown above.
 - Existing applications were not affected: neither `PublishTrimmed` nor `PublishAot` is enabled by default.
@@ -103,20 +103,20 @@ Each warning was handled with an annotation of the member that reads the type, o
 
 ### Trimmed applications
 
-The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `8B2E55C1CF7BBA34AE04B3C4C165679333A3C646F3892877E9F84837EEE6DBC7`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 14:09:10 to 14:10:38):
+The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `3EC81C9F7D87D19F644C8C943DBC2F5A0E5CB554EFA9AE5AEAD9C791ECF9D491`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 14:24:55 to 14:26:47):
 
 | Application | Size of the published folder | Command run | Exit code | First line of the output |
 | --- | ---: | --- | ---: | --- |
-| HelloWorld | 21 498 346 bytes | `HelloWorld.exe --to Bob` | 0 | `Hello, Bob!` |
-| DevOpsTool | 21 617 136 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
+| HelloWorld | 21 498 296 bytes | `HelloWorld.exe --to Bob` | 0 | `Hello, Bob!` |
+| DevOpsTool | 21 617 086 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
 | DevOpsTool | | `DevOpsTool.exe --help` | 0 | `Description:` |
 | DevOpsTool | | `DevOpsTool.exe service deploy` | 1 | `Description:`, and "Argument obligatoire manquant pour la commande : 'deploy'." on the error output |
-| Lists | 21 591 837 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
+| Lists | 21 591 787 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
 | Lists | | `Lists.exe greet --who Bob` | 0 | `Hello, Bob!` |
 | Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: Hello, filter!` on the error output |
 | Lists | | `Lists.exe tag red 3 --tags a --tags b` | 0 | `label=red tags=a,b count=3` |
 | Lists | | `Lists.exe show c --names z --numbers 3` | 0 | `names=z values=c numbers=3`, and `filter: Hello, filter!` on the error output |
-| Tree | 21 506 048 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
+| Tree | 21 505 998 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
 | Tree | | `Tree.exe tools --help` | 0 | `Description:` |
 | Tree | | `Tree.exe ct show --label y` | 0 | `label=y` |
 
@@ -133,7 +133,7 @@ The first measure, taken with the catalog and the factories and nothing else, fa
 
 ## Conclusion
 
-Version 2.0 supports trimming for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree, which publish without warning and run as expected. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
+Version 1.0 supports trimming for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree, which publish without warning and run as expected. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
 
 Functions that are lost when trimmed:
 

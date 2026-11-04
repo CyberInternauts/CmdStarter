@@ -12,7 +12,7 @@
     <Description>Turns plain C# classes and methods into a System.CommandLine command tree, with Microsoft dependency injection, a REPL and command states.</Description>
     <PackageTags>System.CommandLine;command line;cli;commands;dependency injection;repl</PackageTags>
     <PackageReadmeFile>PKG-README.md</PackageReadmeFile>
-    <PackageReleaseNotes>2.0.0-preview.1: rewrite on System.CommandLine 2.0 stable and .NET 10, with breaking changes. Migration guide: https://github.com/CyberInternauts/CmdStarter/blob/master/docs/migration/1.x-to-2.0.md</PackageReleaseNotes>
+    <PackageReleaseNotes>1.0.0: rewrite on System.CommandLine 2.0 stable and .NET 10, with breaking changes. Migration guide: https://github.com/CyberInternauts/CmdStarter/blob/master/docs/migration/0.9-to-1.0.md</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -60,7 +60,7 @@
     href: advanced/trimming.md
   - name: Native AOT
     href: advanced/native-aot.md
-- name: Migration from 1.x to 2.0
-  href: migration/1.x-to-2.0.md
+- name: Migration from 0.9 to 1.0
+  href: migration/0.9-to-1.0.md
 - name: Architecture decisions
   href: adr/README.md

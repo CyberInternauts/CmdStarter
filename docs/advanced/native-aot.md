@@ -1,10 +1,10 @@
 # Native AOT
 
-This page says where CmdStarter stands with Native AOT. The reflection used by the library and the static analysis are described on the [Trimming](trimming.md) page. It holds two evaluations, both of 2026-11-04. The first was made before the command catalog and the typed factories of symbols existed, and found that Native AOT did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 2.0 supports Native AOT for an application that has the command catalog.
+This page says where CmdStarter stands with Native AOT. The reflection used by the library and the static analysis are described on the [Trimming](trimming.md) page. It holds two evaluations, both of 2026-11-04. The first was made before the command catalog and the typed factories of symbols existed, and found that Native AOT did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 1.0 supports Native AOT for an application that has the command catalog.
 
 ## Method
 
-The publication uses the method of the [Trimming](trimming.md) page: an application outside the repository that references the package `cints.CmdStarter` 2.0.0-preview.1, with the sources of the HelloWorld and DevOpsTool samples.
+The publication uses the method of the [Trimming](trimming.md) page: an application outside the repository that references the package `cints.CmdStarter` built in `artefacts/`, with the sources of the HelloWorld and DevOpsTool samples.
 
 ```powershell
 dotnet publish -c Release -r win-x64 --self-contained -p:PublishAot=true
@@ -45,7 +45,7 @@ The [command catalog](source-generator.md) reads an assembly that has one withou
 
 ## Conclusion of the first evaluation
 
-When these measures were taken, version 2.0 did not support Native AOT. The test applications published, but they stopped at start-up, before any command ran. The reasons and the other results are on the [Trimming](trimming.md) page, and the decision of that time is recorded in [ADR 0025](../adr/0025-trimming-and-native-aot.md), which the second evaluation supersedes.
+When these measures were taken, the library did not support Native AOT. The test applications published, but they stopped at start-up, before any command ran. The reasons and the other results are on the [Trimming](trimming.md) page, and the decision of that time is recorded in [ADR 0025](../adr/0025-trimming-and-native-aot.md), which the second evaluation supersedes.
 
 ## Second evaluation
 
@@ -62,7 +62,7 @@ Without dynamic code, which is the case in a Native AOT executable, the search n
 
 ### Native AOT applications
 
-The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-analysis)), and the package carries the metadata `IsAotCompatible`. The criterion is functional parity: what an application does on CoreCLR, it must do as a native executable. Four applications are measured: HelloWorld and DevOpsTool, and two that the script writes ([Trimming](trimming.md#second-evaluation) describes them): `Lists`, with collection options, a service provider with commands that it does not have registered, a filter registered by type, a command that declares its own static `GetInstance` and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`, or sets `Starter.CommandsTypes` to a type of the catalog. They publish with `-c Release -r win-x64 --self-contained -p:PublishAot=true`, exit code 0 and no warning (the publications reported `IL2104` and `IL3053` before the annotations). The package restored has the same SHA-256 as the package built, `8B2E55C1CF7BBA34AE04B3C4C165679333A3C646F3892877E9F84837EEE6DBC7`. They run as expected (measure of 14:09:10 to 14:10:38):
+The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-analysis)), and the package carries the metadata `IsAotCompatible`. The criterion is functional parity: what an application does on CoreCLR, it must do as a native executable. Four applications are measured: HelloWorld and DevOpsTool, and two that the script writes ([Trimming](trimming.md#second-evaluation) describes them): `Lists`, with collection options, a service provider with commands that it does not have registered, a filter registered by type, a command that declares its own static `GetInstance` and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`, or sets `Starter.CommandsTypes` to a type of the catalog. They publish with `-c Release -r win-x64 --self-contained -p:PublishAot=true`, exit code 0 and no warning (the publications reported `IL2104` and `IL3053` before the annotations). The package restored has the same SHA-256 as the package built, `3EC81C9F7D87D19F644C8C943DBC2F5A0E5CB554EFA9AE5AEAD9C791ECF9D491`. They run as expected (measure of 14:24:55 to 14:26:47):
 
 | Application | Size of the native executable | Command run | Exit code | First line of the output |
 | --- | ---: | --- | ---: | --- |
@@ -95,7 +95,7 @@ In DevOpsTool, `service --help` lists `deploy` then `rollback` in the Native AOT
 
 ## Conclusion
 
-Version 2.0 supports Native AOT for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
+Version 1.0 supports Native AOT for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
 
 Functions that are lost in a Native AOT executable:
 
