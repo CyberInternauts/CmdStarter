@@ -59,10 +59,12 @@ public class Starter
     private readonly HashSet<Command> implicitMethodGroups = new(ReferenceEqualityComparer.Instance);
     private TreeNode<Type>? definedTree;
     private CommandTreeDefinition.TreeState? definedTreeState;
+    private Dictionary<Type, List<CommandTreeDefinition.GroupSegment>> groupPaths = new();
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
     private bool hasToInstantiate = true;
     private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
+    private bool groupsByNamespace;
     private bool isRootingLonelyCommand = true;
     private Func<Type, IStarterCommand>? factory;
 
@@ -176,6 +178,18 @@ public class Starter
         {
             ResetTrees();
             classesBuildingMode = value;
+        }
+    }
+
+    /// <summary>Gets or sets whether root commands are placed in groups derived from their namespaces, such as <c>App.Commands.Users.List</c> becoming <c>users list</c>.</summary>
+    /// <remarks>This applies only when no fluent tree is defined and class building mode is not <see cref="ClassesBuildingMode.OnlyAttributes"/>.</remarks>
+    public bool GroupsByNamespace
+    {
+        get => groupsByNamespace;
+        set
+        {
+            ResetTrees();
+            groupsByNamespace = value;
         }
     }
 
@@ -454,7 +468,15 @@ public class Starter
         {
             var builder = new CommandsTreeBuilder(ClassesBuildingMode, CommandsTypes);
             CommandsTypesTree = builder.BuildTree();
+            groupPaths = GroupsByNamespace && ClassesBuildingMode != ClassesBuildingMode.OnlyAttributes
+                ? BuildNamespaceGroupPaths()
+                : new Dictionary<Type, List<CommandTreeDefinition.GroupSegment>>();
             CommandsTypesTree.SetImmutable();
+        }
+
+        if (definedTree is not null)
+        {
+            groupPaths = definedTreeState!.GroupPaths;
         }
     }
 
@@ -555,17 +577,68 @@ public class Starter
 
         foreach (var childNode in childrenWithGroups)
         {
-            var groups = definedTreeState!.GroupPaths[childNode.Value!];
-            var groupParent = ResolveDefinedGroupParent(currentParent, groups);
+            var groups = groupPaths[childNode.Value!];
+            var groupParent = ResolveGroupParent(currentParent, groups);
             var registration = CreateCommand(childNode.Value!, activations);
             groupParent.Subcommands.Add(registration.CliCommand);
             AddLevel(registration.CliCommand, childNode, activations);
         }
     }
 
-    private bool HasGroupPath(Type commandType) => definedTreeState?.GroupPaths.TryGetValue(commandType, out var groups) == true && groups.Count > 0;
+    private bool HasGroupPath(Type commandType) => groupPaths.TryGetValue(commandType, out var groups) && groups.Count > 0;
 
-    private Command ResolveDefinedGroupParent(Command start, IReadOnlyList<CommandTreeDefinition.GroupSegment> groups)
+    private Dictionary<Type, List<CommandTreeDefinition.GroupSegment>> BuildNamespaceGroupPaths()
+    {
+        var result = new Dictionary<Type, List<CommandTreeDefinition.GroupSegment>>();
+        if (CommandsTypes.IsEmpty)
+        {
+            return result;
+        }
+
+        var namespaces = CommandsTypes.Select(commandType => commandType.Namespace!.Split('.')).ToList();
+        var baseSegments = namespaces[0].ToList();
+        foreach (var commandNamespace in namespaces.Skip(1))
+        {
+            var commonLength = 0;
+            while (commonLength < baseSegments.Count
+                && commonLength < commandNamespace.Length
+                && string.Equals(baseSegments[commonLength], commandNamespace[commonLength], StringComparison.Ordinal))
+            {
+                commonLength++;
+            }
+
+            baseSegments = baseSegments.Take(commonLength).ToList();
+        }
+
+        foreach (var child in CommandsTypesTree.Children)
+        {
+            var commandType = child.Value!;
+            if (commandType.GetCustomAttributes(false).Any(attribute => attribute is ParentAttribute))
+            {
+                continue;
+            }
+
+            var commandNamespace = commandType.Namespace!.Split('.');
+            var pathLength = commandNamespace.Length - baseSegments.Count;
+            var representsNamespace = child.Children.Any(descendant =>
+                descendant.Value!.Namespace?.StartsWith(commandType.Namespace + ".", StringComparison.Ordinal) == true);
+            if (representsNamespace)
+            {
+                pathLength--;
+            }
+
+            var groups = commandNamespace
+                .Skip(baseSegments.Count)
+                .Take(Math.Max(pathLength, 0))
+                .Select(segment => new CommandTreeDefinition.GroupSegment(segment.ToCommandName()))
+                .ToList();
+            result.Add(commandType, groups);
+        }
+
+        return result;
+    }
+
+    private Command ResolveGroupParent(Command start, IReadOnlyList<CommandTreeDefinition.GroupSegment> groups)
     {
         var parent = start;
         foreach (var segment in groups)
@@ -950,6 +1023,7 @@ public class Starter
         hasToBuildTree = true;
         hasToInstantiate = true;
         this.CommandsTypesTree = new TreeNode<Type>(null);
+        groupPaths = new Dictionary<Type, List<CommandTreeDefinition.GroupSegment>>();
         registrationsByCommand.Clear();
         registrationsByType.Clear();
         methodRegistrations.Clear();
