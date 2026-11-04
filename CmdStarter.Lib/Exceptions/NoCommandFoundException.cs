@@ -18,7 +18,10 @@ public sealed class NoCommandFoundException : Exception
         /// <summary>
         /// Classes filter
         /// </summary>
-        Classes
+        Classes,
+
+        /// <summary>Assemblies filter</summary>
+        Assemblies
     }
 
     /// <summary>

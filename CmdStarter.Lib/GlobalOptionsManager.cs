@@ -63,7 +63,12 @@ public sealed class GlobalOptionsManager
     {
         GlobalOptionsTypes.Clear();
 
-        var filteredTypes = FilterTypesByNamespaces(foundTypes!, starter.Namespaces.ToList()); // foundTypes can't be null as initialized in constructor
+        var filteredTypes = foundTypes!; // foundTypes can't be null as initialized in constructor
+        if (!starter.Assemblies.IsEmpty)
+        {
+            filteredTypes = filteredTypes.Where(type => starter.Assemblies.Contains(type.Assembly));
+        }
+        filteredTypes = FilterTypesByNamespaces(filteredTypes, starter.Namespaces.ToList());
         filteredTypes = FilterTypesByClasses(filteredTypes, starter.Classes.ToList());
 
         GlobalOptionsTypes.AddRange(filteredTypes);

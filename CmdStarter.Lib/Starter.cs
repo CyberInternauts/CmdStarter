@@ -11,6 +11,8 @@ using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib;
 
@@ -49,6 +51,7 @@ public class Starter
     private readonly Dictionary<Type, CommandRegistration> registrationsByType = new();
     private ImmutableList<string> namespaces = ImmutableList<string>.Empty;
     private ImmutableList<string> classes = ImmutableList<string>.Empty;
+    private ImmutableList<Assembly> assemblies = ImmutableList<Assembly>.Empty;
     private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
@@ -59,6 +62,21 @@ public class Starter
 
     /// <summary>Raised after a command handler returns, before its instance and services are released. It is not raised when parsing fails or the handler throws.</summary>
     public event EventHandler<CommandHandledEventArgs>? CommandHandled;
+
+    /// <summary>Assemblies searched for commands and global options. An empty list searches all assemblies loaded in the AppDomain.</summary>
+    public ImmutableList<Assembly> Assemblies
+    {
+        get => assemblies;
+        set
+        {
+            ResetCommands();
+            assemblies = value ?? ImmutableList<Assembly>.Empty;
+        }
+    }
+
+    /// <summary>Gets or sets the Microsoft.Extensions.DependencyInjection service provider used to create command instances.</summary>
+    /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, IStarterCommand})"/>; a command type's own <see cref="IStarterCommand.GetInstance{CommandType}"/> takes precedence over both.</remarks>
+    public IServiceProvider? ServiceProvider { get; set; }
 
     /// <summary>
     /// Constructor without filters
@@ -313,7 +331,8 @@ public class Starter
         if (!hasToFindCommands) return; // Quit, job already done
         hasToFindCommands = false;
 
-        var commandsTypes = AppDomain.CurrentDomain.GetAssemblies()
+        var searchAssemblies = Assemblies.IsEmpty ? AppDomain.CurrentDomain.GetAssemblies() : Assemblies.Distinct();
+        var commandsTypes = searchAssemblies
                     .SelectMany(a => a.GetTypes()
                         .Where(t =>
                             t.IsClass &&
@@ -322,6 +341,8 @@ public class Starter
                             t.Namespace != null
                         )
                     );
+
+        if (!Assemblies.IsEmpty && !commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
 
         // Filter by namespaces
         commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
@@ -541,6 +562,31 @@ public class Starter
         {
             var instance = (IStarterCommand)FindGetInstanceMethod(commandType).Invoke(null, null)!;
             return new CommandActivation(instance, ownsInstance: true);
+        }
+
+        if (ServiceProvider is not null)
+        {
+            var scopeFactory = ServiceProvider.GetService<IServiceScopeFactory>();
+            if (scopeFactory is null)
+            {
+                var resolved = ServiceProvider.GetService(commandType);
+                return resolved is not null
+                    ? new CommandActivation((IStarterCommand)resolved, ownsInstance: false)
+                    : new CommandActivation((IStarterCommand)ActivatorUtilities.CreateInstance(ServiceProvider, commandType), ownsInstance: true);
+            }
+
+            var scope = scopeFactory.CreateAsyncScope();
+            try
+            {
+                var resolvedInScope = scope.ServiceProvider.GetService(commandType);
+                var instance = (IStarterCommand)(resolvedInScope ?? ActivatorUtilities.CreateInstance(scope.ServiceProvider, commandType));
+                return new CommandActivation(instance, ownsInstance: resolvedInScope is null, scope);
+            }
+            catch
+            {
+                scope.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                throw;
+            }
         }
 
         if (factory is not null)
