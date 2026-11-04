@@ -14,7 +14,7 @@ internal static class SymbolTypeCollector
 {
     // The type of every public instance property of a command or a container that has a getter and a setter, the inherited ones included (the library reads those too).
     // The properties of the types of the library itself are the ones of the interface and are never options.
-    internal static void AddProperties(INamedTypeSymbol type, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found)
+    internal static void AddProperties(INamedTypeSymbol type, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found, SourceProductionContext context)
     {
         for (var current = type; current is not null && current.SpecialType != SpecialType.System_Object; current = current.BaseType)
         {
@@ -27,23 +27,27 @@ internal static class SymbolTypeCollector
             {
                 if (!property.IsStatic && !property.IsIndexer && property.DeclaredAccessibility == Accessibility.Public && property.GetMethod is not null && property.SetMethod is not null)
                 {
-                    Add(property.Type, symbols, found);
+                    Add(property.Type, MemberName(property), property.Locations.FirstOrDefault(), symbols, found, context);
                 }
             }
         }
     }
 
     // The type of every parameter of the [Command] methods of the class, but the ones that never become an argument. A ref parameter is not a type argument.
-    internal static void AddMethodParameters(INamedTypeSymbol type, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found)
+    internal static void AddMethodParameters(INamedTypeSymbol type, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found, SourceProductionContext context)
     {
         foreach (var method in type.GetMembers().OfType<IMethodSymbol>().Where(method => CommandCatalogGenerator.HasAttribute(method, symbols.CommandAttribute)))
         {
             foreach (var parameter in method.Parameters.Where(parameter => parameter.RefKind == RefKind.None))
             {
-                Add(parameter.Type, symbols, found);
+                Add(parameter.Type, MemberName(method), parameter.Locations.FirstOrDefault(), symbols, found, context);
             }
         }
     }
+
+    // The member that uses a type, as CMDS0016 names it: the full name of its type and its name.
+    private static string MemberName(ISymbol member) =>
+        member.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + member.Name;
 
     // The parameters of the delegate that HandlingMethod gives, when its body can be read: an expression whose static type is a concrete delegate type (a lambda, a cast, the creation of a delegate,
     // a field, a property, a call), or a method group of a single method.
@@ -68,7 +72,7 @@ internal static class SymbolTypeCollector
 
             foreach (var parameter in parameters.Where(parameter => parameter.RefKind == RefKind.None))
             {
-                Add(parameter.Type, symbols, found);
+                Add(parameter.Type, MemberName(property), property.Locations.FirstOrDefault(), symbols, found, context);
             }
 
             return;
@@ -132,7 +136,7 @@ internal static class SymbolTypeCollector
         return getter?.Body is { Statements.Count: 1 } body && body.Statements[0] is ReturnStatementSyntax returned ? returned.Expression : null;
     }
 
-    private static void Add(ITypeSymbol type, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found)
+    private static void Add(ITypeSymbol type, string member, Location? location, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found, SourceProductionContext context)
     {
         if (SymbolEqualityComparer.Default.Equals(type, symbols.CancellationToken) || SymbolEqualityComparer.Default.Equals(type, symbols.CommandConsole))
         {
@@ -140,19 +144,33 @@ internal static class SymbolTypeCollector
         }
 
         var diagnosticIds = new List<string>();
-        if (IsWritable(type, symbols, diagnosticIds))
+        if (IsWritable(type, symbols, diagnosticIds, out var reason))
         {
             found.SymbolTypes.Add(type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             found.DiagnosticIds.UnionWith(diagnosticIds);
+            return;
+        }
+
+        // A value type that the catalog cannot name has no typed factory, and the fallback by reflection does not exist under Native AOT: its option or argument is lost there (CMDS0016).
+        // A reference type shares its code, so it loses nothing. A type without a reason (ref-like types, pointers, dynamic, type parameters, unknown types) is not the type of an option on any platform.
+        if (reason is not null && type.IsValueType)
+        {
+            var name = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            if (found.LostValueTypes.Add(name))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Descriptors.LostValueType, location, name, member, reason));
+            }
         }
     }
 
     // Whether the generated code can write the type as a type argument. The own diagnostic ids of the [Obsolete] types it names are collected for the #pragma of the file.
-    private static bool IsWritable(ITypeSymbol type, CommandCatalogGenerator.Symbols symbols, List<string> diagnosticIds)
+    // When it cannot, the reason is the one of CMDS0014 for the first type that it cannot name, or null when the type is not a type that a catalog could ever name.
+    private static bool IsWritable(ITypeSymbol type, CommandCatalogGenerator.Symbols symbols, List<string> diagnosticIds, out string? reason)
     {
+        reason = null;
         if (type is IArrayTypeSymbol array)
         {
-            return IsWritable(array.ElementType, symbols, diagnosticIds);
+            return IsWritable(array.ElementType, symbols, diagnosticIds, out reason);
         }
 
         // Type parameters, pointers, function pointers and dynamic are not named types; an error type is.
@@ -163,12 +181,8 @@ internal static class SymbolTypeCollector
 
         for (var current = named; current is not null; current = current.ContainingType)
         {
-            if (current.DeclaredAccessibility is Accessibility.Private or Accessibility.Protected or Accessibility.ProtectedAndInternal || current.IsFileLocal)
-            {
-                return false;
-            }
-
-            if (CommandCatalogGenerator.IsObsoleteError(current, symbols.Obsolete) || CommandCatalogGenerator.HasAttribute(current, symbols.Experimental))
+            reason = CommandCatalogGenerator.AccessibilityReason(current) ?? CommandCatalogGenerator.AttributeReason(current, symbols);
+            if (reason is not null)
             {
                 return false;
             }
@@ -176,17 +190,15 @@ internal static class SymbolTypeCollector
             var diagnosticId = CommandCatalogGenerator.ObsoleteDiagnosticId(current, symbols);
             if (diagnosticId is not null)
             {
-                if (!CommandCatalogGenerator.IsIdentifier(diagnosticId))
-                {
-                    return false;
-                }
-
                 diagnosticIds.Add(diagnosticId);
             }
 
-            if (current.TypeArguments.Any(argument => !IsWritable(argument, symbols, diagnosticIds)))
+            foreach (var argument in current.TypeArguments)
             {
-                return false;
+                if (!IsWritable(argument, symbols, diagnosticIds, out reason))
+                {
+                    return false;
+                }
             }
         }
 

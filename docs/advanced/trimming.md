@@ -81,7 +81,7 @@ The decision of that time is recorded in [ADR 0025](../adr/0025-trimming-and-nat
 
 ## Second evaluation
 
-This evaluation was made on 2026-11-04, after the command catalog and the typed factories of symbols were added, with the same machine and the same method as above, automated in the script `measure-trimming.ps1` at the root of the repository. The criterion is functional parity: what an application does on CoreCLR, it must do trimmed. The two samples leave features unexercised, so the script writes two more applications: `Lists`, with a `List<string>` option, an `int[]` option and a `string[]` argument, a service provider on the `Starter` with commands that it does not have registered (so they are created by `ActivatorUtilities`), a filter registered by type, a command that declares its own static `GetInstance`, and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`. The decision is recorded in [ADR 0029](../adr/0029-trimming-and-native-aot-second-evaluation.md).
+This evaluation was made on 2026-11-04, after the command catalog and the typed factories of symbols were added, with the same machine and the same method as above, automated in the script `measure-trimming.ps1` at the root of the repository. The criterion is functional parity: what an application does on CoreCLR, it must do trimmed. The two samples leave features unexercised, so the script writes two more applications: `Lists`, with a `List<string>` option, an `int[]` option and a `string[]` argument, a service provider on the `Starter` with commands that it does not have registered (so they are created by `ActivatorUtilities`), a filter registered by type, a command that declares its own static `GetInstance`, and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`, or sets `Starter.CommandsTypes` to a type of the catalog. The decision is recorded in [ADR 0029](../adr/0029-trimming-and-native-aot-second-evaluation.md).
 
 ### Static analysis
 
@@ -103,7 +103,7 @@ Each warning was handled with an annotation of the member that reads the type, o
 
 ### Trimmed applications
 
-The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `E232233FB4AEBA22CAEA1E53853C7FC0C0C2DD69FD80CC5FC4C9A8C944C5707D`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 13:30:55 to 13:32:22):
+The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `EBF78995B1F47E10A771B1851B8AEF4261C6490C24D5187B566AA7D26549E83A`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 13:44:05 to 13:45:57):
 
 | Application | Size of the published folder | Command run | Exit code | First line of the output |
 | --- | ---: | --- | ---: | --- |
@@ -116,15 +116,16 @@ The package built with the two flags was restored in a private packages folder o
 | Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: no container` on the error output |
 | Lists | | `Lists.exe tag red 3 --tags a --tags b` | 0 | `label=red tags=a,b count=3` |
 | Lists | | `Lists.exe show c --names z --numbers 3` | 0 | `names=z values=c numbers=3`, and `filter: Hello, filter!` on the error output |
-| Tree | 21 503 992 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
+| Tree | 21 506 048 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
 | Tree | | `Tree.exe tools --help` | 0 | `Description:` |
+| Tree | | `Tree.exe ct show --label y` | 0 | `label=y` |
 
 The publications no longer report `IL2104` ("Assembly 'CmdStarter.Lib' produced trim warnings."), which they reported before the annotations: the library has no analysis warning left. What the runs show:
 
 - The collection options survive the trimmer: `--numbers 1 2` takes two tokens only when the type of the option is recognized as a list, and so does `--tags a --tags b` on the parameter of a method command.
 - A command that the container does not have registered (`greet`, `show`, `tag`) is created by `ActivatorUtilities`, with its constructor parameter; the filter registered by type is created the same way, and its line on the error output (`filter: Hello, filter!`) shows that the service was injected.
 - A command that declares its own static `GetInstance` is created by it (`made by GetInstance`). A command created that way runs without the service provider ([ADR 0006](../adr/0006-dependency-injection.md)), so the measured filter has a parameterless constructor too, which gives `filter: no container`.
-- `Starter.UseTree` places a command under a group, and the help of the group is not empty.
+- `Starter.UseTree` places a command under a group, and the help of the group is not empty; `Starter.CommandsTypes`, set to a type of the catalog (the `ct` mode of `Tree`), gives the command.
 
 ### The first measure of this evaluation
 
@@ -136,7 +137,7 @@ Version 2.0 supports trimming for an application that has the command catalog, w
 
 Functions that are lost when trimmed:
 
-- A command type that no catalog declares: a catalog written by hand that omits it, or the generator turned off. `Starter.UseTree` and `Starter.CommandsTypes` on the types of the catalog are supported (`UseTree` is measured); a type outside it is not kept by anything.
+- A command type that no catalog declares: a catalog written by hand that omits it, or the generator turned off. `Starter.UseTree` and `Starter.CommandsTypes` on the types of the catalog are supported (both are measured); a type outside it is not kept by anything.
 - An assembly that has no catalog: it is scanned by reflection on CoreCLR, and its types are not kept.
 
 Not measured: the other platforms, an order of the methods that differs from the order of their declarations (see [Native AOT](native-aot.md)), and a culture other than the French one of the measure machine. Workarounds, such as a root file or `DynamicDependency` attributes, were not tried.

@@ -571,7 +571,8 @@ public sealed class CommandCatalogGeneratorTests
     [Test]
     public void UnwritableTypesAreNotRegistered()
     {
-        // Types that cannot be a type argument, or that the generated code cannot name (here, in the delegate of HandlingMethod): nothing is registered and nothing is reported (the library makes their factory by reflection).
+        // Types that cannot be a type argument, or that the generated code cannot name (here, in the delegate of HandlingMethod): nothing is registered. Each value type that cannot be named is reported once
+        // with CMDS0016 (Private, Guarded, Narrow, Lab, Spaced, Gone and FileOnly); the List of a private struct is a reference type and the span is not the type of an option: nothing is reported for them.
         var source = Usings + $$"""
             #pragma warning disable TEST0001
             using System.Collections.Generic;
@@ -596,7 +597,7 @@ public sealed class CommandCatalogGeneratorTests
         var result = GeneratorRunner.Run(source);
 
         Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<int>();" }));
-        Assert.That(result.GeneratorDiagnostics.Select(diagnostic => diagnostic.Id), Is.Empty);
+        Assert.That(result.GeneratorDiagnostics.Select(diagnostic => diagnostic.Id), Is.EqualTo(Enumerable.Repeat("CMDS0016", 7)));
         Assert.That(result.Errors, Is.Empty, string.Join("\n", result.Errors));
         Assert.That(result.GeneratedWarnings, Is.Empty);
     }
@@ -640,6 +641,152 @@ public sealed class CommandCatalogGeneratorTests
         Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<global::Ns.OldValue>();" }));
         Assert.That(result.Generated, Does.Contain("#pragma warning disable CS0612, CS0618, MYOLD003\n"));
         Assert.That(result.GeneratedWarnings, Is.Empty);
+    }
+
+    [Test]
+    public void LostValueTypeOfAHandlingMethodIsReportedOnTheProperty()
+    {
+        // A private enum in the delegate of HandlingMethod: no typed factory can be registered, and Native AOT has no fallback.
+        var source = Usings + """
+            namespace Ns;
+            public sealed class Host : StarterCommand
+            {
+                private enum Mode { Fast }
+                public override Delegate HandlingMethod => (Func<Mode, int>)(mode => 0);
+            }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.Empty, "the enum is not registered, and the return type of the delegate is not a parameter");
+        var diagnostic = result.GeneratorDiagnostics.Single();
+        Assert.That(diagnostic.Id, Is.EqualTo("CMDS0016"));
+        Assert.That(diagnostic.Severity, Is.EqualTo(Microsoft.CodeAnalysis.DiagnosticSeverity.Info));
+        Assert.That(diagnostic.GetMessage(), Is.EqualTo(
+            "The value type 'global::Ns.Host.Mode' used by 'global::Ns.Host.HandlingMethod' cannot be registered in the command catalog ('Mode' is private and cannot be named from the catalog): "
+            + "under Native AOT its option or argument is not supported. Make the type reachable from a top-level class."));
+        Assert.That(diagnostic.Location.SourceTree!.GetText().ToString(diagnostic.Location.SourceSpan), Is.EqualTo("HandlingMethod"), "reported on the property");
+    }
+
+    [Test]
+    public void PrivateReferenceTypeOfAHandlingMethodIsNotReported()
+    {
+        // A class shares its code: nothing is lost without the typed factory.
+        var source = Usings + """
+            namespace Ns;
+            public sealed class Host : StarterCommand
+            {
+                private sealed class Hidden { }
+                public override Delegate HandlingMethod => (Func<Hidden, int>)(hidden => 0);
+            }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void ExperimentalValueTypeOfAnOptionPropertyIsReported()
+    {
+        var source = Usings + """
+            #pragma warning disable TEST0002
+            using System.Diagnostics.CodeAnalysis;
+            namespace Ns;
+            [Experimental("TEST0002")] public enum Lab { Fast }
+            public sealed class Host : StarterCommand
+            {
+                public Lab Level { get; set; }
+                public override Delegate HandlingMethod => (Func<int>)(() => 0);
+            }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        Assert.That(result.Errors, Is.Empty, string.Join("\n", result.Errors));
+        Assert.That(result.GeneratedWarnings, Is.Empty);
+        var diagnostic = result.GeneratorDiagnostics.Single();
+        Assert.That(diagnostic.Id, Is.EqualTo("CMDS0016"));
+        Assert.That(diagnostic.GetMessage(), Does.StartWith("The value type 'global::Ns.Lab' used by 'global::Ns.Host.Level' cannot be registered in the command catalog ('Lab' is experimental): "));
+        Assert.That(diagnostic.Location.SourceTree!.GetText().ToString(diagnostic.Location.SourceSpan), Does.Contain("Level"), "reported on the property");
+        Assert.That(SymbolCalls(result), Does.Not.Contain("builder.AddSymbolType<global::Ns.Lab>();"));
+    }
+
+    [Test]
+    public void NullableOfALostValueTypeIsReported()
+    {
+        // Nullable<Mode> is a value type, and its factory could not be written either.
+        var source = Usings + """
+            namespace Ns;
+            public sealed class Host : StarterCommand
+            {
+                private enum Mode { Fast }
+                public override Delegate HandlingMethod => (Func<Mode?, int>)(mode => 0);
+            }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        var diagnostic = result.GeneratorDiagnostics.Single();
+        Assert.That(diagnostic.Id, Is.EqualTo("CMDS0016"));
+        Assert.That(diagnostic.GetMessage(), Does.StartWith("The value type 'global::Ns.Host.Mode?' used by 'global::Ns.Host.HandlingMethod' cannot be registered in the command catalog ('Mode' is private and cannot be named from the catalog): "));
+    }
+
+    [Test]
+    public void CollectionOfALostValueTypeIsNotReported()
+    {
+        // A List and an array are reference types: they share their code, whatever their elements.
+        var source = Usings + """
+            using System.Collections.Generic;
+            namespace Ns;
+            public sealed class Host : StarterCommand
+            {
+                private enum Mode { Fast }
+                public override Delegate HandlingMethod => (Func<List<Mode>, Mode[], int>)((modes, array) => 0);
+            }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void RefLikeTypeIsNotReportedAsALostValueType()
+    {
+        // A span is not the type of an option on any platform: it fails on CoreCLR too, so nothing is lost between the two.
+        var source = Usings + "namespace Ns; public class Tools { [Command] public int Run(Span<char> chars) => 0; }";
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void LostValueTypeIsReportedOnceAtTheFirstMember()
+    {
+        // Three members use the same type: one diagnostic, on the first one that the generator meets.
+        var source = Usings + """
+            #pragma warning disable TEST0002
+            using System.Diagnostics.CodeAnalysis;
+            namespace Ns;
+            [Experimental("TEST0002")] public enum Lab { Fast }
+            public sealed class First : StarterCommand { public Lab Level { get; set; } }
+            public sealed class Second : StarterCommand { public Lab Other { get; set; } }
+            public class Tools { [Command] public int Run(Lab lab) => 0; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        Assert.That(result.Errors, Is.Empty, string.Join("\n", result.Errors));
+        var diagnostic = result.GeneratorDiagnostics.Single(diagnostic => diagnostic.Id == "CMDS0016");
+        Assert.That(diagnostic.GetMessage(), Does.Contain("used by 'global::Ns."));
+        Assert.That(result.GeneratorDiagnostics.Count(diagnostic => diagnostic.Id == "CMDS0016"), Is.EqualTo(1));
     }
 
     // The calls that register a type of value.

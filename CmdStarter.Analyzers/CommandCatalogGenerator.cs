@@ -115,20 +115,20 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
         if (isCommand)
         {
             found.Commands.Add(name);
-            SymbolTypeCollector.AddProperties(type, symbols, found);
+            SymbolTypeCollector.AddProperties(type, symbols, found, context);
             SymbolTypeCollector.AddHandlingMethod(type, name, symbols, found, context);
         }
 
         if (isMethodClass)
         {
             found.MethodClasses.Add(name);
-            SymbolTypeCollector.AddMethodParameters(type, symbols, found);
+            SymbolTypeCollector.AddMethodParameters(type, symbols, found, context);
         }
 
         if (isContainer)
         {
             found.GlobalOptions.Add(name);
-            SymbolTypeCollector.AddProperties(type, symbols, found);
+            SymbolTypeCollector.AddProperties(type, symbols, found, context);
         }
     }
 
@@ -150,21 +150,10 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
     {
         for (var current = type; current is not null; current = current.ContainingType)
         {
-            var accessibility = current.DeclaredAccessibility switch
+            var reason = AccessibilityReason(current);
+            if (reason is not null)
             {
-                Accessibility.Private => "private",
-                Accessibility.Protected => "protected",
-                Accessibility.ProtectedAndInternal => "private protected",
-                _ => null,
-            };
-            if (accessibility is not null)
-            {
-                return string.Format(CultureInfo.InvariantCulture, "'{0}' is {1} and cannot be named from the catalog", current.Name, accessibility);
-            }
-
-            if (current.IsFileLocal)
-            {
-                return string.Format(CultureInfo.InvariantCulture, "'{0}' is file-local and cannot be named from the catalog", current.Name);
+                return reason;
             }
         }
 
@@ -183,24 +172,51 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
 
         for (var current = type; current is not null; current = current.ContainingType)
         {
-            if (IsObsoleteError(current, symbols.Obsolete))
+            var reason = AttributeReason(current, symbols);
+            if (reason is not null)
             {
-                return string.Format(CultureInfo.InvariantCulture, "'{0}' is obsolete as an error", current.Name);
-            }
-
-            if (HasAttribute(current, symbols.Experimental))
-            {
-                return string.Format(CultureInfo.InvariantCulture, "'{0}' is experimental", current.Name);
-            }
-
-            var diagnosticId = ObsoleteDiagnosticId(current, symbols);
-            if (diagnosticId is not null && !IsIdentifier(diagnosticId))
-            {
-                return string.Format(CultureInfo.InvariantCulture, "'{0}' is obsolete with the diagnostic id '{1}', which cannot be suppressed in the catalog", current.Name, diagnosticId);
+                return reason;
             }
         }
 
         return null;
+    }
+
+    // Why the generated class, a top-level class of the assembly, cannot name this type (not its enclosing types): its accessibility. Shared with the types of the symbol factories.
+    internal static string? AccessibilityReason(INamedTypeSymbol type)
+    {
+        var accessibility = type.DeclaredAccessibility switch
+        {
+            Accessibility.Private => "private",
+            Accessibility.Protected => "protected",
+            Accessibility.ProtectedAndInternal => "private protected",
+            _ => null,
+        };
+        if (accessibility is not null)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "'{0}' is {1} and cannot be named from the catalog", type.Name, accessibility);
+        }
+
+        return type.IsFileLocal ? string.Format(CultureInfo.InvariantCulture, "'{0}' is file-local and cannot be named from the catalog", type.Name) : null;
+    }
+
+    // Why the generated code may not name this type (not its enclosing types): an attribute that makes its use an error, or an id that a #pragma cannot take.
+    internal static string? AttributeReason(INamedTypeSymbol type, Symbols symbols)
+    {
+        if (IsObsoleteError(type, symbols.Obsolete))
+        {
+            return string.Format(CultureInfo.InvariantCulture, "'{0}' is obsolete as an error", type.Name);
+        }
+
+        if (HasAttribute(type, symbols.Experimental))
+        {
+            return string.Format(CultureInfo.InvariantCulture, "'{0}' is experimental", type.Name);
+        }
+
+        var diagnosticId = ObsoleteDiagnosticId(type, symbols);
+        return diagnosticId is not null && !IsIdentifier(diagnosticId)
+            ? string.Format(CultureInfo.InvariantCulture, "'{0}' is obsolete with the diagnostic id '{1}', which cannot be suppressed in the catalog", type.Name, diagnosticId)
+            : null;
     }
 
     // The DiagnosticId of [Obsolete], when the type has one: the compiler reports the use of the type under that id instead of CS0618.
@@ -264,5 +280,8 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
         internal HashSet<string> SymbolTypes { get; } = new(StringComparer.Ordinal);
 
         internal HashSet<string> DiagnosticIds { get; } = new(StringComparer.Ordinal);
+
+        // The value types that CMDS0016 already named: once per type, at the first member that uses it.
+        internal HashSet<string> LostValueTypes { get; } = new(StringComparer.Ordinal);
     }
 }

@@ -50,7 +50,7 @@ $packageVersion = $versionMatch.Groups[1].Value
 #   created that way runs without the service provider (ADR 0006), so its filter is created with its parameterless constructor;
 # - a class with a method marked [Command] that has an [Option] List<string> parameter and an int parameter (command `tag`), created by ActivatorUtilities too.
 # The commands are not rooted, so that the command name is on the command line.
-# The fourth application, Tree, places its commands with Starter.UseTree, under a group.
+# The fourth application, Tree, places its commands with Starter.UseTree, under a group; with the mode `ct` it sets Starter.CommandsTypes to a type of the catalog instead.
 $listsProgram = @'
 using CyberInternauts.CmdStarter;
 using Microsoft.Extensions.DependencyInjection;
@@ -162,9 +162,18 @@ namespace CyberInternauts.CmdStarter.Samples.Tree;
 
 public static class Program
 {
-    public static Task<int> Main(string[] args) => new Starter { IsRootingLonelyCommand = false }
-        .UseTree(tree => tree.Group("tools", tools => tools.Add<Show>()))
-        .Start(args);
+    public static Task<int> Main(string[] args)
+    {
+        // The mode "ct" sets CommandsTypes to a type of the catalog, instead of describing a tree; the mode is not passed to the starter.
+        if (args.Length > 0 && args[0] == "ct")
+        {
+            return new Starter { CommandsTypes = [typeof(Show)], IsRootingLonelyCommand = false }.Start(args[1..]);
+        }
+
+        return new Starter { IsRootingLonelyCommand = false }
+            .UseTree(tree => tree.Group("tools", tools => tools.Add<Show>()))
+            .Start(args);
+    }
 }
 '@
 $treeShow = @'
@@ -215,7 +224,8 @@ $applications = @(
         Files  = [ordered]@{ 'Program.cs' = $treeProgram; 'Show.cs' = $treeShow }
         Runs   = @(
             [pscustomobject]@{ Arguments = 'tools show --label x'; Expect = 'Output'; Line = 'label=x' },
-            [pscustomobject]@{ Arguments = 'tools --help'; Expect = 'AnyOutput'; Line = '' }
+            [pscustomobject]@{ Arguments = 'tools --help'; Expect = 'AnyOutput'; Line = '' },
+            [pscustomobject]@{ Arguments = 'ct show --label y'; Expect = 'Output'; Line = 'label=y' }
         )
     }
 )

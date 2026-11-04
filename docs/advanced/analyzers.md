@@ -8,7 +8,7 @@ The analyzer ships in the main package, `cints.CmdStarter`, under `analyzers/dot
 
 ## The rules
 
-There are 15 rules, `CMDS0001` to `CMDS0015`, in the category Usage. Rules `CMDS0001` to `CMDS0011` repeat, at compile time, checks that CmdStarter makes when it builds the command tree. Rules `CMDS0012` and `CMDS0013` are advice. Rules `CMDS0014` and `CMDS0015` are reported by the catalog generator.
+There are 16 rules, `CMDS0001` to `CMDS0016`, in the category Usage. Rules `CMDS0001` to `CMDS0011` repeat, at compile time, checks that CmdStarter makes when it builds the command tree. Rules `CMDS0012` and `CMDS0013` are advice. Rules `CMDS0014`, `CMDS0015` and `CMDS0016` are reported by the catalog generator.
 
 | Id | Title | What is reported |
 | --- | --- | --- |
@@ -27,12 +27,13 @@ There are 15 rules, `CMDS0001` to `CMDS0015`, in the category Usage. Rules `CMDS
 | `CMDS0013` | Empty global options container | A non-abstract global options container that has no option property |
 | `CMDS0014` | Type is not in the command catalog | A type that the generator leaves out of the catalog, with the reason (severity `Info`) |
 | `CMDS0015` | `HandlingMethod` cannot be read at compile time | An overridden `HandlingMethod` whose delegate type the generator cannot read, reported on the property (severity `Info`); see [Symbol factories](source-generator.md#symbol-factories) |
+| `CMDS0016` | Value type cannot be registered in the command catalog | A value type of an option, an argument or a handler parameter that the catalog cannot name (for example a `private` enum), reported once per type, on the first member that uses it (severity `Info`): under Native AOT its option or argument is not supported; see [Symbol factories](source-generator.md#symbol-factories) |
 
 Each diagnostic message names the type, method, parameter or option concerned.
 
 ## Severity
 
-Rules `CMDS0001` to `CMDS0013` have the severity `Warning`. `CMDS0014` and `CMDS0015` have the severity `Info`.
+Rules `CMDS0001` to `CMDS0013` have the severity `Warning`. `CMDS0014`, `CMDS0015` and `CMDS0016` have the severity `Info`.
 
 Like any Roslyn diagnostic, each rule's severity can be raised or lowered, for example in `.editorconfig`. The following lines make `CMDS0001` an error and turn `CMDS0012` off:
 

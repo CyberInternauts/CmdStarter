@@ -62,7 +62,7 @@ Without dynamic code, which is the case in a Native AOT executable, the search n
 
 ### Native AOT applications
 
-The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-analysis)), and the package carries the metadata `IsAotCompatible`. The criterion is functional parity: what an application does on CoreCLR, it must do as a native executable. Four applications are measured: HelloWorld and DevOpsTool, and two that the script writes ([Trimming](trimming.md#second-evaluation) describes them): `Lists`, with collection options, a service provider with commands that it does not have registered, a filter registered by type, a command that declares its own static `GetInstance` and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`. They publish with `-c Release -r win-x64 --self-contained -p:PublishAot=true`, exit code 0 and no warning (the publications reported `IL2104` and `IL3053` before the annotations). The package restored has the same SHA-256 as the package built, `E232233FB4AEBA22CAEA1E53853C7FC0C0C2DD69FD80CC5FC4C9A8C944C5707D`. They run as expected (measure of 13:30:55 to 13:32:22):
+The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-analysis)), and the package carries the metadata `IsAotCompatible`. The criterion is functional parity: what an application does on CoreCLR, it must do as a native executable. Four applications are measured: HelloWorld and DevOpsTool, and two that the script writes ([Trimming](trimming.md#second-evaluation) describes them): `Lists`, with collection options, a service provider with commands that it does not have registered, a filter registered by type, a command that declares its own static `GetInstance` and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`, or sets `Starter.CommandsTypes` to a type of the catalog. They publish with `-c Release -r win-x64 --self-contained -p:PublishAot=true`, exit code 0 and no warning (the publications reported `IL2104` and `IL3053` before the annotations). The package restored has the same SHA-256 as the package built, `EBF78995B1F47E10A771B1851B8AEF4261C6490C24D5187B566AA7D26549E83A`. They run as expected (measure of 13:44:05 to 13:45:57):
 
 | Application | Size of the native executable | Command run | Exit code | First line of the output |
 | --- | ---: | --- | ---: | --- |
@@ -75,8 +75,9 @@ The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-ana
 | Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: no container` on the error output |
 | Lists | | `Lists.exe tag red 3 --tags a --tags b` | 0 | `label=red tags=a,b count=3` |
 | Lists | | `Lists.exe show c --names z --numbers 3` | 0 | `names=z values=c numbers=3`, and `filter: Hello, filter!` on the error output |
-| Tree | 5 023 744 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
+| Tree | 5 026 816 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
 | Tree | | `Tree.exe tools --help` | 0 | `Description:` |
+| Tree | | `Tree.exe ct show --label y` | 0 | `label=y` |
 
 What these runs go through under Native AOT:
 
@@ -85,7 +86,7 @@ What these runs go through under Native AOT:
 - The creation of a class that has a constructor parameter by the Microsoft dependency injection container, which has the class registered (DevOpsTool); and by `ActivatorUtilities.CreateInstance` when the container does not have it registered: the commands `greet`, `show` and `tag` of `Lists`, and the filter registered by type, whose line on the error output (`filter: Hello, filter!`) shows that the service was injected.
 - The creation of a command by its own static `GetInstance` (`made`): the search of the method, `MakeGenericMethod` on a class, then `Invoke`. A command created that way runs without the service provider ([ADR 0006](../adr/0006-dependency-injection.md)), so the measured filter has a parameterless constructor too, which gives `filter: no container`.
 - The read of the catalog attribute and of the loaded assemblies (`AppDomain.GetAssemblies`).
-- `Starter.UseTree` with a group (`Tree`).
+- `Starter.UseTree` with a group, and `Starter.CommandsTypes` set to a type of the catalog (`Tree`).
 - In System.CommandLine, the parsing, the help, a parse error and its exit code, the options with default values, and the binding of arguments and options.
 
 The help and the results of eight more commands of DevOpsTool, run by hand, were identical in the trimmed and the native executables.
@@ -98,8 +99,8 @@ Version 2.0 supports Native AOT for an application that has the command catalog,
 
 Functions that are lost in a Native AOT executable:
 
-- An assembly without a catalog is not scanned, so its commands are not found; with `Starter.UseCommandCatalogs` set to `false`, the search throws a `CmdStarterException`. A command type that no catalog declares (a catalog written by hand that omits it, or the generator turned off) is lost too; `Starter.UseTree` and `Starter.CommandsTypes` on the types of the catalog are supported (`UseTree` is measured).
-- A value type that the generator cannot register, or that is used only in a handler whose delegate it cannot read, uses the fallback by reflection, which is not supported in a Native AOT executable: an option or an argument of that type is lost.
+- An assembly without a catalog is not scanned, so its commands are not found; with `Starter.UseCommandCatalogs` set to `false`, the search throws a `CmdStarterException`. A command type that no catalog declares (a catalog written by hand that omits it, or the generator turned off) is lost too; `Starter.UseTree` and `Starter.CommandsTypes` on the types of the catalog are supported (both are measured).
+- A value type that the generator cannot register, or that is used only in a handler whose delegate it cannot read, uses the fallback by reflection, which is not supported in a Native AOT executable: an option or an argument of that type is lost. The generator reports each such value type once at compile time, with the diagnostic `CMDS0016` (see [Analyzers](analyzers.md)).
 
 Not measured: the other platforms.
 

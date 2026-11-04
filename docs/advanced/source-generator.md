@@ -108,7 +108,7 @@ The first class of the hierarchy that is in the compilation and declares the pro
 
 A type that is not registered is not an error. When no factory is registered for it, the library makes the same factory by reflection, once per type, and uses it. A registration made later replaces a fallback that already exists, and the first registration of a type is kept. The two factories behave the same: the types of the symbols, the default value, and the value read from a parse result are identical, checked for `int`, `string`, `bool`, `int?`, `string[]` and `FileInfo`.
 
-The generator does not register, and does not report, the types that it cannot write as a type argument or that the generated code cannot name. They are:
+The generator does not register the types that it cannot write as a type argument or that the generated code cannot name. They are:
 
 - the types that cannot be a type argument: ref-like types such as `Span<char>`, pointers, function pointers, `dynamic`, type parameters, and unknown types;
 - the types that cannot be reached from the catalog: a type, or an enclosing type, that is `private`, `protected` or `private protected`, and a `file` type;
@@ -116,6 +116,8 @@ The generator does not register, and does not report, the types that it cannot w
 - the types marked `[Obsolete]` with a `DiagnosticId` that cannot be written in a `#pragma`.
 
 A generic type is left out when one of its type arguments is. An array is registered by its array type, such as `int[]`. For all of them the fallback by reflection is used.
+
+On CoreCLR, the fallback loses nothing. In a Native AOT executable it does not exist for a value type, so the option or argument of a value type that the catalog cannot name is lost there. The generator reports each such value type once, with `CMDS0016` (severity `Info`), on the first member that uses it: for example `The value type 'global::Ns.Host.Mode' used by 'global::Ns.Host.HandlingMethod' cannot be registered in the command catalog ('Mode' is private and cannot be named from the catalog): under Native AOT its option or argument is not supported. Make the type reachable from a top-level class.` A nullable value type, such as `Mode?`, is a value type and is reported. Nothing is reported for a reference type, such as a `List` of such a type or an array, which shares its code, nor for ref-like types and pointers, which are not the type of an option on any platform.
 
 ### Nothing changes on CoreCLR
 
@@ -141,7 +143,8 @@ With the catalog and the factories, version 2.0 supports trimming and Native AOT
 - **The package and the generator.** The package `cints.CmdStarter` carries the generator, and it is active by default. An application that declares `CommandCatalogAttribute` itself replaces the generated catalog: it then has to declare in its catalog everything that the application uses, the commands, the classes of method commands, the global options containers and the value types.
 - **Catalogs on.** `Starter.UseCommandCatalogs` stays `true`. In a runtime that does not support dynamic code, as a Native AOT executable, only the catalogs are read: no assembly is scanned, so an assembly without a catalog gives no command, and setting `Starter.UseCommandCatalogs` to `false` there makes the search throw a `CmdStarterException`.
 - **A readable `HandlingMethod`.** The generator reads the delegate by the rule of [Symbol factories](#symbol-factories). When it cannot, it reports `CMDS0015`, and a value type that only that handler uses is not registered: its factory is made by reflection, which Native AOT does not support for a value type.
-- **Commands from a catalog.** With the generator active, the catalog declares every command class of the assembly, so `Starter.UseTree` and `Starter.CommandsTypes` on those types are supported (`Starter.UseTree` with a group is measured). A command type that no catalog declares, because a catalog written by hand omits it or the generator is turned off, is not kept by the trimmer: that function is lost.
+- **Value types that the catalog can name.** A value type that is `private`, `file`-local, `[Experimental]` or otherwise unreachable from a top-level class is not registered, and its option or argument is lost in a Native AOT executable. The generator reports it with `CMDS0016`: make the type reachable.
+- **Commands from a catalog.** With the generator active, the catalog declares every command class of the assembly, so `Starter.UseTree` and `Starter.CommandsTypes` on those types are supported (both are measured). A command type that no catalog declares, because a catalog written by hand omits it or the generator is turned off, is not kept by the trimmer: that function is lost.
 
 The class and method commands, the options and arguments (lists included), the commands created by a container that does not have them registered, the filters registered by type, the commands that declare their own static `GetInstance`, and `Starter.UseTree` were measured, trimmed and as a native executable, in [Trimming](trimming.md#second-evaluation) and [Native AOT](native-aot.md#second-evaluation). What was not measured: a culture other than the French one of the measure machine, an order of methods that differs from the order of their declarations, every platform but win-x64, and `CmdStarter.Hosting`, which is flagged by static analysis only.
 

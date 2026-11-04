@@ -18,13 +18,13 @@ The script `measure-trimming.ps1`, at the root of the repository, is the method 
   - a filter registered by type with `AddFilter<T>`, created by `ActivatorUtilities` too, which writes on the error output the line of the constructor that served ("filter: Hello, filter!" for the constructor that takes `IGreeter`, "filter: no container" for the parameterless one; the measured filter has a parameterless constructor too, because a command created by its own `GetInstance` runs without the service provider, [ADR 0006](0006-dependency-injection.md));
   - a command `made` that declares its own static `GetInstance`, so that it is created through the search of that method, `MakeGenericMethod` on a class, then `Invoke`; its handler writes "made by GetInstance", read from a field that only that method sets;
   - a class with a method marked `[Command]` that has an `[Option] List<string> tags` parameter and an `int count` parameter (`tag`): the options and arguments of a method, `MethodInfo.Invoke`, and the test of the interfaces on a parameter.
-  `Tree` places its commands with `Starter.UseTree`: one command under the group `tools`.
+  `Tree` places its commands with `Starter.UseTree`, one command under the group `tools`; with its first argument `ct`, it sets `Starter.CommandsTypes` to a type of the catalog instead.
 - **F1, the cache of NuGet.** The version of the package is fixed, so the global cache of the user would serve an old package at the second run. The script restores in its own packages folder, deleted at each run, and never touches the cache of the user. The table has a row with the SHA-256 of the package of `artefacts/` and the one of the package restored: they must be equal, and they were in every measure below.
 - It publishes each application twice, with `-c Release -r win-x64 --self-contained` and `-p:PublishTrimmed=true` or `-p:PublishAot=true`, adding the folder of `vswhere.exe` to the `PATH` of the process for Native AOT (ADR 0025 found it was needed). It runs each executable, and records the exit code, the first line of the output and the first line of the error output. The applications have no `TreatWarningsAsErrors`, so that the warnings of the publication do not stop the measure.
 - **F2, the place of the table.** It is written in `coverage/trimming/trimming.md`, which `.gitignore` excludes. `measure-coverage.ps1` deletes `coverage/report/` at each run, so the table could not live there.
 - The static analysis is the one of ADR 0025: `dotnet build CmdStarter.Lib/CmdStarter.Lib.csproj -c Release -nologo -p:IsAotCompatible=true -p:TreatWarningsAsErrors=false -p:GeneratePackageOnBuild=false --no-incremental`. Warnings are counted as distinct (code, file, line).
 
-The commands that are run: `HelloWorld.exe --to Bob` (expected `Hello, Bob!`); `DevOpsTool.exe service deploy api --version 1.2.3` (expected `Deploying api 1.2.3 to dev`), `DevOpsTool.exe --help` (code 0, a non-empty output, which shows that the descriptions and options read from the attributes survive) and `DevOpsTool.exe service deploy` (a parse error, exit code from 1 to 255, no unhandled exception); `Lists.exe show a b --names x --names y --numbers 1 2` (expected `names=x,y values=a,b numbers=1,2`), `greet --who Bob` (`Hello, Bob!`), `made` (`made by GetInstance`, and `filter: no container` on the error output), `tag red 3 --tags a --tags b` (`label=red tags=a,b count=3`), and `show c --names z --numbers 3` with `filter: Hello, filter!` as the first line of the error output; `Tree.exe tools show --label x` (`label=x`) and `Tree.exe tools --help` (code 0, a non-empty output).
+The commands that are run: `HelloWorld.exe --to Bob` (expected `Hello, Bob!`); `DevOpsTool.exe service deploy api --version 1.2.3` (expected `Deploying api 1.2.3 to dev`), `DevOpsTool.exe --help` (code 0, a non-empty output, which shows that the descriptions and options read from the attributes survive) and `DevOpsTool.exe service deploy` (a parse error, exit code from 1 to 255, no unhandled exception); `Lists.exe show a b --names x --names y --numbers 1 2` (expected `names=x,y values=a,b numbers=1,2`), `greet --who Bob` (`Hello, Bob!`), `made` (`made by GetInstance`, and `filter: no container` on the error output), `tag red 3 --tags a --tags b` (`label=red tags=a,b count=3`), and `show c --names z --numbers 3` with `filter: Hello, filter!` as the first line of the error output; `Tree.exe tools show --label x` (`label=x`), `Tree.exe tools --help` (code 0, a non-empty output) and `Tree.exe ct show --label y` (`label=y`, with `CommandsTypes`).
 
 ## Results
 
@@ -37,7 +37,7 @@ All measures are of 2026-11-04, on the same machine, win-x64, with the same SDK 
 | 12:56:31 to 12:57:19 | with the annotations | 4, exit code 0, no warning | 8 of 8 |
 | 13:02:22 to 13:03:50 | with `Lists` | 6, exit code 0, no warning | 10 of 10 |
 | 13:16:15 to 13:17:20 | with `IsTrimmable` and `IsAotCompatible` set | 6, exit code 0, no warning | 10 of 10 |
-| 13:30:55 to 13:32:22 | the same package, with `Lists` extended and `Tree` | 8, exit code 0, no warning | 22 of 22 |
+| 13:44:05 to 13:45:57 | with `Lists` extended, `Tree` and the diagnostic CMDS0016 | 8, exit code 0, no warning | 24 of 24 |
 
 **The first measure, 8 failures with three causes.**
 
@@ -63,7 +63,7 @@ All measures are of 2026-11-04, on the same machine, win-x64, with the same SDK 
 
 With the two flags set, the build of the solution is the gate: `TreatWarningsAsErrors` is on, and `dotnet build CmdStarter.sln` gives no warning. The package `cints.CmdStarter` now carries the metadata `IsTrimmable` and `IsAotCompatible` in `CmdStarter.Lib.dll` (read by reflection on the restored package). The publications no longer report `IL2104` or `IL3053` ("Assembly 'CmdStarter.Lib' produced trim/AOT analysis warnings"): the library has no analysis warning left.
 
-**The final measure** (13:30:55 to 13:32:22, 87 s). SHA-256 of the package built and of the package restored: `E232233FB4AEBA22CAEA1E53853C7FC0C0C2DD69FD80CC5FC4C9A8C944C5707D`, the same. (The measure of 13:16:15, with the first version of `Lists`, gave 10 of 10 on the package `3FAB426A4803977720AEFDD917DDC9D701245C63BDF49DCE17E5896B2DF281FD`; the package was rebuilt after the READMEs changed, and the library is the same.) Publications, exit code 0, no warning:
+**The final measure** (13:44:05 to 13:45:57, 112 s), taken on the package that carries the diagnostic CMDS0016 of the generator, the last change. SHA-256 of the package built and of the package restored: `EBF78995B1F47E10A771B1851B8AEF4261C6490C24D5187B566AA7D26549E83A`, the same. (The measure of 13:16:15, with the first version of `Lists`, gave 10 of 10 on the package `3FAB426A4803977720AEFDD917DDC9D701245C63BDF49DCE17E5896B2DF281FD`.) Publications, exit code 0, no warning:
 
 | Application | Mode | Folder (bytes) | Executable (bytes) |
 | --- | --- | ---: | ---: |
@@ -72,11 +72,11 @@ With the two flags set, the build of the solution is the gate: `TreatWarningsAsE
 | DevOpsTool | Trimmed | 21616624 | 162304 |
 | DevOpsTool | Native AOT | 29312000 | 5231616 |
 | Lists | Trimmed | 21591325 | 162304 |
-| Lists | Native AOT | 29114880 | 5198336 |
-| Tree | Trimmed | 21503992 | 162304 |
-| Tree | Native AOT | 27949056 | 5023744 |
+| Lists | Native AOT | 29106688 | 5198336 |
+| Tree | Trimmed | 21506048 | 162304 |
+| Tree | Native AOT | 27952128 | 5026816 |
 
-Runs, trimmed and Native AOT alike, 22 of 22 as expected: `Hello, Bob!` (0); `Deploying api 1.2.3 to dev` (0); `--help` (0, a non-empty output); `service deploy` (1, "Argument obligatoire manquant pour la commande : 'deploy'."); for `Lists`, `names=x,y values=a,b numbers=1,2` (0), `Hello, Bob!` (0), `made by GetInstance` with `filter: no container` (0), `label=red tags=a,b count=3` (0) and `names=z values=c numbers=3` with `filter: Hello, filter!` (0); for `Tree`, `label=x` (0) and the help of the group (0, a non-empty output). Run by hand on the two modes of DevOpsTool, eight more commands (the help of the three levels, an unknown service giving 3, an unknown environment giving 2, a rollback in dry-run, `status`, a deployment with several options) gave the same text and the same code.
+Runs, trimmed and Native AOT alike, 24 of 24 as expected: `Hello, Bob!` (0); `Deploying api 1.2.3 to dev` (0); `--help` (0, a non-empty output); `service deploy` (1, "Argument obligatoire manquant pour la commande : 'deploy'."); for `Lists`, `names=x,y values=a,b numbers=1,2` (0), `Hello, Bob!` (0), `made by GetInstance` with `filter: no container` (0), `label=red tags=a,b count=3` (0) and `names=z values=c numbers=3` with `filter: Hello, filter!` (0); for `Tree`, `label=x` (0), the help of the group (0, a non-empty output) and `label=y` with `CommandsTypes` (0). Run by hand on the two modes of DevOpsTool, eight more commands (the help of the three levels, an unknown service giving 3, an unknown environment giving 2, a rollback in dry-run, `status`, a deployment with several options) gave the same text and the same code.
 
 **The cold start.** The series of BenchmarkDotNet taken from 13:07:58 to 13:09:27 ([Performance](../advanced/performance.md)) answers the reserve of ADR 0027: `FirstInstantiate` gives 147.6 ± 9.05 ms and `FirstInstantiateByScan` 143.9 ± 7.09 ms. The intervals overlap largely: no measurable difference. The twins of the discovery overlap too.
 
@@ -91,7 +91,7 @@ Version 2.0 supports trimming and Native AOT for an application that has a comma
 | HelloWorld (a class command, `new Starter()` without `Assemblies`) | supported | supported |
 | DevOpsTool (class and method commands, Microsoft DI, global options) | supported | supported |
 | Lists (list options and an array argument; commands created by `ActivatorUtilities`; a filter registered by type; a command created by its own `GetInstance`; a method command with an `[Option]` list parameter) | supported | supported |
-| Tree (`Starter.UseTree` with a group) | supported | supported |
+| Tree (`Starter.UseTree` with a group; `Starter.CommandsTypes` set to a type of the catalog) | supported | supported |
 
 `IsTrimmable` and `IsAotCompatible` are set to `true` in `CmdStarter.Lib.csproj` and in `CmdStarter.Hosting.csproj`. `CmdStarter.Hosting` is flagged by static analysis only (0 IL warning, the same command as for the library); no application was measured.
 
@@ -127,9 +127,9 @@ The remedies were applied in this order: an annotation `DynamicallyAccessedMembe
 
 Features that are lost, each named as such:
 
-- **A command type that the catalog does not declare.** With the generator active, the catalog declares every command class of the assembly, so `Starter.UseTree` and `Starter.CommandsTypes` on those types are supported: `UseTree` with a group is measured (`Tree`); `CommandsTypes` set to types of the catalog leads to the same activation, and no application sets it by itself. What is lost is a type that no catalog declares: a catalog written by hand that omits it, or the generator turned off. Nothing keeps its members under trimming, and `KeptTypes.Of` states the opposite only for the types of a catalog.
+- **A command type that the catalog does not declare.** With the generator active, the catalog declares every command class of the assembly, so `Starter.UseTree` and `Starter.CommandsTypes` on those types are supported, and both are measured (`Tree`: `UseTree` with a group, and `CommandsTypes` set to a type of the catalog). What is lost is a type that no catalog declares: a catalog written by hand that omits it, or the generator turned off. Nothing keeps its members under trimming, and `KeptTypes.Of` states the opposite only for the types of a catalog.
 - **An assembly without a catalog.** Under Native AOT, an assembly without a catalog is not scanned, so its commands are not found. With `Starter.UseCommandCatalogs` set to `false`, the search throws a `CmdStarterException` ("Command catalogs are off (UseCommandCatalogs = false), and this runtime does not support the reflection scan: turn catalogs on."), where it would have blamed a filter. Under trimming on CoreCLR, the scan still exists, but nothing keeps the types of an assembly that has no catalog.
-- **A value type that the generator cannot write as a type argument** (ref-like types, pointers, inaccessible types, `[Obsolete(..., true)]`, `[Experimental]`, see ADR 0028), and a value type used only in a handler whose `HandlingMethod` cannot be read at compile time (CMDS0015): an option or an argument of such a type uses the fallback by reflection, which Native AOT does not support, because the instantiation may not exist in the executable.
+- **A value type that the generator cannot write as a type argument** (ref-like types, pointers, inaccessible types, `[Obsolete(..., true)]`, `[Experimental]`, see ADR 0028), and a value type used only in a handler whose `HandlingMethod` cannot be read at compile time (CMDS0015): an option or an argument of such a type uses the fallback by reflection, which Native AOT does not support, because the instantiation may not exist in the executable. The generator now says so at compile time: CMDS0016 (severity `Info`) names each such value type once, on the first member that uses it, with the reason of CMDS0014 and the advice to make the type reachable from a top-level class. It is not issued for a reference type, which shares its code, nor for ref-like types and pointers, which are not the type of an option on any platform. No project of the solution is concerned: the count of CMDS0016 in the projects that carry the generator is 0.
 
 Not measured (no loss shown, no proof either):
 
