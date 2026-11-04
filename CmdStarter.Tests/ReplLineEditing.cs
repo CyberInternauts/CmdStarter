@@ -1,4 +1,8 @@
+using System.Collections.Immutable;
 using CyberInternauts.CmdStarter.Repl;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+using CyberInternauts.CmdStarter.Tests.Commands.Repl;
+using CyberInternauts.CmdStarter.Tests.Commands.States;
 
 namespace CyberInternauts.CmdStarter.Tests;
 
@@ -6,7 +10,12 @@ namespace CyberInternauts.CmdStarter.Tests;
 [Category("REPL")]
 public class ReplLineEditing
 {
+    private const string CommandOneName = "command-one";
+
     private StringWriter editorOutput = new();
+
+    [OneTimeSetUp]
+    public void GlobalSetup() => TestsCommon.GlobalSetup();
 
     [Test]
     public void TypingAndEnterReturnsLine()
@@ -92,6 +101,88 @@ public class ReplLineEditing
 
         Assert.That(editor.ReadLine("> "), Is.Null);
         Assert.That(editor.ReadLine("> "), Is.EqualTo("dz"));
+    }
+
+    [Test]
+    public void CompletionsListCommandsAndBuiltInWords()
+    {
+        var completions = CreateReplStarter().GetCompletions(string.Empty, 0);
+
+        Assert.That(completions, Does.Contain(CommandOneName));
+        Assert.That(completions, Does.Contain("exit"));
+        Assert.That(completions, Does.Contain("help"));
+    }
+
+    [Test]
+    public void CompletionsAfterHelpWordListCommands()
+    {
+        var completions = CreateReplStarter().GetCompletions("help ", 5);
+
+        Assert.That(completions, Does.Contain(CommandOneName));
+        Assert.That(completions, Does.Not.Contain("exit"));
+    }
+
+    [Test]
+    public void CompletionsHideUnavailableCommands()
+    {
+        var provider = new TestStateProvider { CurrentState = TestState.Anonymous };
+        var starter = new ReplStarter(new TestInputProvider())
+        {
+            Namespaces = ImmutableList.Create(typeof(Enter).Namespace!),
+            StateProvider = provider
+        };
+
+        var anonymous = starter.GetCompletions(string.Empty, 0);
+        Assert.That(anonymous, Does.Contain("enter"));
+        Assert.That(anonymous, Does.Not.Contain("profile"));
+
+        provider.CurrentState = TestState.Member;
+        var member = starter.GetCompletions(string.Empty, 0);
+        Assert.That(member, Does.Contain("profile"));
+        Assert.That(member, Does.Not.Contain("enter"));
+    }
+
+    [Test]
+    public void CompletionsIncludeAutoCompleteValues()
+    {
+        var starter = new ReplStarter(new TestInputProvider())
+        {
+            Classes = ImmutableList.Create(typeof(SingleSingleAutoComplete).FullName!)
+        };
+        var line = $"{StarterCommand.OptionPrefix}{SingleSingleAutoComplete.OPTION_NAME} ";
+
+        Assert.That(starter.GetCompletions(line, line.Length), Does.Contain("Bob"));
+    }
+
+    [Test]
+    public void ConsoleProviderGetsCompletionSource()
+    {
+        var provider = new ConsoleReplProvider();
+        _ = new ReplStarter(provider);
+        Assert.That(provider.CompletionSource, Is.Not.Null);
+
+        Func<string, int, IEnumerable<string>> ownSource = (_, _) => [];
+        var customProvider = new ConsoleReplProvider { CompletionSource = ownSource };
+        _ = new ReplStarter(customProvider);
+        Assert.That(customProvider.CompletionSource, Is.SameAs(ownSource));
+    }
+
+    [Test]
+    public void EditorCompletesFromStarter()
+    {
+        var starter = CreateReplStarter();
+        var editor = CreateEditor('c', 'o', 'm', 'm', 'a', 'n', 'd', '-', 'o', Key(ConsoleKey.Tab), Key(ConsoleKey.Enter));
+        editor.CompletionSource = starter.GetCompletions;
+
+        Assert.That(editor.ReadLine("> "), Is.EqualTo(CommandOneName + " "));
+    }
+
+    private static ReplStarter CreateReplStarter()
+    {
+        var starter = new ReplStarter(new TestInputProvider());
+        Repl.SetDefaultNamespaces(starter);
+        starter.Namespaces = starter.Namespaces.Add(typeof(CommandOne).Namespace!);
+        return starter;
     }
 
     // Each render is "\r" + prompt + buffer + padding spaces + backspaces, so splitting on "\r" isolates the buffers.

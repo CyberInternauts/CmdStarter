@@ -1049,7 +1049,7 @@ public class Starter
     private ICommandStateProvider? ResolveStateProvider() =>
         StateProvider ?? ServiceProvider?.GetService(typeof(ICommandStateProvider)) as ICommandStateProvider;
 
-    private void UpdateCommandAvailability()
+    private protected void UpdateCommandAvailability()
     {
         var metadata = commandStateMetadata.Values;
         if (!metadata.Any(item => item.State is not null)) return;

@@ -28,6 +28,7 @@ public sealed class ReplStarter : Starter
     public ReplStarter(IReplInputProvider inputProvider) : base()
     {
         this.inputProvider = inputProvider;
+        ShareCompletions();
     }
 
     /// <summary>Constructor with namespace filters.</summary>
@@ -36,6 +37,7 @@ public sealed class ReplStarter : Starter
     public ReplStarter(IReplInputProvider inputProvider, string[] namespaces) : base(namespaces)
     {
         this.inputProvider = inputProvider;
+        ShareCompletions();
     }
 
     /// <summary>Constructor with namespace filters.</summary>
@@ -44,6 +46,7 @@ public sealed class ReplStarter : Starter
     public ReplStarter(IReplInputProvider inputProvider, List<string> namespaces) : base(namespaces)
     {
         this.inputProvider = inputProvider;
+        ShareCompletions();
     }
 
     /// <summary>Runs the first command and starts the REPL loop.</summary>
@@ -126,6 +129,42 @@ public sealed class ReplStarter : Starter
         }
     }
 
+    /// <summary>
+    /// Gets the completion candidates for a line at a cursor position: the visible commands in the current state,
+    /// their options and <c>[AutoComplete]</c> values, plus the built-in words (<see cref="ExitCommands"/>, <see cref="HelpCommands"/>)
+    /// when the cursor is in the first word. After a help word, the rest of the line is completed as a command line.
+    /// </summary>
+    /// <param name="line">The line being edited.</param>
+    /// <param name="position">The cursor position in <paramref name="line"/>.</param>
+    /// <returns>The distinct candidates, sorted ordinally.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="line"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="position"/> is negative or beyond the end of <paramref name="line"/>.</exception>
+    public IReadOnlyList<string> GetCompletions(string line, int position)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        ArgumentOutOfRangeException.ThrowIfNegative(position);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(position, line.Length);
+
+        InstantiateCommands();
+        UpdateCommandAvailability();
+
+        var firstSpace = FindWhitespace(line);
+        if (firstSpace >= 0 && position > firstSpace && IsHelpWord(line[..firstSpace]))
+        {
+            var restStart = firstSpace + 1;
+            return GetCommandCompletions(line[restStart..], position - restStart);
+        }
+
+        var completions = new HashSet<string>(GetCommandCompletions(line, position), StringComparer.Ordinal);
+        var typedWord = line[..position];
+        if (FindWhitespace(typedWord) < 0)
+        {
+            completions.UnionWith(ExitCommands.Concat(HelpCommands).Where(word => word.StartsWith(typedWord, StringComparison.Ordinal)));
+        }
+
+        return completions.Order(StringComparer.Ordinal).ToArray();
+    }
+
     /// <summary>Stops the REPL loop.</summary>
     public void Stop()
     {
@@ -205,6 +244,25 @@ public sealed class ReplStarter : Starter
         OnCommandExecuted?.Invoke(this, new ReplCommandEventArgs(returnCode));
         return returnCode;
     }
+
+    // Gives the console provider this starter's completions, unless the application already set its own source.
+    private void ShareCompletions()
+    {
+        if (inputProvider is ConsoleReplProvider { CompletionSource: null } consoleProvider)
+        {
+            consoleProvider.CompletionSource = GetCompletions;
+        }
+    }
+
+    private bool IsHelpWord(string word) =>
+        HelpCommands.Any(command => string.Equals(word, command, StringComparison.OrdinalIgnoreCase));
+
+    private string[] GetCommandCompletions(string line, int position) =>
+        RootCommand.Parse(line).GetCompletions(position)
+            .Select(item => item.Label)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 
     private static int FindWhitespace(string value)
     {
