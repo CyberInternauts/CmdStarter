@@ -5,7 +5,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 /// <summary>
 /// Loop detected exception
 /// </summary>
-public sealed class LoopException : Exception
+public sealed class LoopException : CmdStarterException
 {
     /// <summary>
     /// First command in the loop

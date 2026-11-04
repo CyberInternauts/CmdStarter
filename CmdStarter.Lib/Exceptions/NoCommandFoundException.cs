@@ -3,7 +3,7 @@
 /// <summary>
 /// No command found exception after applying a <see cref="Filter"/>
 /// </summary>
-public sealed class NoCommandFoundException : Exception
+public sealed class NoCommandFoundException : CmdStarterException
 {
     /// <summary>
     /// Possible filters
@@ -34,6 +34,7 @@ public sealed class NoCommandFoundException : Exception
     /// </summary>
     /// <param name="lastFilterApplied"></param>
     public NoCommandFoundException(Filter lastFilterApplied)
+        : base($"No command was found after applying the {lastFilterApplied} filter.")
     {
         LastFilterApplied = lastFilterApplied;
     }

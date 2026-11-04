@@ -3,7 +3,7 @@
 /// <summary>
 /// Attribute is not valid exception
 /// </summary>
-public sealed class InvalidAttributeException : Exception
+public sealed class InvalidAttributeException : CmdStarterException
 {
     /// <summary>
     /// Default constructor
