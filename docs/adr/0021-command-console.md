@@ -35,7 +35,7 @@ Without an explicit console and without `DefaultConsole`, the call is exactly wh
 
 ## What Handlers Must Do
 
-CmdStarter does not redirect `System.Console`. A handler that wants to follow the console of its execution writes to the `CommandConsole` it receives, not to `Console`. The existing examples keep `Console.Out`. The container does not inject `CommandConsole` into constructors, and the prompt of `ConsoleReplProvider` stays on the process console.
+CmdStarter does not redirect `System.Console`. A handler that wants to follow the console of its execution writes to the `CommandConsole` it receives, not to `Console`. The command handlers of the existing examples keep `Console.Out`; the Filters example writes through `context.Console`. The container does not inject `CommandConsole` into constructors, and the prompt of `ConsoleReplProvider` stays on the process console.
 
 ## Consequences
 

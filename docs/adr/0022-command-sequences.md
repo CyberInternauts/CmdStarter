@@ -22,7 +22,7 @@ The following are refused, with a message that names the operator:
 
 A line without an operator runs exactly as before, even when it is not a valid sequence: an unclosed quote is left to System.CommandLine.
 
-`CommandSequence.TryParse` (namespace `CyberInternauts.CmdStarter.Sequences`) returns the steps. Each step is a `CommandSequenceStep(CommandLine, Operator)`, and `SequenceOperator` has the values `None`, `Always`, `OnSuccess` and `OnFailure`.
+`CommandSequence.TryParse` (namespace `CyberInternauts.CmdStarter.Sequences`) returns the steps. Each step is a `CommandSequenceStep(CommandLine, Operator, Pipeline)`, where `Pipeline` holds the commands of the step joined by a single `|` ([ADR 0023](0023-text-pipes.md)), and `SequenceOperator` has the values `None`, `Always`, `OnSuccess` and `OnFailure`.
 
 ## In the REPL
 

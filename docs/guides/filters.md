@@ -15,7 +15,7 @@ public sealed class LoggingFilter : ICommandFilter
     public async Task<int> InvokeAsync(CommandContext context, Func<Task<int>> next)
     {
         var exitCode = await next();
-        Console.Error.WriteLine($"[filter] {context.CommandPath} -> {exitCode}");
+        context.Console.Error.WriteLine($"[filter] {context.CommandPath} -> {exitCode}");
         return exitCode;
     }
 }
@@ -60,7 +60,7 @@ public sealed class ConfirmationFilter : ICommandFilter
             return await next();
         }
 
-        Console.Error.WriteLine("Confirmation required: rerun with --yes.");
+        context.Console.Error.WriteLine("Confirmation required: rerun with --yes.");
         return 3;
     }
 }
@@ -87,7 +87,7 @@ The value that a filter returns is the value that `Start` returns. The command s
 
 The chain runs after the command instance is created and its options and arguments are bound, so the filter sees the bound values. This is the same for both command models.
 
-A filter that writes its own output should write to `context.Console`, which is the console given to `Start`. The sample writes to `Console.Error` instead.
+A filter that writes its own output should write to `context.Console`, which is the console of the execution, as the sample does.
 
 ## Unavailable commands and errors
 

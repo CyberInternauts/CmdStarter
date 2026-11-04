@@ -7,7 +7,7 @@ public sealed class LoggingFilter : ICommandFilter
     public async Task<int> InvokeAsync(CommandContext context, Func<Task<int>> next)
     {
         var exitCode = await next();
-        Console.Error.WriteLine($"[filter] {context.CommandPath} -> {exitCode}");
+        context.Console.Error.WriteLine($"[filter] {context.CommandPath} -> {exitCode}");
         return exitCode;
     }
 }
@@ -26,7 +26,7 @@ public sealed class ConfirmationFilter : ICommandFilter
             return await next();
         }
 
-        Console.Error.WriteLine("Confirmation required: rerun with --yes.");
+        context.Console.Error.WriteLine("Confirmation required: rerun with --yes.");
         return 3;
     }
 }
