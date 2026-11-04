@@ -551,6 +551,7 @@ public class Starter
             {
                 ParameterBindingKind.CancellationToken => cancellationToken,
                 ParameterBindingKind.GlobalOptions => GlobalOptionsManager.GetGlobalOptions(binding.Parameter.ParameterType),
+                ParameterBindingKind.Service => GetMethodService(activation, binding.Parameter),
                 ParameterBindingKind.Option => GetMethodOptionValue(parseResult, (Option)binding.Symbol!, binding.Parameter),
                 ParameterBindingKind.Argument => GetMethodArgumentValue(parseResult, (Argument)binding.Symbol!, binding.Parameter),
                 _ => null
@@ -612,6 +613,10 @@ public class Starter
                     command.Options.Add(option);
                     parameters.Add(new(parameter, ParameterBindingKind.Option, option)); continue;
                 }
+                if (ServiceProvider?.GetService<IServiceProviderIsService>()?.IsService(parameterType) == true)
+                {
+                    parameters.Add(new(parameter, ParameterBindingKind.Service, null)); continue;
+                }
                 var argument = Reflection.Loader.CreateArgument(parameter);
                 command.Arguments.Add(argument);
                 parameters.Add(new(parameter, ParameterBindingKind.Argument, argument));
@@ -632,8 +637,16 @@ public class Starter
 
     private CommandActivation ActivateMethodCommand(MethodInfo method)
     {
+        if (ServiceProvider is not null) return ActivateFromServices(method.IsStatic ? null : method.DeclaringType);
         if (method.IsStatic) return new CommandActivation(null, ownsInstance: false);
         return new CommandActivation(Activator.CreateInstance(method.DeclaringType!)!, ownsInstance: true);
+    }
+
+    private static object? GetMethodService(CommandActivation activation, ParameterInfo parameter)
+    {
+        if (activation.Services is null)
+            throw new InvalidOperationException($"No service provider is available for parameter '{parameter.Name}' of method '{parameter.Member.Name}'.");
+        return activation.Services.GetRequiredService(parameter.ParameterType);
     }
 
     private void ResetCommands()
@@ -687,27 +700,7 @@ public class Starter
 
         if (ServiceProvider is not null)
         {
-            var scopeFactory = ServiceProvider.GetService<IServiceScopeFactory>();
-            if (scopeFactory is null)
-            {
-                var resolved = ServiceProvider.GetService(commandType);
-                return resolved is not null
-                    ? new CommandActivation((IStarterCommand)resolved, ownsInstance: false)
-                    : new CommandActivation((IStarterCommand)ActivatorUtilities.CreateInstance(ServiceProvider, commandType), ownsInstance: true);
-            }
-
-            var scope = scopeFactory.CreateAsyncScope();
-            try
-            {
-                var resolvedInScope = scope.ServiceProvider.GetService(commandType);
-                var instance = (IStarterCommand)(resolvedInScope ?? ActivatorUtilities.CreateInstance(scope.ServiceProvider, commandType));
-                return new CommandActivation(instance, ownsInstance: resolvedInScope is null, scope);
-            }
-            catch
-            {
-                scope.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                throw;
-            }
+            return ActivateFromServices(commandType);
         }
 
         if (factory is not null)
@@ -719,6 +712,31 @@ public class Starter
         }
 
         return new CommandActivation((IStarterCommand)Activator.CreateInstance(commandType)!, ownsInstance: true);
+    }
+
+    private CommandActivation ActivateFromServices(Type? instanceType)
+    {
+        var provider = ServiceProvider!;
+        var scopeFactory = provider.GetService<IServiceScopeFactory>();
+        if (scopeFactory is null)
+        {
+            var resolved = instanceType is null ? null : provider.GetService(instanceType);
+            var instance = instanceType is null ? null : resolved ?? ActivatorUtilities.CreateInstance(provider, instanceType);
+            return new CommandActivation(instance, ownsInstance: instanceType is not null && resolved is null, services: provider);
+        }
+
+        var scope = scopeFactory.CreateAsyncScope();
+        try
+        {
+            var resolvedInScope = instanceType is null ? null : scope.ServiceProvider.GetService(instanceType);
+            var instance = instanceType is null ? null : resolvedInScope ?? ActivatorUtilities.CreateInstance(scope.ServiceProvider, instanceType);
+            return new CommandActivation(instance, ownsInstance: instanceType is not null && resolvedInScope is null, scope, scope.ServiceProvider);
+        }
+        catch
+        {
+            scope.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            throw;
+        }
     }
 
     private void UseServiceManager(IServiceManager serviceManager)

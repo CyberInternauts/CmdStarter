@@ -53,6 +53,10 @@ public sealed class CmdStarterBuilder
         {
             if (!Helper.DeclaresGetInstance(commandType)) Services.TryAddTransient(commandType);
         }
+        foreach (var commandType in starter.MethodCommandsTypes.Where(type => !type.IsAbstract))
+        {
+            Services.TryAddTransient(commandType);
+        }
         var provider = Services.BuildServiceProvider(ServiceProviderOptions);
         starter.ServiceProvider = provider;
         return new CmdStarterApp(starter, provider);

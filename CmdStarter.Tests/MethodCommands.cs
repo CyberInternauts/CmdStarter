@@ -7,6 +7,7 @@ using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Lifecycle;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Tests;
 
@@ -19,7 +20,11 @@ public class MethodCommands
     public void GlobalSetup() => TestsCommon.GlobalSetup();
 
     [SetUp]
-    public void Setup() => MethodsLog.Reset();
+    public void Setup()
+    {
+        MethodsLog.Reset();
+        ServiceMethodCommands.Received.Clear();
+    }
 
     [Test]
     public void BuildsGroupWithMethodSubcommands()
@@ -149,12 +154,84 @@ public class MethodCommands
         Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
     }
 
+    [Test]
+    public async Task InfersServiceParameters()
+    {
+        await using var app = CreateServiceBuilder(typeof(ServiceMethodCommands)).Build();
+        app.Starter.InstantiateCommands();
+        var inferred = Find(Find(app.Starter.RootCommand, "svc"), "inferred");
+        Assert.That(inferred.Arguments.Select(argument => argument.Name), Is.EqualTo(new[] { "name" }));
+        Assert.That(await app.RunAsync("svc inferred bob"), Is.Zero);
+        var scoped = (ScopedService)ServiceMethodCommands.Received[0];
+        Assert.That(scoped, Is.SameAs(((ScopedConsumer)ServiceMethodCommands.Received[1]).Scoped));
+        Assert.That(scoped.IsDisposed, Is.True);
+    }
+
+    [Test]
+    public async Task UsesFromServicesParameters()
+    {
+        await using var app = CreateServiceBuilder(typeof(ServiceMethodCommands)).Build();
+        app.Starter.InstantiateCommands();
+        var explicitCommand = Find(Find(app.Starter.RootCommand, "svc"), "explicit");
+        Assert.That(explicitCommand.Arguments, Is.Empty);
+        Assert.That(await app.RunAsync("svc explicit"), Is.Zero);
+        Assert.That(((TransientService)ServiceMethodCommands.Received[0]).IsDisposed, Is.True);
+    }
+
+    [Test]
+    public async Task ResolvesStaticMethodServicesInScope()
+    {
+        await using var app = CreateServiceBuilder(typeof(ServiceMethodCommands)).Build();
+        Assert.That(await app.RunAsync("svc static-with-service"), Is.Zero);
+        Assert.That(((ScopedService)ServiceMethodCommands.Received[0]).IsDisposed, Is.True);
+    }
+
+    [Test]
+    public async Task InjectsDeclaringClassThroughConstructor()
+    {
+        await using var app = CreateServiceBuilder(typeof(ServiceMethodCommands)).Build();
+        ServiceMethodCommands? instance = null;
+        app.Starter.CommandHandled += (_, args) => instance = args.Instance as ServiceMethodCommands;
+        await app.RunAsync("svc inferred bob");
+        Assert.That(instance, Is.Not.Null);
+        Assert.That(instance!.Singleton, Is.SameAs(app.Services.GetRequiredService<SingletonService>()));
+    }
+
+    [Test]
+    public void RejectsFromServicesWithoutServiceProvider()
+    {
+        var starter = CreateMethodsStarter(typeof(ServiceMethodCommands));
+        Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
+    }
+
+    [Test]
+    public void ValidatesMethodCommandClassesOnBuild()
+    {
+        var builder = CreateServiceBuilder(typeof(UnresolvableMethodCommands));
+        Assert.Throws<AggregateException>(() => builder.Build());
+    }
+
     private static Starter CreateMethodsStarter(params Type[] types)
     {
         var starter = new Starter();
         starter.Namespaces = starter.Namespaces.Clear();
         starter.Classes = starter.Classes.Clear().AddRange(types.Select(type => type.FullName!));
         return starter;
+    }
+
+    private static CmdStarterBuilder CreateServiceBuilder(Type commandType)
+    {
+        var builder = new CmdStarterBuilder().ConfigureStarter(starter =>
+        {
+            starter.Namespaces = starter.Namespaces.Clear();
+            starter.Classes = starter.Classes.Clear().Add(commandType.FullName!);
+        });
+        builder.Services.AddSingleton<SingletonService>();
+        builder.Services.AddScoped<ScopedService>();
+        builder.Services.AddScoped<AsyncScopedService>();
+        builder.Services.AddTransient<ScopedConsumer>();
+        builder.Services.AddTransient<TransientService>();
+        return builder;
     }
 
     private static Command Find(Command parent, string name) => parent.Subcommands.Single(command => command.Name == name);
