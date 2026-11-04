@@ -54,3 +54,15 @@ Start with [Getting started](getting-started.md).
 - [Migration from 1.x to 2.0](migration/1.x-to-2.0.md)
 - [Architecture decisions](adr/README.md)
 - [Samples](../samples/README.md)
+
+## Build this documentation
+
+The site is generated locally with DocFX from the guides and from the XML comments of the compiled libraries. Build the solution first: the API reference is read from the assemblies in `bin/Debug`.
+
+```powershell
+dotnet build CmdStarter.sln
+dotnet tool restore
+dotnet docfx docfx.json --serve
+```
+
+Links to the `samples/` folder point outside the DocFX content, so DocFX reports them as information, not warnings (`rules` in `docfx.json`); the documentation tests check that every relative link exists.

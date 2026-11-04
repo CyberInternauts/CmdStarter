@@ -1,0 +1,58 @@
+- name: Overview
+  href: index.md
+- name: Getting started
+  href: getting-started.md
+- name: Concepts
+  items:
+  - name: Commands
+    href: concepts/commands.md
+  - name: Discovery
+    href: concepts/discovery.md
+  - name: Attributes
+    href: concepts/attributes.md
+  - name: Binding
+    href: concepts/binding.md
+  - name: Dependency injection
+    href: concepts/dependency-injection.md
+- name: Guides
+  items:
+  - name: Nested commands
+    href: guides/nested-commands.md
+  - name: Global options
+    href: guides/global-options.md
+  - name: Validation
+    href: guides/validation.md
+  - name: Configuration
+    href: guides/configuration.md
+  - name: Testing
+    href: guides/testing.md
+  - name: Errors and exit codes
+    href: guides/errors-and-exit-codes.md
+  - name: REPL
+    href: guides/repl.md
+  - name: Command states
+    href: guides/command-states.md
+  - name: Hosting
+    href: guides/hosting.md
+  - name: Fluent tree
+    href: guides/fluent-tree.md
+  - name: Filters
+    href: guides/filters.md
+  - name: Command console
+    href: guides/command-console.md
+  - name: Sequences and pipes
+    href: guides/sequences-and-pipes.md
+  - name: Remote REPL
+    href: guides/remote-repl.md
+- name: Advanced
+  items:
+  - name: Analyzers
+    href: advanced/analyzers.md
+  - name: System.CommandLine
+    href: advanced/system-command-line.md
+  - name: Performance
+    href: advanced/performance.md
+- name: Migration from 1.x to 2.0
+  href: migration/1.x-to-2.0.md
+- name: Architecture decisions
+  href: adr/README.md
