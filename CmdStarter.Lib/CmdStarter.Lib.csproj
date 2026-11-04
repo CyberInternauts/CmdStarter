@@ -4,8 +4,8 @@
   <PropertyGroup>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>$(BasePackageName).$(SolutionName)</PackageId>
-    <Title>$(SolutionName)</Title>
+    <PackageId>$(BasePackageName).CmdStarter</PackageId>
+    <Title>CmdStarter</Title>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Description>Layer over System.CommandLine that simplifies integration.</Description>
     <PackageProjectUrl>https://github.com/CyberInternauts/CmdStarter</PackageProjectUrl>
