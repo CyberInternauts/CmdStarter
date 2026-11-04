@@ -55,6 +55,7 @@ public class Starter
     private bool hasToInstantiate = true;
     private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
     private bool isRootingLonelyCommand = true;
+    private Func<Type, IStarterCommand>? factory;
 
     /// <summary>
     /// Constructor without filters
@@ -180,15 +181,19 @@ public class Starter
     public RootCommand RootCommand { get => rootCommand; }
 
     /// <summary>
-    /// Change the factory used by <see cref="IStarterCommand.GetInstance{CommandType}"/> default implementation
+    /// Set the factory used by this Starter for command types that do not declare their own GetInstance method.
     /// </summary>
     /// <param name="factory"></param>
-    public static void SetFactory(Func<Type, IStarterCommand> factory) => FactoryBag.SetFactory(factory);
+    public void SetFactory(Func<Type, IStarterCommand> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        this.factory = factory;
+    }
 
     /// <summary>
-    /// Set back to default implementation the factory used by <see cref="IStarterCommand.GetInstance{CommandType}"/>
+    /// Restore default command creation for this Starter.
     /// </summary>
-    public static void SetDefaultFactory() => FactoryBag.SetDefaultFactory();
+    public void SetDefaultFactory() => factory = null;
 
     /// <summary>
     /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
@@ -215,7 +220,7 @@ public class Starter
     /// </summary>
     public async Task<int> Start(IServiceManager serviceManager, string[] args)
     {
-        SetFactory(serviceManager);
+        UseServiceManager(serviceManager);
 
         return await Start(args);
     }
@@ -225,7 +230,7 @@ public class Starter
     /// </summary>
     public async Task<int> Start(IServiceManager serviceManager, string args)
     {
-        SetFactory(serviceManager);
+        UseServiceManager(serviceManager);
 
         return await Start(args);
     }
@@ -417,8 +422,7 @@ public class Starter
 
     private CommandRegistration CreateCommand(Type commandType)
     {
-        var getInstanceMethod = FindGetInstanceMethod(commandType);
-        var instance = (IStarterCommand)getInstanceMethod.Invoke(null, null)!;
+        var instance = Activate(commandType).Instance;
         instance.GlobalOptionsManager = GlobalOptionsManager;
 
         var name = instance is StarterCommand starterCommand
@@ -509,7 +513,26 @@ public class Starter
         return null;
     }
 
-    private void SetFactory(IServiceManager serviceManager)
+    private CommandActivation Activate(Type commandType)
+    {
+        if (Helper.DeclaresGetInstance(commandType))
+        {
+            var instance = (IStarterCommand)FindGetInstanceMethod(commandType).Invoke(null, null)!;
+            return new CommandActivation(instance, ownsInstance: true);
+        }
+
+        if (factory is not null)
+        {
+            var instance = factory(commandType);
+            return instance is null
+                ? throw new InvalidOperationException($"The command factory returned no instance for {commandType.FullName}.")
+                : new CommandActivation(instance, ownsInstance: false);
+        }
+
+        return new CommandActivation((IStarterCommand)Activator.CreateInstance(commandType)!, ownsInstance: true);
+    }
+
+    private void UseServiceManager(IServiceManager serviceManager)
     {
         // Set factory
         var creationMethod = (Type commandType) =>

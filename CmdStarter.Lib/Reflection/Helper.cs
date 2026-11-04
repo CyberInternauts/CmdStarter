@@ -45,6 +45,9 @@ public static partial class Helper
         return method;
     }
 
+    internal static bool DeclaresGetInstance(Type commandType) =>
+        FindGetInstanceMethod(commandType).DeclaringType != typeof(IStarterCommand);
+
     /// <inheritdoc cref="GetProperties(Type)"/>
     public static IEnumerable<PropertyInfo> GetProperties(object obj)
     {

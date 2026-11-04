@@ -21,12 +21,13 @@ public interface IStarterCommand
     public Delegate HandlingMethod { get; }
 
     /// <summary>
-    /// Get instance of the class implementing <see cref="IStarterCommand"/>
+    /// Create an instance of the command using its parameterless constructor. A command type can
+    /// declare its own static method with this signature to control creation; it must return a new instance per call.
     /// </summary>
     /// <typeparam name="CommandType">Command type to get the instance of</typeparam>
     /// <returns>An instance of the class implementing <see cref="IStarterCommand"/></returns>
     public static virtual IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
     {
-        return FactoryBag.RunFactory<CommandType>();
+        return Activator.CreateInstance<CommandType>();
     }
 }
