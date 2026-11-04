@@ -207,7 +207,9 @@ public class ReplRemote
         await pipe.ConnectAsync((int)Limit.TotalMilliseconds);
         var encoding = new UTF8Encoding(false);
         using var reader = new StreamReader(pipe, encoding, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
-        using var writer = new StreamWriter(pipe, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
+        // Not disposed: the server closes the pipe after "exit", and disposing a StreamWriter flushes the pipe, which then throws "Pipe is broken".
+        // SendAsync flushes every line, so nothing is left in the writer; the pipe itself is disposed by its "await using".
+        var writer = new StreamWriter(pipe, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
 
         // Output lines are prefixed "O ", error lines "E ", and the answer ends with "X <code>".
         Assert.That(await SendAsync("hello"), Is.EqualTo(new[] { "O hello", "X 0" }));
