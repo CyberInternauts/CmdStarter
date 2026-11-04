@@ -125,6 +125,34 @@ public class MethodCommands
     }
 
     [Test]
+    public async Task TaskAndValueTaskWithoutResultReturnZero()
+    {
+        var starter = CreateMethodsStarter(typeof(TaskReturnCommands));
+        Assert.That(await starter.Start("plain-task"), Is.Zero);
+        Assert.That(await starter.Start("plain-value-task"), Is.Zero);
+        Assert.That(MethodsLog.Entries, Is.EqualTo(new[] { "plain-task", "plain-value-task" }));
+    }
+
+    [Test]
+    public void ParameterRulesAreCheckedInOrder()
+    {
+        using var provider = new ServiceCollection()
+            .AddSingleton<SingletonService>()
+            .AddScoped<ScopedService>()
+            .AddTransient<ScopedConsumer>()
+            .BuildServiceProvider();
+        var starter = CreateMethodsStarter(typeof(ParameterOrderCommands), typeof(MainGlobalOptions));
+        starter.ServiceProvider = provider;
+        starter.InstantiateCommands();
+
+        var check = Find(starter.RootCommand, "check");
+        // The token, the console and the global options container come before [Option]; [FromServices] before [Option];
+        // [Option] before a registered service; a registered service before the argument.
+        Assert.That(check.Options.Select(option => option.Name), Is.EqualTo(new[] { "--option" }));
+        Assert.That(check.Arguments.Select(argument => argument.Name), Is.EqualTo(new[] { "text" }));
+    }
+
+    [Test]
     public async Task CombinesBothModelsWithoutRootingLonelyCommand()
     {
         var starter = CreateMethodsStarter(typeof(UserCommands), typeof(DisposableCommand)); starter.InstantiateCommands();

@@ -1,6 +1,7 @@
 using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CyberInternauts.CmdStarter.Tests;
 
@@ -27,6 +28,34 @@ public class Lifecycle
         await withFactory.Start(Array.Empty<string>());
         Assert.That(calls, Is.Not.Empty);
         Assert.That(calls, Is.All.EqualTo(typeof(DisposableCommand)));
+    }
+
+    [Test]
+    public async Task GetInstanceBeatsServiceProviderAndFactory()
+    {
+        // A command that declares GetInstance: neither the service provider nor the factory is used.
+        var factoryCalls = 0;
+        var providerCalls = 0;
+        var services = new ServiceCollection();
+        services.AddTransient(_ => { providerCalls++; return new SelfCreatedCommand("provider"); });
+        services.AddTransient(_ => { providerCalls++; return new DisposableCommand(); });
+        await using var provider = services.BuildServiceProvider();
+
+        var selfCreated = CreateLifecycleStarter<SelfCreatedCommand>();
+        selfCreated.ServiceProvider = provider;
+        selfCreated.SetFactory(_ => { factoryCalls++; return new SelfCreatedCommand("factory"); });
+        Assert.That(await selfCreated.Start(Array.Empty<string>()), Is.Zero);
+        Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "origin:get-instance" }));
+        Assert.That(providerCalls, Is.Zero);
+        Assert.That(factoryCalls, Is.Zero);
+
+        // A command without GetInstance: the service provider is used before the factory.
+        var withoutGetInstance = CreateLifecycleStarter<DisposableCommand>();
+        withoutGetInstance.ServiceProvider = provider;
+        withoutGetInstance.SetFactory(_ => { factoryCalls++; return new DisposableCommand(); });
+        await withoutGetInstance.Start(Array.Empty<string>());
+        Assert.That(providerCalls, Is.GreaterThan(0));
+        Assert.That(factoryCalls, Is.Zero);
     }
 
     [Test]

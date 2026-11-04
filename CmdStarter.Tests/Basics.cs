@@ -76,6 +76,25 @@ public class Basics
     [Test]
     [Category("Commands")]
     [Category("Namespaces")]
+    public void NamespacesAreStringPrefixes()
+    {
+        var filtering = typeof(Commands.Loader.Filtering.Starter).Namespace!;
+        var north = typeof(Commands.Loader.Filtering.NorthS.Starter);
+        var south = typeof(Commands.Loader.Filtering.NSouth.Starter);
+
+        // "...Filtering.N" is not a complete namespace segment, yet it keeps every namespace that starts with it.
+        starter.Namespaces = starter.Namespaces.Clear().Add(filtering + ".N");
+        starter.FindCommandsTypes();
+        Assert.That(starter.CommandsTypes, Is.EquivalentTo(new[] { north, south }));
+
+        starter.Namespaces = starter.Namespaces.Clear().Add(filtering + ".North");
+        starter.FindCommandsTypes();
+        Assert.That(starter.CommandsTypes, Is.EquivalentTo(new[] { north }));
+    }
+
+    [Test]
+    [Category("Commands")]
+    [Category("Namespaces")]
     public void AddsEmptyNamespace()
     {
         starter.FindCommandsTypes();

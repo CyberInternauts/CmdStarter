@@ -56,6 +56,7 @@ public class Repl
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Consoles.Write).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Sequences.Ok).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Remote.Hello).Namespace!);
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.PrivateSetters.PrivateSetterOptions).Namespace!);
     }
 
     [TestCase<PreCommand, CommandOne, CommandTwo, CommandThree>()]

@@ -137,6 +137,18 @@ public class Options
         }
     }
 
+    [Test]
+    public async Task PrivateSetterBecomesOption()
+    {
+        var withSetters = new Starter(new[] { typeof(Commands.PrivateSetters.PrivateSetterOptions).Namespace! });
+        withSetters.InstantiateCommands();
+
+        // The only command is rooted, so its options are on the root command, next to the built-in help and version options.
+        var optionNames = withSetters.RootCommand.Options.Select(option => option.Name).Except(new[] { "--help", "--version" });
+        Assert.That(optionNames, Is.EquivalentTo(new[] { "--with-private-setter", "--with-init" }));
+        Assert.That(await withSetters.Start("--with-private-setter 4 --with-init 2"), Is.EqualTo(42));
+    }
+
     [TestCase<OptByLackOfAttribute>]
     [TestCase<OptByAttribute>]
     [TestCase<OptByIncludeAttribute>]
