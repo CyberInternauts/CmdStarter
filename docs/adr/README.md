@@ -20,3 +20,4 @@
 | 0016 | [Fluent Command Tree](0016-fluent-command-tree.md) | Accepted |
 | 0017 | [Namespace Groups](0017-namespace-groups.md) | Accepted |
 | 0018 | [Roslyn Analyzers](0018-roslyn-analyzers.md) | Accepted |
+| 0019 | [Command Filters](0019-command-filters.md) | Accepted |
