@@ -46,7 +46,7 @@ public sealed class ParentAttributeAnalyzer : DiagnosticAnalyzer
         var firstLocation = attrs[0].ApplicationSyntaxReference?.GetSyntax().GetLocation() ?? type.Locations.FirstOrDefault();
         var seen = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
         var current = type;
-        while (current is not null && seen.Add(current))
+        while (seen.Add(current))
         {
             var parentAttribute = current.GetAttributes().FirstOrDefault(attribute => IsParent(attribute.AttributeClass, parent, genericParent));
             if (parentAttribute is null || GetParentType(parentAttribute, genericParent) is not { } next)
@@ -66,7 +66,7 @@ public sealed class ParentAttributeAnalyzer : DiagnosticAnalyzer
 
     private static INamedTypeSymbol? GetParentType(AttributeData attribute, INamedTypeSymbol genericParent)
     {
-        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.OriginalDefinition, genericParent))
+        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass!.OriginalDefinition, genericParent))
         {
             return attribute.AttributeClass.TypeArguments[0] as INamedTypeSymbol;
         }

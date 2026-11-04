@@ -99,86 +99,6 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`.
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Analyzers/OptionsAnalyzer.cs:160
-
-- **File**: `CmdStarter.Analyzers/OptionsAnalyzer.cs`
-- **Line**: 160, the branch where the first constructor argument is not a `bool` (3 of 4 branches are covered).
-- **Code**:
-
-  ```csharp
-  var usePrefix = attribute.ConstructorArguments.Length > 1 && attribute.ConstructorArguments[0].Value is bool value && value;
-  ```
-
-- **Reason**: More than one constructor argument means the constructor `AliasAttribute(bool usePrefix, params string[] aliases)`, whose first argument is always a `bool`. A failed binding (code that does not compile) gives no constructor argument at all (probe on `[Alias(undefined)]` and `[Alias(undefined, "x")]`), so `Length > 1` is false.
-- **Change needed**: An attribute with two or more arguments whose first one is not a `bool` would have to reach this line.
-- **Why refused**: The only `AliasAttribute` looked up is the one of CmdStarter.Lib, which has two constructors: `(params string[])` and `(bool, params string[])`.
-- **Proposal**: `remove (impossible by construction)`: with `Length > 1` the first argument is the `bool` of the second constructor. The expression can become `attribute.ConstructorArguments.Length > 1 && true.Equals(attribute.ConstructorArguments[0].Value)`.
-- **Decision**:
-
-### CmdStarter.Analyzers/OptionsAnalyzer.cs:173
-
-- **File**: `CmdStarter.Analyzers/OptionsAnalyzer.cs`
-- **Line**: 173, the branch where `values.Value` is a `string`.
-- **Code**:
-
-  ```csharp
-  else if (values.Value is string text)
-  ```
-
-- **Reason**: The alias argument is always an array (the `params string[]` of both constructors), or missing (`default` `TypedConstant`, `Value` `null`) when the code does not compile (probe: `[Alias(undefined)]` has no constructor argument).
-- **Change needed**: A constructor of `AliasAttribute` taking a single `string` would have to exist.
-- **Why refused**: The attribute is in CmdStarter.Lib and has no such constructor; adding one only for the analyzer is out of the question.
-- **Proposal**: `remove (impossible by construction)`: the `else if` and its body (lines 173 to 176) can go; the `values.Kind == TypedConstantKind.Array` test already covers every case that yields an alias.
-- **Decision**:
-
-### CmdStarter.Analyzers/OptionsAnalyzer.cs:174
-
-- **File**: `CmdStarter.Analyzers/OptionsAnalyzer.cs`
-- **Line**: 174, the opening brace of the `else if` body.
-- **Code**:
-
-  ```csharp
-  {
-  ```
-
-- **Reason**: Only reached when `values.Value` is a `string` (see line 173).
-- **Change needed**: Same as line 173.
-- **Why refused**: Same as line 173.
-- **Proposal**: `remove (impossible by construction)`, with line 173.
-- **Decision**:
-
-### CmdStarter.Analyzers/OptionsAnalyzer.cs:175
-
-- **File**: `CmdStarter.Analyzers/OptionsAnalyzer.cs`
-- **Line**: 175, the line and its two branches (`usePrefix` true and false).
-- **Code**:
-
-  ```csharp
-  yield return (usePrefix ? prefix : string.Empty) + text;
-  ```
-
-- **Reason**: Only reached when `values.Value` is a `string` (see line 173).
-- **Change needed**: Same as line 173.
-- **Why refused**: Same as line 173.
-- **Proposal**: `remove (impossible by construction)`, with line 173.
-- **Decision**:
-
-### CmdStarter.Analyzers/OptionsAnalyzer.cs:176
-
-- **File**: `CmdStarter.Analyzers/OptionsAnalyzer.cs`
-- **Line**: 176, the closing brace of the `else if` body.
-- **Code**:
-
-  ```csharp
-  }
-  ```
-
-- **Reason**: Only reached after line 175 (see line 173).
-- **Change needed**: Same as line 173.
-- **Why refused**: Same as line 173.
-- **Proposal**: `remove (impossible by construction)`, with line 173.
-- **Decision**:
-
 ### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:46
 
 - **File**: `CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs`
@@ -192,8 +112,8 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`).
 - **Change needed**: A method symbol that does not come from source would have to be analyzed.
 - **Why refused**: The analyzer is registered with `RegisterSymbolAction`, which does not receive symbols of referenced assemblies.
-- **Proposal**: `remove (impossible by construction)`: `attribute.ApplicationSyntaxReference!.GetSyntax().GetLocation()`. The attribute was found with `FirstOrDefault` on the method of a source symbol and tested for `null` just above.
-- **Decision**:
+- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
+- **Decision**: kept, accepted by Main on 2026-11-04.
 
 ### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:74
 
@@ -208,8 +128,8 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`).
 - **Change needed**: A type that does not come from source would have to be analyzed.
 - **Why refused**: Same as line 46: the symbol action only receives source symbols.
-- **Proposal**: `remove (impossible by construction)`: `?.` becomes `!.`, for the same reason as line 46.
-- **Decision**:
+- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
+- **Decision**: kept, accepted by Main on 2026-11-04.
 
 ### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:80
 
@@ -224,24 +144,8 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`).
 - **Change needed**: A type that does not come from source would have to be analyzed.
 - **Why refused**: Same as line 46.
-- **Proposal**: `remove (impossible by construction)`: `classAttribute.ApplicationSyntaxReference!.GetSyntax().GetLocation()`, without the `??`.
-- **Decision**:
-
-### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:116
-
-- **File**: `CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs`
-- **Line**: 116, the branch where `constant.Value` is neither `null` nor a `string` (7 of 8 branches are covered).
-- **Code**:
-
-  ```csharp
-  if (constant.HasValue && (constant.Value is null || constant.Value is string name && string.IsNullOrWhiteSpace(name)))
-  ```
-
-- **Reason**: The constant is the argument of a constructor already resolved to `StarterCommand(string name, string? description)`, so its value is a `string` or `null`. A value of another type does not resolve the constructor: probe on `base(5)`, `GetSymbolInfo(initializer).Symbol` is `null` (`OverloadResolutionFailure`, 2 candidates), so the method returns on line 108.
-- **Change needed**: A constant of another type than `string` would have to be passed to a resolved `StarterCommand` constructor.
-- **Why refused**: The language does not allow it; nothing in the analyzer or in CmdStarter.Lib can make it happen.
-- **Proposal**: `remove (impossible by construction)`: the condition can be `constant.HasValue && string.IsNullOrWhiteSpace(constant.Value as string)`, which keeps `null` and blank names reported.
-- **Decision**:
+- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
+- **Decision**: kept, accepted by Main on 2026-11-04.
 
 ### CmdStarter.Analyzers/AutoCompleteAttributeAnalyzer.cs:37
 
@@ -256,8 +160,8 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Reason**: `AttributeClass` is declared nullable, but an attribute that does not bind has an error type, not `null` (probe on `[Unknown] public string P`: class kind `Error`, name `Unknown`). The analyzer tests run on such code (`AnalyzersDoNotFailOnCodeThatDoesNotCompile`) and the branch is not taken.
 - **Change needed**: An attribute with a `null` `AttributeClass` would have to be read.
 - **Why refused**: Roslyn only returns `null` for an `AttributeData` it could not bind to a type at all, and the probe shows that even an attribute that does not resolve gets an error type.
-- **Proposal**: `remove (impossible by construction)`: `attributeClass is null ||` can go; `!` on the property keeps the nullable analysis quiet.
-- **Decision**:
+- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
+- **Decision**: kept, accepted by Main on 2026-11-04.
 
 ### CmdStarter.Analyzers/AutoCompleteAttributeAnalyzer.cs:42
 
@@ -272,8 +176,8 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`).
 - **Change needed**: A property or parameter that does not come from source would have to be analyzed.
 - **Why refused**: Same as `CommandDefinitionAnalyzer.cs:46`.
-- **Proposal**: `remove (impossible by construction)`: `attribute.ApplicationSyntaxReference!.GetSyntax().GetLocation()`.
-- **Decision**:
+- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
+- **Decision**: kept, accepted by Main on 2026-11-04.
 
 ### CmdStarter.Analyzers/ParentAttributeAnalyzer.cs:37
 
@@ -288,8 +192,8 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`).
 - **Change needed**: A type that does not come from source would have to be analyzed.
 - **Why refused**: Same as `CommandDefinitionAnalyzer.cs:46`.
-- **Proposal**: `remove (impossible by construction)`: `attribute.ApplicationSyntaxReference!.GetSyntax().GetLocation()`.
-- **Decision**:
+- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
+- **Decision**: kept, accepted by Main on 2026-11-04.
 
 ### CmdStarter.Analyzers/ParentAttributeAnalyzer.cs:46
 
@@ -304,37 +208,53 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`).
 - **Change needed**: A type that does not come from source would have to be analyzed.
 - **Why refused**: Same as `CommandDefinitionAnalyzer.cs:46`.
-- **Proposal**: `remove (impossible by construction)`: `attrs[0].ApplicationSyntaxReference!.GetSyntax().GetLocation()`.
-- **Decision**:
+- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
+- **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Analyzers/ParentAttributeAnalyzer.cs:49
+### CmdStarter.Lib/Repl/Remote/ReplPipeServer.cs:78
 
-- **File**: `CmdStarter.Analyzers/ParentAttributeAnalyzer.cs`
-- **Line**: 49, the branch where `current` is `null` (3 of 4 branches are covered).
+- **File**: `CmdStarter.Lib/Repl/Remote/ReplPipeServer.cs`
+- **Line**: 78, the `catch` around the wait for a client.
 - **Code**:
 
   ```csharp
-  while (current is not null && seen.Add(current))
+  catch (IOException)
   ```
 
-- **Reason**: `current` starts as `type` (never `null`) and is only reassigned to `next`, which comes from the pattern `is { } next` on line 52: it is never `null`.
-- **Change needed**: A `null` would have to be assigned to `current`.
-- **Why refused**: The two assignments are on lines 48 and 63 and both are non-null; the variable is inferred `INamedTypeSymbol`.
-- **Proposal**: `remove (impossible by construction)`: `while (seen.Add(current))`.
+- **Reason**: `WaitForConnectionAsync` throws `IOException` when a client connected to the pipe instance and closed it before the server started to wait. A probe with a raw `NamedPipeServerStream` (create the instance, connect a client and dispose it, then wait) throws `IOException` ("The pipe is being closed", French on the test machine) on 5 runs out of 5. In `RunSessionAsync` the wait starts right after the instance is created, so a test cannot place a client between the two without a race.
+- **Change needed**: a seam between the creation of the pipe instance and the wait (for example an internal hook or an injectable pipe factory), so that a test connects and closes a client first.
+- **Why refused**: it adds an injection point to the server only for this test, and without it the case is a timing race that would make the test unstable (the remote tests already had an unstable test). Removing the `catch` is refused too: a client that leaves at that moment would stop the whole server, since the exception would leave `RunAsync`.
+- **Proposal**: `keep (justified)`.
 - **Decision**:
 
-### CmdStarter.Analyzers/ParentAttributeAnalyzer.cs:69
+### CmdStarter.Lib/Repl/Remote/ReplPipeServer.cs:79
 
-- **File**: `CmdStarter.Analyzers/ParentAttributeAnalyzer.cs`
-- **Line**: 69, the branch where `AttributeClass` is `null` (3 of 4 branches are covered).
+- **File**: `CmdStarter.Lib/Repl/Remote/ReplPipeServer.cs`
+- **Line**: 79, the opening brace of the `catch`.
 - **Code**:
 
   ```csharp
-  if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.OriginalDefinition, genericParent))
+  {
   ```
 
-- **Reason**: `GetParentType` is only called with an attribute that `IsParent` accepted on line 52, and `IsParent` returns `false` for a `null` class.
-- **Change needed**: An attribute with a `null` `AttributeClass` would have to be passed to `GetParentType`.
-- **Why refused**: Its only caller is line 52, after `IsParent` returned `true`.
-- **Proposal**: `remove (impossible by construction)`: `attribute.AttributeClass!.OriginalDefinition` (the line after already uses `attribute.AttributeClass.TypeArguments` without a test).
+- **Reason**: only reached through line 78.
+- **Change needed**: same as line 78.
+- **Why refused**: same as line 78.
+- **Proposal**: `keep (justified)`.
+- **Decision**:
+
+### CmdStarter.Lib/Repl/Remote/ReplPipeServer.cs:81
+
+- **File**: `CmdStarter.Lib/Repl/Remote/ReplPipeServer.cs`
+- **Line**: 81.
+- **Code**:
+
+  ```csharp
+  return;
+  ```
+
+- **Reason**: only reached through line 78: the session ends before it began, and `RunAsync` waits for the next client.
+- **Change needed**: same as line 78.
+- **Why refused**: same as line 78.
+- **Proposal**: `keep (justified)`.
 - **Decision**:

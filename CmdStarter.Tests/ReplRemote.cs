@@ -192,6 +192,20 @@ public class ReplRemote
     }
 
     [Test]
+    public async Task IOExceptionOfTheSessionFactoryLeavesRunAsync()
+    {
+        // The errors of the pipe close one session; an error of the factory is another matter, even when its type is IOException.
+        var server = new RunningServer(() => throw new IOException("the factory could not reach its container"));
+        await using var client = await server.ConnectAsync();
+
+        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(client, "hello"));
+
+        var exception = Assert.ThrowsAsync<IOException>(async () => await server.Run.WaitAsync(Limit));
+        Assert.That(exception!.Message, Is.EqualTo("the factory could not reach its container"));
+        await server.DisposeAsync();
+    }
+
+    [Test]
     public async Task FactoryMustNotReturnRunningLocalRepl()
     {
         // The local REPL is running: serving it would let a remote exit stop it and would take over its console.

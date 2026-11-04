@@ -46,6 +46,7 @@ public sealed class ReplPipeServer
     /// </summary>
     /// <param name="cancellationToken">Token that stops the server.</param>
     /// <returns>A task that completes when the server has stopped.</returns>
+    /// <exception cref="Exception">The session factory threw: its exception leaves this method, whatever its type.</exception>
     /// <exception cref="InvalidOperationException">The session factory returned the instance of the previous session, or a <see cref="ReplStarter"/> whose local loop is running.</exception>
     public async Task RunAsync(CancellationToken cancellationToken)
     {
@@ -73,7 +74,26 @@ public sealed class ReplPipeServer
         try
         {
             await pipe.WaitForConnectionAsync(cancellationToken);
-            await ServeAsync(pipe, cancellationToken);
+        }
+        catch (IOException)
+        {
+            // The client left before the session began: the server goes on.
+            return;
+        }
+
+        // The factory and the shared-session check are outside every catch of the pipe's errors: whatever they throw leaves RunAsync.
+        var session = createSession();
+        // A shared starter would carry the state of one session into the next, or stop and take over a local REPL: it is a configuration error.
+        if (session.IsLaunched || (previousSession is not null && previousSession.TryGetTarget(out var previous) && ReferenceEquals(previous, session)))
+        {
+            throw new InvalidOperationException(SharedSessionMessage);
+        }
+
+        previousSession = new WeakReference<ReplStarter>(session);
+
+        try
+        {
+            await ServeAsync(pipe, session, cancellationToken);
         }
         catch (IOException)
         {
@@ -81,7 +101,7 @@ public sealed class ReplPipeServer
         }
     }
 
-    private async Task ServeAsync(NamedPipeServerStream pipe, CancellationToken cancellationToken)
+    private static async Task ServeAsync(NamedPipeServerStream pipe, ReplStarter session, CancellationToken cancellationToken)
     {
         var encoding = new UTF8Encoding(false);
         using var reader = new StreamReader(pipe, encoding, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
@@ -91,14 +111,6 @@ public sealed class ReplPipeServer
         using var error = new PrefixedLineWriter("E ", writer, gate);
 
         // The session writes to the pipe only: it reads nothing from the console and never touches System.Console.
-        var session = createSession();
-        // A shared starter would carry the state of one session into the next, or stop and take over a local REPL: it is a configuration error.
-        if (session.IsLaunched || (previousSession is not null && previousSession.TryGetTarget(out var previous) && ReferenceEquals(previous, session)))
-        {
-            throw new InvalidOperationException(SharedSessionMessage);
-        }
-
-        previousSession = new WeakReference<ReplStarter>(session);
         session.DefaultConsole = new CommandConsole(TextReader.Null, output, error);
 
         while (await reader.ReadLineAsync(cancellationToken) is { } line)

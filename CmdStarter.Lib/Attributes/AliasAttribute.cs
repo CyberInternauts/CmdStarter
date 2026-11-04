@@ -53,8 +53,10 @@ public sealed class AliasAttribute : Attribute, IEnumerable<string>
     /// </summary>
     /// <param name="usePrefix">Determines wheter the aliases have prefixes or not.</param>
     /// <param name="aliases">The aliases.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="aliases"/> is <see langword="null"/>.</exception>
     public AliasAttribute(bool usePrefix, params string[] aliases)
     {
+        ArgumentNullException.ThrowIfNull(aliases);
         _aliases = aliases;
         _usePrefix = usePrefix;
     }
@@ -63,6 +65,7 @@ public sealed class AliasAttribute : Attribute, IEnumerable<string>
     /// Creates a new instance of <see cref="AliasAttribute"/>.
     /// </summary>
     /// <param name="aliases">The aliases.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="aliases"/> is <see langword="null"/>.</exception>
     public AliasAttribute(params string[] aliases)
         : this(USE_PREFIX_BY_DEFAULT, aliases)
     {

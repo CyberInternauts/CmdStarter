@@ -157,10 +157,11 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
         yield return "--" + NameConversion.PascalToKebabCase(name);
         foreach (var attribute in attributes.Where(item => SymbolEqualityComparer.Default.Equals(item.AttributeClass, aliasAttribute)))
         {
-            var usePrefix = attribute.ConstructorArguments.Length > 1 && attribute.ConstructorArguments[0].Value is bool value && value;
+            var usePrefix = attribute.ConstructorArguments.Length > 1 && true.Equals(attribute.ConstructorArguments[0].Value);
             var prefix = attribute.NamedArguments.FirstOrDefault(item => StringComparer.Ordinal.Equals(item.Key, "Prefix")).Value.Value as string ?? "-";
             var values = attribute.ConstructorArguments.Length > 1 ? attribute.ConstructorArguments[1] : attribute.ConstructorArguments.FirstOrDefault();
-            if (values.Kind == TypedConstantKind.Array)
+            // A null array names no alias, and it has no Values.
+            if (values.Kind == TypedConstantKind.Array && !values.IsNull)
             {
                 foreach (var alias in values.Values)
                 {
@@ -169,10 +170,6 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
                         yield return (usePrefix ? prefix : string.Empty) + text;
                     }
                 }
-            }
-            else if (values.Value is string text)
-            {
-                yield return (usePrefix ? prefix : string.Empty) + text;
             }
         }
     }

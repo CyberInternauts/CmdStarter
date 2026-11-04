@@ -185,6 +185,28 @@ public sealed class AnalyzerBranchTests
         """);
 
     [Test]
+    public async Task NullAliasArrayNamesNoAlias() => Assert.That(await AnalyzerRunner.GetDiagnosticsAsync("""
+        using CyberInternauts.CmdStarter;
+        using CyberInternauts.CmdStarter.Attributes;
+        using CyberInternauts.CmdStarter.Interfaces;
+        public sealed class Global : IGlobalOptionsContainer { public bool Verbose { get; set; } }
+        public sealed class WithPlainAlias : StarterCommand { [Alias((string[]?)null!)] public bool First { get; set; } }
+        public sealed class WithPrefixedAlias : StarterCommand { [Alias(true, (string[]?)null!)] public bool Second { get; set; } }
+        """), Is.Empty, "a null array names no alias: nothing is hidden and no analyzer fails");
+
+    [Test]
+    public async Task AutoCompleteWithNullArrayHasNoCompletion()
+    {
+        var diagnostics = await AnalyzerRunner.GetDiagnosticsAsync("""
+            using CyberInternauts.CmdStarter;
+            using CyberInternauts.CmdStarter.Attributes;
+            public sealed class C : StarterCommand { [AutoComplete((object[]?)null!)] public string A { get; set; } = ""; }
+            """);
+
+        Assert.That(diagnostics.Select(diagnostic => diagnostic.Id), Is.EqualTo(new[] { "CMDS0003" }), "no text and no type: the completion is empty, and the analyzer does not fail");
+    }
+
+    [Test]
     public async Task AutoCompleteWithOnlyNullAndBlankValuesIsEmpty() => await AssertCount("CMDS0003", 1, """
         using CyberInternauts.CmdStarter;
         using CyberInternauts.CmdStarter.Attributes;

@@ -113,7 +113,7 @@ public sealed class CommandDefinitionAnalyzer : DiagnosticAnalyzer
 
         var expression = initializer.ArgumentList.Arguments[0].Expression;
         var constant = context.SemanticModel.GetConstantValue(expression);
-        if (constant.HasValue && (constant.Value is null || constant.Value is string name && string.IsNullOrWhiteSpace(name)))
+        if (constant.HasValue && string.IsNullOrWhiteSpace(constant.Value as string))
         {
             context.ReportDiagnostic(Diagnostic.Create(Descriptors.EmptyCommandName, expression.GetLocation()));
         }

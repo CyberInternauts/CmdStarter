@@ -69,7 +69,8 @@ public sealed class AutoCompleteAttributeAnalyzer : DiagnosticAnalyzer
     {
         if (value.Kind == TypedConstantKind.Array)
         {
-            return value.Values.Any(HasNonBlankValue);
+            // A null array has no Values and no text.
+            return !value.IsNull && value.Values.Any(HasNonBlankValue);
         }
 
         return value.Value is string text && !string.IsNullOrWhiteSpace(text);
