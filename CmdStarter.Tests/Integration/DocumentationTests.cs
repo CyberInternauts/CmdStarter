@@ -59,11 +59,11 @@ public sealed class DocumentationTests
         Assert.That(failures, Is.Empty, string.Join(Environment.NewLine, failures));
     }
 
-    // README.md, PKG-README.md, samples/README.md and every Markdown file under docs/ (the decision records and the migration guide only for links).
+    // README.md, PKG-README.md, CmdStarter.Hosting/PKG-README.md, samples/README.md and every Markdown file under docs/ (the decision records and the migration guide only for links).
     private static IEnumerable<string> ExaminedFiles(bool includeDecisionRecords)
     {
         var root = RepositoryPaths.Root;
-        foreach (var name in new[] { "README.md", "PKG-README.md", "samples/README.md" })
+        foreach (var name in new[] { "README.md", "PKG-README.md", "CmdStarter.Hosting/PKG-README.md", "samples/README.md" })
         {
             yield return Path.Combine(root, name.Replace('/', Path.DirectorySeparatorChar));
         }

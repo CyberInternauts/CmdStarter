@@ -1,44 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\ProjectsCommon.props" />
-	
+	<Import Project="..\Packaging.props" />
+
   <PropertyGroup>
     <RootNamespace>CyberInternauts.CmdStarter</RootNamespace>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>$(BasePackageName).CmdStarter</PackageId>
     <Title>CmdStarter</Title>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Description>Layer over System.CommandLine that simplifies integration.</Description>
-    <PackageProjectUrl>https://github.com/CyberInternauts/CmdStarter</PackageProjectUrl>
-    <PackageTags>System.CommandLine;command line</PackageTags>
+    <Description>Turns plain C# classes and methods into a System.CommandLine command tree, with Microsoft dependency injection, a REPL and command states.</Description>
+    <PackageTags>System.CommandLine;command line;cli;commands;dependency injection;repl</PackageTags>
     <PackageReadmeFile>PKG-README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageReleaseNotes>New features:
-- Implement commands using an abstract class or an interface
-- Filter classes to use in current execution by namespaces or by full class names
-- Classes using dependency injection are supported
-- Mark classes as global options container
-- Easy access to the global options inside the executing method
-- Lonely command can be rooted
-- Autowiring properties to System.CommandLine command options
-- Autowiring executing method parameters to System.CommandLine command arguments
-- Alias, Hidden, Description and AutoComplete attributes are offered to set command options/arguments properties
-- Automatic commands tree loading via namespaces or Parent|Children attributes</PackageReleaseNotes>
-    <PackageIcon>Icon.png</PackageIcon>
-    <PackageOutputPath>..\artefacts</PackageOutputPath>
+    <PackageReleaseNotes>2.0.0-preview.1: rewrite on System.CommandLine 2.0 stable and .NET 10, with breaking changes. Migration guide: https://github.com/CyberInternauts/CmdStarter/blob/master/docs/migration/1.x-to-2.0.md</PackageReleaseNotes>
   </PropertyGroup>
-	
+
   <ItemGroup>
     <ProjectReference Include="..\CmdStarter.Analyzers\CmdStarter.Analyzers.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <None Include="..\CmdStarter.Analyzers\bin\$(Configuration)\netstandard2.0\CmdStarter.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="..\Icon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <None Include="..\PKG-README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
