@@ -1467,8 +1467,9 @@ public class Starter
         var getInstance = FindGetInstanceMethod(commandType);
         if (getInstance.DeclaringType != typeof(IStarterCommand))
         {
-            var instance = (IStarterCommand)getInstance.Invoke(null, null)!;
-            return new CommandActivation(instance, ownsInstance: true);
+            return ServiceProvider is null
+                ? new CommandActivation((IStarterCommand)getInstance.Invoke(null, null)!, ownsInstance: true)
+                : ActivateFromGetInstance(getInstance);
         }
 
         if (ServiceProvider is not null)
@@ -1489,27 +1490,50 @@ public class Starter
 
     private CommandActivation ActivateFromServices([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type? instanceType)
     {
-        var provider = ServiceProvider!;
-        var scopeFactory = provider.GetService<IServiceScopeFactory>();
-        if (scopeFactory is null)
-        {
-            var resolved = instanceType is null ? null : provider.GetService(instanceType);
-            var instance = instanceType is null ? null : resolved ?? ActivatorUtilities.CreateInstance(provider, instanceType);
-            return new CommandActivation(instance, ownsInstance: instanceType is not null && resolved is null, services: provider);
-        }
-
-        var scope = scopeFactory.CreateAsyncScope();
+        var (scope, services) = OpenExecutionScope();
         try
         {
-            var resolvedInScope = instanceType is null ? null : scope.ServiceProvider.GetService(instanceType);
-            var instance = instanceType is null ? null : resolvedInScope ?? ActivatorUtilities.CreateInstance(scope.ServiceProvider, instanceType);
-            return new CommandActivation(instance, ownsInstance: instanceType is not null && resolvedInScope is null, scope, scope.ServiceProvider);
+            var resolved = instanceType is null ? null : services.GetService(instanceType);
+            var instance = instanceType is null ? null : resolved ?? ActivatorUtilities.CreateInstance(services, instanceType);
+            return new CommandActivation(instance, ownsInstance: instanceType is not null && resolved is null, scope, services);
         }
         catch
         {
-            scope.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            ReleaseScope(scope);
             throw;
         }
+    }
+
+    // The command declares its own GetInstance (first in the order of ADR 0006), but the execution still gets its scope:
+    // the filters registered by type and CommandContext.Services belong to the execution, not to how the command is created.
+    private CommandActivation ActivateFromGetInstance(MethodInfo getInstance)
+    {
+        var (scope, services) = OpenExecutionScope();
+        try
+        {
+            return new CommandActivation((IStarterCommand)getInstance.Invoke(null, null)!, ownsInstance: true, scope, services);
+        }
+        catch
+        {
+            ReleaseScope(scope);
+            throw;
+        }
+    }
+
+    // Opens the scope of one execution: a scope of the service provider when it can create some, else the provider itself.
+    private (AsyncServiceScope? Scope, IServiceProvider Services) OpenExecutionScope()
+    {
+        var provider = ServiceProvider!;
+        var scopeFactory = provider.GetService<IServiceScopeFactory>();
+        if (scopeFactory is null) return (null, provider);
+
+        var scope = scopeFactory.CreateAsyncScope();
+        return (scope, scope.ServiceProvider);
+    }
+
+    private static void ReleaseScope(AsyncServiceScope? scope)
+    {
+        if (scope.HasValue) scope.Value.DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 
     [Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]

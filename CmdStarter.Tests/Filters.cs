@@ -1,6 +1,7 @@
 using System.Reflection;
 using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Tests.Commands.Filters;
+using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 using CyberInternauts.CmdStarter.Tests.Commands.States;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +20,8 @@ public sealed class Filters
         FilterLog.Current = new FilterLog();
         DisposableFilter.Disposals = 0;
         ScopedFilter.ResolvedServices.Clear();
+        ScopedDisposable.Disposals = 0;
+        ScopedResolvingFilter.Resolved.Clear();
     }
 
     [Test]
@@ -198,6 +201,117 @@ public sealed class Filters
         Assert.That(first, Is.Not.SameAs(second));
     }
 
+    [Test]
+    public async Task FilterRegisteredByTypeGetsItsServicesWhenTheCommandComesFromGetInstance()
+    {
+        var marker = new Marker();
+        await using var provider = new ServiceCollection().AddSingleton<IMarker>(marker).BuildServiceProvider();
+        var starter = CreateGetInstanceStarter(provider).AddFilter<MarkingFilter>();
+        var (console, error) = CreateConsole();
+
+        var exitCode = await starter.Start(Array.Empty<string>(), console);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exitCode, Is.EqualTo(0));
+            Assert.That(error.ToString(), Is.Empty);
+            Assert.That(marker.Marks, Is.EqualTo(new[] { "filter: marked" }));
+        });
+    }
+
+    [Test]
+    public async Task CommandContextHasServicesWhenTheCommandComesFromGetInstance()
+    {
+        ServicesProbeFilter.ServicesWereNull = null;
+        await using var provider = new ServiceCollection().BuildServiceProvider();
+        var starter = CreateGetInstanceStarter(provider).AddFilter<ServicesProbeFilter>();
+
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+        Assert.That(ServicesProbeFilter.ServicesWereNull, Is.False);
+    }
+
+    [Test]
+    public async Task ExecutionScopeIsReleasedAfterACommandFromGetInstance()
+    {
+        await using var provider = new ServiceCollection().AddScoped<ScopedDisposable>().BuildServiceProvider();
+        var scopes = new CountingScopes(provider);
+        var starter = CreateGetInstanceStarter(scopes).AddFilter<ScopedResolvingFilter>();
+
+        // Building the tree activates the description instance of the command through the same path.
+        starter.InstantiateCommands();
+        var openedByTheTree = scopes.Opened;
+        Assert.That(openedByTheTree, Is.GreaterThan(0));
+        Assert.That(scopes.Closed, Is.EqualTo(scopes.Opened));
+
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+
+        Assert.That(scopes.Opened, Is.EqualTo(openedByTheTree + 1));
+        Assert.That(scopes.Closed, Is.EqualTo(scopes.Opened));
+        Assert.That(ScopedResolvingFilter.Resolved, Has.Count.EqualTo(1));
+        Assert.That(ScopedDisposable.Disposals, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task GetInstanceStillCreatesTheCommand()
+    {
+        await using var provider = new ServiceCollection().BuildServiceProvider();
+        var starter = CreateGetInstanceStarter(provider);
+        MadeCommand? executed = null;
+        starter.CommandHandled += (_, eventArgs) => executed = (MadeCommand?)eventArgs.Instance;
+
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+
+        Assert.That(executed, Is.Not.Null);
+        Assert.That(executed!.Origin, Is.EqualTo("GetInstance"));
+        Assert.That(executed.Disposed, Is.EqualTo(1));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task GetInstanceFailureReleasesTheExecutionScope(bool providerHasNoScopeFactory)
+    {
+        await using var provider = new ServiceCollection().BuildServiceProvider();
+        var scopes = new CountingScopes(provider, providerHasNoScopeFactory);
+        var starter = new Starter
+        {
+            Classes = System.Collections.Immutable.ImmutableList.Create(typeof(FailingGetInstanceCommand).FullName!),
+            ServiceProvider = scopes
+        };
+
+        Assert.ThrowsAsync<System.Reflection.TargetInvocationException>(async () => await starter.Start(Array.Empty<string>()));
+
+        Assert.That(scopes.Closed, Is.EqualTo(scopes.Opened));
+        Assert.That(scopes.Opened, providerHasNoScopeFactory ? Is.EqualTo(0) : Is.GreaterThan(0));
+    }
+
+    [Test]
+    public async Task FactoryPathIsUnchanged()
+    {
+        var starter = new Starter
+        {
+            Classes = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).FullName!)
+        };
+        starter.SetFactory(type => (IStarterCommand)Activator.CreateInstance(type)!);
+        starter.AddFilter<ServicesProbeFilter>();
+        ServicesProbeFilter.ServicesWereNull = null;
+
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+
+        // Without a service provider there is no execution scope: the filter is created with its parameterless constructor.
+        Assert.That(ServicesProbeFilter.ServicesWereNull, Is.True);
+        Assert.That(FilterLog.Current.Entries, Is.EqualTo(new[] { "handler" }));
+    }
+    private static Starter CreateGetInstanceStarter(IServiceProvider? provider) => new()
+    {
+        Classes = System.Collections.Immutable.ImmutableList.Create(typeof(MadeCommand).FullName!),
+        ServiceProvider = provider
+    };
+
+    private static (CommandConsole Console, StringWriter Error) CreateConsole()
+    {
+        var error = new StringWriter();
+        return (new CommandConsole(new StringReader(string.Empty), new StringWriter(), error), error);
+    }
     private static Starter CreateStarter() => new()
     {
         Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).Namespace!),
@@ -205,6 +319,40 @@ public sealed class Filters
         StateProvider = new TestStateProvider { CurrentState = "open" }
     };
 
+    private sealed class CountingScopes(IServiceProvider inner, bool hidesScopeFactory = false) : IServiceProvider, IServiceScopeFactory
+    {
+        public int Opened { get; private set; }
+
+        public int Closed { get; private set; }
+
+        public object? GetService(Type serviceType) =>
+            serviceType == typeof(IServiceScopeFactory) ? (hidesScopeFactory ? null : this) : inner.GetService(serviceType);
+
+        public IServiceScope CreateScope()
+        {
+            Opened++;
+            return new CountedScope(inner.CreateScope(), this);
+        }
+
+        private sealed class CountedScope(IServiceScope scope, CountingScopes owner) : IServiceScope, IAsyncDisposable
+        {
+            public IServiceProvider ServiceProvider => scope.ServiceProvider;
+
+            public void Dispose()
+            {
+                owner.Closed++;
+                scope.Dispose();
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                owner.Closed++;
+                if (scope is IAsyncDisposable asyncDisposable) return asyncDisposable.DisposeAsync();
+                scope.Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
     private sealed class ContextFilter(Action<CommandContext> capture) : ICommandFilter
     {
         public Task<int> InvokeAsync(CommandContext context, Func<Task<int>> next)
@@ -214,3 +362,4 @@ public sealed class Filters
         }
     }
 }
+
