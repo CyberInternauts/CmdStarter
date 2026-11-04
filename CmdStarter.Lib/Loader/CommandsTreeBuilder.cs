@@ -150,7 +150,7 @@ internal sealed class CommandsTreeBuilder
             // Children for each namespace
             var children = CommandsTypes.Where(t =>
                 !t.GetCustomAttributes(false).Any(a => a is ParentAttribute) &&
-                childrenNamespace.Any(n => t.Namespace?.StartsWith(n, StringComparison.CurrentCulture) ?? false)
+                childrenNamespace.Any(n => t.Namespace?.StartsWith(n, StringComparison.Ordinal) ?? false)
             );
 
             foreach (var child in children)
@@ -209,7 +209,7 @@ internal sealed class CommandsTreeBuilder
             var parentNode = tree.FindNode(command);
             parentNode ??= tree.AddChild(command);
 
-            var children = CommandsTypes.Where(t => t.Namespace?.StartsWith(parentNode.Value!.Namespace + ".", StringComparison.CurrentCulture) ?? false);
+            var children = CommandsTypes.Where(t => t.Namespace?.StartsWith(parentNode.Value!.Namespace + ".", StringComparison.Ordinal) ?? false);
             foreach (var child in children)
             {
                 var childNode = tree.FindNode(child);
@@ -217,7 +217,7 @@ internal sealed class CommandsTreeBuilder
                 {
                     // Move only if the namespace is under previous one or if no parent
                     var currentNamespace = childNode.Parent?.Value?.Namespace ?? string.Empty;
-                    var isDeeperNamespace = parentNode.Value!.Namespace?.StartsWith(currentNamespace, StringComparison.CurrentCulture) ?? false;
+                    var isDeeperNamespace = parentNode.Value!.Namespace?.StartsWith(currentNamespace, StringComparison.Ordinal) ?? false;
                     var hasParentAttribute = !noMoveIfParentAttribute || !childNode.Value!.GetCustomAttributes(false).Any(a => a is ParentAttribute);
                     if (hasParentAttribute && isDeeperNamespace)
                     {

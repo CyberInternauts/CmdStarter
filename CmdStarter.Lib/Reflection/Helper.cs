@@ -1,7 +1,6 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Data;
-using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -105,14 +104,14 @@ public static partial class Helper
         var nbCommands = commandsTypes.Count();
         if (nbCommands == 0 || namespaces.Count == 0) return commandsTypes;
 
-        var namespacesIncluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture));
+        var namespacesIncluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal));
         var hasIncluded = namespacesIncluded.Any();
-        var namespacesExcluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture));
+        var namespacesExcluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal));
 
         commandsTypes = commandsTypes.Where(c =>
         {
-            var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..], StringComparison.CurrentCulture) ?? false);
-            var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n, StringComparison.CurrentCulture) ?? false);
+            var outNamespaces = namespacesExcluded.Any(n => c.Namespace?.StartsWith(n[1..], StringComparison.Ordinal) ?? false);
+            var inNamespaces = !hasIncluded || namespacesIncluded.Any(n => c.Namespace?.StartsWith(n, StringComparison.Ordinal) ?? false);
 
             return !outNamespaces && inNamespaces;
         });
@@ -131,18 +130,18 @@ public static partial class Helper
         var nbCommands = commandsTypes.Count();
         if (nbCommands == 0 || classes.Count == 0) return commandsTypes;
 
-        bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture));
+        bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal));
 
         Regex dotRegex = DotMatcher();
 
-        Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture))
+        Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter[1..]);
                 return new Regex(pattern, RegexOptions.RightToLeft);
             }).ToArray();
 
-        Regex[] filters = classes.Where(filter => !filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.CurrentCulture))
+        Regex[] filters = classes.Where(filter => !filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter);

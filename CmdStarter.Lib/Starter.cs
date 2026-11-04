@@ -260,7 +260,7 @@ public class Starter
                             t.IsAssignableTo(typeof(IStarterCommand)) &&
                             t.Namespace != null &&
                             t.Namespace != specialCommandsNamespace &&
-                            !t.Namespace.StartsWith(specialCommandsNamespace + ".", StringComparison.CurrentCulture)
+                            !t.Namespace.StartsWith(specialCommandsNamespace + ".", StringComparison.Ordinal)
                         )
                     );
 
