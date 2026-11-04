@@ -1,17 +1,13 @@
 using System.Reflection;
 using CyberInternauts.CmdStarter.Interfaces;
-using CyberInternauts.CmdStarter.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CyberInternauts.CmdStarter;
 
 /// <summary>Configures and builds a CmdStarter application backed by Microsoft.Extensions.DependencyInjection.</summary>
 public sealed class CmdStarterBuilder
 {
-    private readonly List<Assembly> assemblies = new();
-    private readonly List<Action<Starter>> starterConfigurations = new();
-    private IReplInputProvider? replInputProvider;
+    private readonly CmdStarterOptions options = new();
     private bool built;
 
     /// <summary>Gets the service collection used to register application services.</summary>
@@ -25,8 +21,7 @@ public sealed class CmdStarterBuilder
     /// <returns>This builder.</returns>
     public CmdStarterBuilder AddCommandsFromAssembly(Assembly assembly)
     {
-        ArgumentNullException.ThrowIfNull(assembly);
-        if (!assemblies.Contains(assembly)) assemblies.Add(assembly);
+        options.AddCommandsFromAssembly(assembly);
         return this;
     }
 
@@ -35,8 +30,7 @@ public sealed class CmdStarterBuilder
     /// <returns>This builder.</returns>
     public CmdStarterBuilder ConfigureStarter(Action<Starter> configure)
     {
-        ArgumentNullException.ThrowIfNull(configure);
-        starterConfigurations.Add(configure);
+        options.ConfigureStarter(configure);
         return this;
     }
 
@@ -45,8 +39,7 @@ public sealed class CmdStarterBuilder
     /// <returns>This builder.</returns>
     public CmdStarterBuilder UseRepl(IReplInputProvider inputProvider)
     {
-        ArgumentNullException.ThrowIfNull(inputProvider);
-        replInputProvider = inputProvider;
+        options.UseRepl(inputProvider);
         return this;
     }
 
@@ -56,22 +49,14 @@ public sealed class CmdStarterBuilder
     {
         if (built) throw new InvalidOperationException("The application has already been built.");
         built = true;
-        Starter starter = replInputProvider is null ? new Starter() : new Repl.ReplStarter(replInputProvider);
-        if (assemblies.Count > 0) starter.Assemblies = starter.Assemblies.AddRange(assemblies);
-        foreach (var configure in starterConfigurations) configure(starter);
-        Services.TryAddSingleton<Starter>(starter);
-        if (starter is Repl.ReplStarter replStarter) Services.TryAddSingleton(replStarter);
-        starter.FindCommandsTypes();
-        foreach (var commandType in starter.CommandsTypes)
+        Services.AddCmdStarter(configure =>
         {
-            if (!Helper.DeclaresGetInstance(commandType)) Services.TryAddTransient(commandType);
-        }
-        foreach (var commandType in starter.MethodCommandsTypes.Where(type => !type.IsAbstract))
-        {
-            Services.TryAddTransient(commandType);
-        }
+            foreach (var assembly in options.Assemblies) configure.AddCommandsFromAssembly(assembly);
+            foreach (var starterConfiguration in options.StarterConfigurations) configure.ConfigureStarter(starterConfiguration);
+            if (options.ReplInputProvider is not null) configure.UseRepl(options.ReplInputProvider);
+        });
         var provider = Services.BuildServiceProvider(ServiceProviderOptions);
-        starter.ServiceProvider = provider;
+        var starter = provider.GetRequiredService<Starter>();
         return new CmdStarterApp(starter, provider);
     }
 }

@@ -1,0 +1,42 @@
+using System.Reflection;
+using CyberInternauts.CmdStarter.Interfaces;
+
+namespace CyberInternauts.CmdStarter;
+
+/// <summary>Configures a CmdStarter registration in a service collection.</summary>
+public sealed class CmdStarterOptions
+{
+    internal List<Assembly> Assemblies { get; } = new();
+    internal List<Action<Starter>> StarterConfigurations { get; } = new();
+    internal IReplInputProvider? ReplInputProvider { get; private set; }
+
+    /// <summary>Adds an assembly to search for commands.</summary>
+    /// <param name="assembly">The assembly to search.</param>
+    /// <returns>This options instance.</returns>
+    public CmdStarterOptions AddCommandsFromAssembly(Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+        if (!Assemblies.Contains(assembly)) Assemblies.Add(assembly);
+        return this;
+    }
+
+    /// <summary>Adds a configuration action for the starter.</summary>
+    /// <param name="configure">The configuration action.</param>
+    /// <returns>This options instance.</returns>
+    public CmdStarterOptions ConfigureStarter(Action<Starter> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        StarterConfigurations.Add(configure);
+        return this;
+    }
+
+    /// <summary>Configures the application to run in REPL mode.</summary>
+    /// <param name="inputProvider">Provides lines to the REPL.</param>
+    /// <returns>This options instance.</returns>
+    public CmdStarterOptions UseRepl(IReplInputProvider inputProvider)
+    {
+        ArgumentNullException.ThrowIfNull(inputProvider);
+        ReplInputProvider = inputProvider;
+        return this;
+    }
+}
