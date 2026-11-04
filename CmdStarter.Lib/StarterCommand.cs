@@ -80,18 +80,7 @@ public abstract class StarterCommand : IStarterCommand
     /// <returns>The command path, or an empty string when the tree is not built.</returns>
     public string GetFullCommandString()
     {
-        if (CliCommand is null) return string.Empty;
-
-        var names = new List<string> { CliCommand.Name };
-        var currentCommand = CliCommand.Parents.FirstOrDefault();
-        while (currentCommand is not null)
-        {
-            names.Add(currentCommand.Name);
-            currentCommand = currentCommand.Parents.FirstOrDefault();
-        }
-
-        names.Reverse();
-        return String.Join(" ", names.Skip(1));
+        return CliCommand is null ? string.Empty : Starter.GetCommandPath(CliCommand);
     }
 
     /// <summary>

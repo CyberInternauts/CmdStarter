@@ -267,6 +267,32 @@ public class Starter
     }
 
     /// <summary>
+    /// Gets the full command path of a command type: its name preceded by all its parents names, excluding the root command.
+    /// </summary>
+    /// <remarks>Works for every command type, including those that only implement <see cref="IStarterCommand"/>.</remarks>
+    /// <typeparam name="CommandType">Command type to look for.</typeparam>
+    /// <returns>The command path, or <see langword="null"/> when no matching command exists.</returns>
+    public string? GetFullCommandString<CommandType>() where CommandType : IStarterCommand
+    {
+        var command = FindCommand<CommandType>();
+        return command is null ? null : GetCommandPath(command);
+    }
+
+    internal static string GetCommandPath(Command command)
+    {
+        var names = new List<string> { command.Name };
+        var currentCommand = command.Parents.FirstOrDefault();
+        while (currentCommand is not null)
+        {
+            names.Add(currentCommand.Name);
+            currentCommand = currentCommand.Parents.FirstOrDefault();
+        }
+
+        names.Reverse();
+        return string.Join(" ", names.Skip(1));
+    }
+
+    /// <summary>
     /// Find all <see cref="IStarterCommand "/>s that correspond to filters
     /// </summary>
     /// <exception cref="Exceptions.NoCommandFoundException"></exception>

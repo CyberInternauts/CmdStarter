@@ -239,15 +239,11 @@ public class Basics
 
         var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
-        var commandNames = new List<string> { command.Name };
-        var parentCommand = command.Parents.FirstOrDefault();
-        while (parentCommand != null)
+        Assert.That(starter.GetFullCommandString<CommandType>(), Is.EqualTo(expected));
+        if (starter.FindCommandInstance(command) is StarterCommand starterCommand)
         {
-            commandNames.Add(parentCommand.Name);
-            parentCommand = parentCommand.Parents.FirstOrDefault();
+            Assert.That(starterCommand.GetFullCommandString(), Is.EqualTo(expected));
         }
-        commandNames.Reverse();
-        Assert.That(string.Join(" ", commandNames.Skip(1)), Is.EqualTo(expected));
     }
 
     private static IEnumerable<TestCaseData> ClassesFilterRegexSource
