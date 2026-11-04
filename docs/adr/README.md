@@ -15,3 +15,4 @@
 | 0011 | [REPL Mode](0011-repl-mode.md) | Accepted |
 | 0012 | [Command States](0012-command-states.md) | Accepted |
 | 0013 | [Public API Names](0013-public-api-names.md) | Accepted |
+| 0014 | [Validation Attributes](0014-validation-attributes.md) | Accepted |

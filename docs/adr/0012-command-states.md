@@ -13,6 +13,8 @@ CmdStarter defines no application states. The application supplies its own state
 
 `[AvailableInState(...)]` can be applied to a class-based command, a method-based command group, or a method-based command. The state value is read once before each `Start` execution, after command instantiation. The command is available when its own attribute is absent or one of its listed values equals the current value according to `object.Equals`, and every parent command is available. An unavailable command makes its complete subtree unavailable.
 
+An implicit method group created for a path has no state of its own. It remains visible and passes its parent's availability to its children; an explicit group that adopts it uses the explicit group's state metadata.
+
 When at least one command has `[AvailableInState]`, a missing provider is a configuration error: `InstantiateCommands` throws `InvalidAttributeException`. For each execution, CmdStarter updates command availability and sets `Command.Hidden` when the command has `[Hidden]` or is unavailable. The command tree is not rebuilt. A command unavailable in the current state is refused before its handler instance or execution scope is created; CmdStarter writes `Command '<path>' is not available in the current state.` to the invocation error writer, returns exit code `1`, and does not raise `CommandHandled`.
 
 A single class command rooted on the root command remains visible in help because its symbols are placed on the root command. Its handler is still refused when its state does not allow execution.
