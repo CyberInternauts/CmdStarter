@@ -141,7 +141,7 @@ internal static class Loader
         var description = descriptions.Aggregate(
                 new StringBuilder(),
                 (current, next) => current.Append(current.Length == 0 ? "" : StarterCommand.DescriptionJoiner).Append(next)
-            ).ToString() ?? string.Empty;
+            ).ToString();
 
         receptacle.Description = description;
     }

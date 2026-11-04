@@ -54,6 +54,23 @@ public sealed class ImplicitDefaultCommands
     public static int Fit([Option][Range(1, 3)] int size = 7) => size;
 }
 
+// A validation that refuses every value and gives no message at all, not even the default one.
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class MessagelessAttribute : ValidationAttribute
+{
+    protected override ValidationResult? IsValid(object? value, ValidationContext validationContext) => new ValidationResult(null);
+
+    public override string FormatErrorMessage(string name) => null!;
+}
+
+public sealed class MessagelessCommand : StarterCommand
+{
+    [Messageless]
+    public int Level { get; set; }
+
+    public override Delegate HandlingMethod => (Func<int>)(() => Level);
+}
+
 public sealed class LimitOptions : IGlobalOptionsContainer
 {
     [Range(0, 3)]

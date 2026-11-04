@@ -80,6 +80,7 @@ public static class TestsCommon
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.PrivateSetters.PrivateSetterOptions).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.BrokenGlobalOptions.HealthyCommand).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.ExecutionPaths.ExecutionLog).Namespace!);
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + "CyberInternauts.CmdStarter.Tests.Commands.TreeBuilding");
     }
 
     public static void SetDefaultClasses(CmdStarter.Starter starter)

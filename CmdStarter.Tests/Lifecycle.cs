@@ -215,6 +215,22 @@ public class Lifecycle
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "methods:short" }));
     }
 
+    [Test]
+    public async Task SynchronousInstantiationWithAServiceProviderReleasesTheDescriptionInstance()
+    {
+        var starter = CreateLifecycleStarter<DisposableCommand>();
+        var services = new ServiceCollection();
+        services.AddTransient<DisposableCommand>();
+        await using var provider = services.BuildServiceProvider();
+        starter.ServiceProvider = provider;
+
+        // The tree is built without any async release: the description instance is disposed synchronously.
+        starter.InstantiateCommands();
+
+        Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "dispose:1" }));
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(2));
+    }
+
     private static Starter CreateLifecycleStarter<CommandType>() where CommandType : IStarterCommand
     {
         var starter = new Starter();

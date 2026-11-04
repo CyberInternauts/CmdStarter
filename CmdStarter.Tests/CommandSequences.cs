@@ -343,6 +343,20 @@ public class CommandSequences
     }
 
     [Test]
+    public void SequenceOptionConflictWithARootOptionThrows()
+    {
+        // The root command always has the help option: its name and its aliases are taken.
+        var starter = CreateStarter();
+        starter.SequenceOption = "--help";
+        var byName = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
+        Assert.That(byName!.Message, Does.Contain("'--help'").And.Contain("root command"));
+
+        starter.SequenceOption = "-h";
+        var byAlias = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
+        Assert.That(byAlias!.Message, Does.Contain("'-h'").And.Contain("'--help'"));
+    }
+
+    [Test]
     public async Task ReplRunsSequences()
     {
         var executed = 0;

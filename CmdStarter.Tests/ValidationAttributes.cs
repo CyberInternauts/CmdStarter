@@ -110,6 +110,19 @@ public sealed class ValidationAttributes
     }
 
     [Test]
+    public async Task ValidationWithoutAnyMessageStillExplainsTheError()
+    {
+        var starter = CreateStarter();
+        using var error = new StringWriter();
+        var console = new CommandConsole(new StringReader(string.Empty), new StringWriter(), error);
+
+        var code = await starter.Start("messageless-command --level 3", console);
+
+        Assert.That(code, Is.Not.Zero.And.Not.EqualTo(3));
+        Assert.That(error.ToString(), Does.Contain("The value of 'level' is invalid."));
+    }
+
+    [Test]
     public async Task CustomValidatorCanBeAdded()
     {
         var starter = CreateStarter();
