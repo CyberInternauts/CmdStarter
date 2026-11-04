@@ -11,3 +11,4 @@
 | 0007 | [Parse Errors](0007-parse-errors.md) | Accepted |
 | 0008 | [Code Quality Gates](0008-code-quality-gates.md) | Accepted |
 | 0009 | [Method-Based Command Model](0009-method-based-command-model.md) | Accepted |
+| 0010 | [Errors and Exit Codes](0010-errors-and-exit-codes.md) | Accepted |
