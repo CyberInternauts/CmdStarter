@@ -55,8 +55,12 @@ The result of discovery is sorted by full type name, with an ordinal comparison.
 
 ## When the commands are rebuilt
 
-- Changing `Namespaces`, `Classes` or `Assemblies` resets the commands and the tree.
-- Changing `ClassesBuildingMode`, `IsRootingLonelyCommand`, `GroupsByNamespace` or `CommandsTypes` resets the tree.
+- Changing `Namespaces`, `Classes` or `Assemblies` resets the commands and the tree, and the discovery runs again.
+- Changing `ClassesBuildingMode`, `IsRootingLonelyCommand` or `GroupsByNamespace` resets the tree.
+- Setting `CommandsTypes` resets the tree, and the list is checked first: a type that is not a non-abstract class implementing `IStarterCommand`, that has no namespace or that is listed twice raises an `ArgumentException` that names the type, and nothing changes. `null` means an empty list.
+  - Before the first discovery, a non-empty list stands for the discovery of the class commands: the discovery does not run, so there are no method commands.
+  - After the discovery, only the class commands change and the discovered method commands stay.
+  - An empty list goes back to the discovery.
 
 ## Building the tree
 

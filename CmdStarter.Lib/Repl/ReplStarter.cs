@@ -328,7 +328,8 @@ public sealed class ReplStarter : Starter
     {
         ArgumentNullException.ThrowIfNull(commandLine);
         ArgumentNullException.ThrowIfNull(console);
-        return RunSequenceAsync(commandLine, console, (command, commandConsole) => Start(command, commandConsole ?? console, cancellationToken));
+        // commandConsole is never null: RunSequenceAsync and RunPipelineAsync pass the console of this overload
+        return RunSequenceAsync(commandLine, console, (command, commandConsole) => Start(command, commandConsole!, cancellationToken));
     }
 
     /// <inheritdoc/>

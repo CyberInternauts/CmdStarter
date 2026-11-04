@@ -187,12 +187,17 @@ public class CommandsBasics
     }
 
     [Test]
-    public void VisitingNoCommandVisitsNothing()
+    public void VisitingNullThrows()
     {
         var visited = 0;
 
-        Starter.VisitCommands(null!, _ => visited++);
+        var noCommand = Assert.Throws<ArgumentNullException>(() => Starter.VisitCommands(null!, _ => visited++));
+        var noAction = Assert.Throws<ArgumentNullException>(() => Starter.VisitCommands(new Command("start"), null!));
+        var noActionOnInstance = Assert.Throws<ArgumentNullException>(() => starter.VisitCommands(null!));
 
+        Assert.That(noCommand!.ParamName, Is.EqualTo("currentParent"));
+        Assert.That(noAction!.ParamName, Is.EqualTo("action"));
+        Assert.That(noActionOnInstance!.ParamName, Is.EqualTo("action"));
         Assert.That(visited, Is.Zero);
     }
 

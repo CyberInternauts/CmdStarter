@@ -249,15 +249,61 @@ public class Starter
     }
 
     /// <summary>
-    /// Commands types that will be used to build the tree
+    /// Class commands types that will be used to build the tree.
     /// </summary>
+    /// <remarks>
+    /// Every type must be a non-abstract class that implements <see cref="IStarterCommand"/>, has a namespace, and is listed once:
+    /// otherwise an <see cref="ArgumentException"/> that names the type is thrown and nothing changes. <see langword="null"/> means an empty list.<br/><br/>
+    /// Setting a list resets the tree. Before the first discovery, a non-empty list stands for the discovery of the class commands:
+    /// the discovery does not run, so there are no method commands. After the discovery, only the class commands change and the discovered method commands stay.
+    /// An empty list goes back to the discovery. Changing <see cref="Namespaces"/>, <see cref="Classes"/> or <see cref="Assemblies"/> afterwards runs the discovery again.
+    /// </remarks>
+    /// <exception cref="ArgumentException">A type is <see langword="null"/>, is not a non-abstract class implementing <see cref="IStarterCommand"/>, has no namespace or is listed twice.</exception>
     public ImmutableList<Type> CommandsTypes
     {
         get => commandsTypes;
         set
         {
+            value ??= ImmutableList<Type>.Empty;
+            ValidateCommandsTypes(value, nameof(value));
+
+            if (value.IsEmpty)
+            {
+                ResetCommands();
+                return;
+            }
+
             ResetTrees();
-            commandsTypes = value ?? ImmutableList<Type>.Empty;
+            commandsTypes = value;
+            hasToFindCommands = false;
+        }
+    }
+
+    // paramName is the parameter of the setter, so the exception names what the caller passed
+    private static void ValidateCommandsTypes(ImmutableList<Type> types, string paramName)
+    {
+        var seen = new HashSet<Type>();
+        foreach (var type in types)
+        {
+            if (type is null)
+            {
+                throw new ArgumentException("A command type cannot be null.", paramName);
+            }
+
+            if (!type.IsClass || type.IsAbstract || !type.IsAssignableTo(typeof(IStarterCommand)))
+            {
+                throw new ArgumentException($"Type '{type.FullName}' is not a non-abstract class implementing IStarterCommand.", paramName);
+            }
+
+            if (type.Namespace is null)
+            {
+                throw new ArgumentException($"Type '{type.FullName}' has no namespace.", paramName);
+            }
+
+            if (!seen.Add(type))
+            {
+                throw new ArgumentException($"Command type '{type.FullName}' is listed twice.", paramName);
+            }
         }
     }
 
@@ -416,7 +462,8 @@ public class Starter
     {
         ArgumentNullException.ThrowIfNull(commandLine);
         ArgumentNullException.ThrowIfNull(console);
-        return RunSequenceAsync(commandLine, console, (command, commandConsole) => Start(command, commandConsole ?? console, cancellationToken));
+        // commandConsole is never null: RunSequenceAsync and RunPipelineAsync pass the console of this overload
+        return RunSequenceAsync(commandLine, console, (command, commandConsole) => Start(command, commandConsole!, cancellationToken));
     }
 
     // True when the sequence option is set and the arguments are exactly that option followed by the line to run.
@@ -800,14 +847,17 @@ public class Starter
     /// </summary>
     /// <param name="currentParent">Starting command</param>
     /// <param name="action">Action to execute</param>
+    /// <exception cref="ArgumentNullException"><paramref name="currentParent"/> or <paramref name="action"/> is null.</exception>
     public static void VisitCommands(Command currentParent, Action<Command> action)
     {
-        Command? loopBody(Command command)
+        ArgumentNullException.ThrowIfNull(currentParent);
+        ArgumentNullException.ThrowIfNull(action);
+
+        foreach (var child in currentParent.Subcommands)
         {
-            action(command);
-            return null;
+            action(child);
+            VisitCommands(child, action);
         }
-        VisitCommands(currentParent, loopBody);
     }
 
     private void AddLevel(Command currentParent, TreeNode<Type> currentNode, List<CommandActivation> activations)
@@ -867,7 +917,7 @@ public class Starter
             var commandNamespace = commandType.Namespace!.Split('.');
             var pathLength = commandNamespace.Length - baseSegments.Count;
             var representsNamespace = child.Children.Any(descendant =>
-                descendant.Value!.Namespace?.StartsWith(commandType.Namespace + ".", StringComparison.Ordinal) == true);
+                descendant.Value!.Namespace!.StartsWith(commandType.Namespace + ".", StringComparison.Ordinal));
             if (representsNamespace)
             {
                 pathLength--;
@@ -1069,8 +1119,7 @@ public class Starter
                 ParameterBindingKind.GlobalOptions => GlobalOptionsManager.GetGlobalOptions(binding.Parameter.ParameterType),
                 ParameterBindingKind.Service => GetMethodService(activation, binding.Parameter),
                 ParameterBindingKind.Option => GetMethodOptionValue(parseResult, (Option)binding.Symbol!, binding.Parameter),
-                ParameterBindingKind.Argument => GetMethodArgumentValue(parseResult, (Argument)binding.Symbol!, binding.Parameter),
-                _ => null
+                _ => CommandBinder.GetArgumentValue(parseResult, (Argument)binding.Symbol!)
             };
         }
         var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.Method, activation.Instance, parseResult, activation.Services, console, cancellationToken);
@@ -1152,12 +1201,8 @@ public class Starter
     private static object? GetMethodOptionValue(ParseResult result, Option option, ParameterInfo parameter)
     {
         if (CommandBinder.TryGetOptionValue(result, option, out var value)) return value;
-        if (parameter.HasDefaultValue) return parameter.DefaultValue;
         return parameter.ParameterType.IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null;
     }
-
-    private static object? GetMethodArgumentValue(ParseResult result, Argument argument, ParameterInfo parameter) =>
-        result.GetResult(argument) is null && parameter.HasDefaultValue ? parameter.DefaultValue : CommandBinder.GetArgumentValue(result, argument);
 
     private void AddMethodCommands(Type type)
     {
@@ -1346,28 +1391,6 @@ public class Starter
         commandStateMetadata.Clear();
         implicitMethodGroups.Clear();
         rootCommand = new();
-    }
-
-    /// <summary>
-    /// Visit commands from a specific command until not null is returned
-    /// </summary>
-    /// <param name="currentParent">Command where to start visiting</param>
-    /// <param name="func">Function that is applied a command</param>
-    /// <returns>A command if func returned one, otherwise null</returns>
-    private static Command? VisitCommands(Command currentParent, Func<Command, Command?> func)
-    {
-        if (currentParent == null) return null;
-
-        foreach (var child in currentParent.Subcommands)
-        {
-            var funcReturn = func(child);
-            if (funcReturn != null) return funcReturn;
-
-            var childChild = VisitCommands(child, func);
-            if (childChild != null) return childChild;
-        }
-
-        return null;
     }
 
     private CommandActivation Activate(Type commandType)
