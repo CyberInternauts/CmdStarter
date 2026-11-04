@@ -47,6 +47,8 @@ public class CommandsResults
         var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
         var handleTester = (IHandleTester)starter.FindCommandInstance(command)!;
+        IHandleTester? executed = null;
+        starter.CommandHandled += (_, e) => executed = (IHandleTester)e.Instance;
 
         var mainArgs = new List<string>();
 
@@ -69,7 +71,8 @@ public class CommandsResults
         var actualReturn = await starter.Start(mainArgs.ToArray());
         Assert.That(actualReturn, Is.EqualTo(handleTester.ExpectedReturn));
 
-        TestsCommon.AssertIEnumerablesHaveSameElements(handleTester.ActualHandlerData, handleTester.ExpectedHandlerData);
+        Assert.That(executed, Is.Not.Null);
+        TestsCommon.AssertIEnumerablesHaveSameElements(executed!.ActualHandlerData, handleTester.ExpectedHandlerData);
     }
 
     [TestCase("list files PATH_TO_LIST")]

@@ -57,6 +57,9 @@ public class Starter
     private bool isRootingLonelyCommand = true;
     private Func<Type, IStarterCommand>? factory;
 
+    /// <summary>Raised after a command handler returns, before its instance and services are released. It is not raised when parsing fails or the handler throws.</summary>
+    public event EventHandler<CommandHandledEventArgs>? CommandHandled;
+
     /// <summary>
     /// Constructor without filters
     /// </summary>
@@ -471,7 +474,9 @@ public class Starter
     {
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         CommandBinder.BindOptions(parseResult, registration.Instance, registration.OptionBindings);
-        return await CommandBinder.InvokeHandlerAsync(parseResult, registration.Instance.HandlingMethod, registration.HandlerArguments);
+        var exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, registration.Instance.HandlingMethod, registration.HandlerArguments);
+        CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, registration.Instance, exitCode));
+        return exitCode;
     }
 
     private void ResetCommands()

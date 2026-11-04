@@ -39,21 +39,27 @@ public class Options
 
         // Test without option for default value
         starter.Namespaces = starter.Namespaces.Add(commandType.Namespace!);
+        CommandType? executed = null;
+        starter.CommandHandled += (_, e) => executed = e.Instance as CommandType;
         await starter.Start(new string[] { commandName });
         var optionCommand = starter.FindCommand<CommandType>();
         Assert.That(optionCommand, Is.Not.Null);
-        Assert.That(propertyTested!.GetValue(starter.FindCommandInstance<CommandType>()), Is.EqualTo(defaultValue));
+        Assert.That(executed, Is.Not.Null);
+        Assert.That(propertyTested!.GetValue(executed), Is.EqualTo(defaultValue));
 
         // Test with option
         starter = TestsCommon.CreateCmdStarter();
         starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
+        executed = null;
+        starter.CommandHandled += (_, e) => executed = e.Instance as CommandType;
 
         var argsString = commandName + " " + TestsCommon.PrintOption(optionName, expectedValue);
         await starter.Start(argsString);
 
         optionCommand = starter.FindCommand<CommandType>();
         Assert.That(optionCommand, Is.Not.Null);
-        Assert.That(propertyTested!.GetValue(starter.FindCommandInstance<CommandType>()), Is.EqualTo(expectedValue));
+        Assert.That(executed, Is.Not.Null);
+        Assert.That(propertyTested!.GetValue(executed), Is.EqualTo(expectedValue));
     }
 
     [TestCase<OptComplete>(OptComplete.INT_OPT_KEBAB, true)]

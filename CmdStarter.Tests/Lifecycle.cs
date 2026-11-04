@@ -48,6 +48,30 @@ public class Lifecycle
         Assert.ThrowsAsync<InvalidOperationException>(() => starter.Start(Array.Empty<string>()));
     }
 
+    [Test]
+    public async Task RaisesCommandHandledAfterExecution()
+    {
+        var starter = CreateLifecycleStarter<DisposableCommand>();
+        var received = new List<CommandHandledEventArgs>();
+        starter.CommandHandled += (_, e) => received.Add(e);
+        var code = await starter.Start(Array.Empty<string>());
+        Assert.That(received, Has.Count.EqualTo(1));
+        Assert.That(received[0].ExitCode, Is.EqualTo(code));
+        Assert.That(received[0].Command, Is.SameAs(starter.FindCommand<DisposableCommand>()));
+        Assert.That(received[0].Instance, Is.TypeOf<DisposableCommand>());
+    }
+
+    [Test]
+    public async Task DoesNotRaiseCommandHandledOnParseError()
+    {
+        var starter = CreateLifecycleStarter<DisposableCommand>();
+        var received = new List<CommandHandledEventArgs>();
+        starter.CommandHandled += (_, e) => received.Add(e);
+        var code = await starter.Start(new[] { "--option-inconnue" });
+        Assert.That(code, Is.Not.EqualTo(0));
+        Assert.That(received, Is.Empty);
+    }
+
     private static Starter CreateLifecycleStarter<CommandType>() where CommandType : IStarterCommand
     {
         var starter = new Starter();
