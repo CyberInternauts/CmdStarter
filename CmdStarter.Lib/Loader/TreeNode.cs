@@ -127,7 +127,7 @@ public sealed class TreeNode<T> where T : class
     }
 
     /// <summary>
-    /// Lock permently the tree: no adding, removal nor move
+    /// Lock permanently the tree: no adding, removal nor move
     /// </summary>
     public void SetImmutable()
     {

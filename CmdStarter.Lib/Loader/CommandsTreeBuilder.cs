@@ -1,7 +1,6 @@
 using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Exceptions;
 using System.Collections.Immutable;
-using System.Data;
 
 namespace CyberInternauts.CmdStarter.Loader;
 
@@ -43,7 +42,7 @@ internal sealed class CommandsTreeBuilder
 
         if (ClassesBuildingMode == ClassesBuildingMode.Both || ClassesBuildingMode == ClassesBuildingMode.OnlyNamespaces)
         {
-            // Within tree, add commands based on their namespace hierachy
+            // Within tree, add commands based on their namespace hierarchy
             AddByNamespacesHierachy(tree, ClassesBuildingMode == ClassesBuildingMode.Both);
         }
 
@@ -199,7 +198,7 @@ internal sealed class CommandsTreeBuilder
     /// <summary>
     /// Add commands types using their namespace to build the tree. <br/>
     /// - If the command type is not already in the tree.<br/>
-    /// - If the commant type is in the tree, but shall be under type, move it (except if <see cref="ParentAttribute"/> is present.
+    /// - If the command type is in the tree, but shall be under type, move it (except if <see cref="ParentAttribute"/> is present.
     /// </summary>
     /// <param name="tree"></param>
     /// <param name="noMoveIfParentAttribute"></param>

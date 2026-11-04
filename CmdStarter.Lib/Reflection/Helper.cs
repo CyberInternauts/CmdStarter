@@ -1,7 +1,6 @@
 using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Interfaces;
 using System.Collections.Concurrent;
-using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -10,7 +9,7 @@ namespace CyberInternauts.CmdStarter.Reflection;
 /// <summary>
 /// Reflection helper class specific to <see cref="IStarterCommand"/>
 /// </summary>
-public static partial class Helper
+public static class Helper
 {
 
     private static List<string>? interfacePropertiesNames;
@@ -142,8 +141,6 @@ public static partial class Helper
 
         bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal));
 
-        Regex dotRegex = DotMatcher();
-
         Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal))
             .Select(filter =>
             {
@@ -204,7 +201,4 @@ public static partial class Helper
 
         interfacePropertiesNames = typeof(IStarterCommand).GetProperties().Select(p => p.Name).ToList();
     }
-
-    [GeneratedRegex("\\\\.")]
-    private static partial Regex DotMatcher();
 }

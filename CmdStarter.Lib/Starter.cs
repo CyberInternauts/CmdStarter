@@ -4,7 +4,6 @@ using System.CommandLine.Parsing;
 using static CyberInternauts.CmdStarter.Reflection.Helper;
 using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Interfaces;
-using System.Data;
 using CyberInternauts.CmdStarter.Loader;
 using System.Diagnostics.CodeAnalysis;
 using CyberInternauts.CmdStarter.Binding;
@@ -140,7 +139,6 @@ public class Starter
     /// <summary>
     /// Constructor with namespace filter
     /// </summary>
-
     public Starter(List<string> namespaces)
     {
         GlobalOptionsManager = new(this);
@@ -751,7 +749,6 @@ public class Starter
         if (IsRootingLonelyCommand && CommandsTypes.Count == 1 && MethodCommandsTypes.IsEmpty && !lonelyCommandHasGroups)
         {
             var registration = CreateCommand(CommandsTypes[0], activations);
-            registration.CliCommand.Hidden = true;
             AddStateMetadata(registration.CliCommand, registration.DescriptionInstance.GetType(), canHide: false);
             InitializeRegistration(registration, RootCommand);
             registration.CliCommand.Hidden = true;

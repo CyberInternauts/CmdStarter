@@ -42,12 +42,8 @@ internal static class Loader
             if (typeof(IGlobalOptionsContainer).IsAssignableFrom(from))
             {
                 option.Recursive = true;
-                receptacle.Options.Add(option);
             }
-            else
-            {
-                receptacle.Options.Add(option);
-            }
+            receptacle.Options.Add(option);
             bindings.Add(new OptionBinding(property, option));
         }
         return bindings;
@@ -142,7 +138,7 @@ internal static class Loader
         var descriptions = provider.GetCustomAttributes(false)
             .Where(a => a is DescriptionAttribute)
             .Select(a => ((DescriptionAttribute)a).Description);
-        var description = descriptions?.Aggregate(
+        var description = descriptions.Aggregate(
                 new StringBuilder(),
                 (current, next) => current.Append(current.Length == 0 ? "" : StarterCommand.DescriptionJoiner).Append(next)
             ).ToString() ?? string.Empty;

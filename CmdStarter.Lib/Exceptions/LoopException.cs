@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace CyberInternauts.CmdStarter.Exceptions;
 
 /// <summary>
