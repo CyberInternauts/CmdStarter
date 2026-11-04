@@ -18,3 +18,4 @@
 | 0014 | [Validation Attributes](0014-validation-attributes.md) | Accepted |
 | 0015 | [Generic Host Integration](0015-generic-host-integration.md) | Accepted |
 | 0016 | [Fluent Command Tree](0016-fluent-command-tree.md) | Accepted |
+| 0017 | [Namespace Groups](0017-namespace-groups.md) | Accepted |
