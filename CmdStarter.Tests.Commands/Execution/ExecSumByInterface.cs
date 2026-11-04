@@ -12,7 +12,7 @@ public class ExecSumByInterface : IStarterCommand, IHandleTester
     private const int PARAM1_VALUE = 10000;
     private const int GLOBAL_INT_OPTION_VALUE = 999;
 
-    private List<HandlerData> actualHandlerData = new();
+    private List<HandlerData> actualHandlerData = [];
 
     public int MyInt { get; set; } = DEFAULT_INT_OPTION_VALUE;
     private const string MY_INT_KEBAB = "my-int";

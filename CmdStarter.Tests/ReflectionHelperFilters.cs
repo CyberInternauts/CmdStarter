@@ -26,8 +26,8 @@ public class ReflectionHelperFilters
     {
         var types = new[] { typeof(Ok), typeof(Starter) };
 
-        Assert.That(Helper.FilterTypesByNamespaces(Array.Empty<Type>(), new List<string> { SomeNamespace }), Is.Empty);
-        Assert.That(Helper.FilterTypesByNamespaces(types, new List<string>()), Is.EqualTo(types));
+        Assert.That(Helper.FilterTypesByNamespaces(Array.Empty<Type>(), [SomeNamespace]), Is.Empty);
+        Assert.That(Helper.FilterTypesByNamespaces(types, []), Is.EqualTo(types));
     }
 
     [Test]
@@ -35,8 +35,8 @@ public class ReflectionHelperFilters
     {
         var types = new[] { typeof(GlobalNamespaceCommand), typeof(Ok) };
 
-        var included = Helper.FilterTypesByNamespaces(types, new List<string> { typeof(Ok).Namespace! });
-        var excluded = Helper.FilterTypesByNamespaces(types, new List<string> { Starter.ExclusionSymbol + SomeNamespace });
+        var included = Helper.FilterTypesByNamespaces(types, [typeof(Ok).Namespace!]);
+        var excluded = Helper.FilterTypesByNamespaces(types, [Starter.ExclusionSymbol + SomeNamespace]);
 
         Assert.That(included, Is.EqualTo(new[] { typeof(Ok) }));
         Assert.That(excluded, Is.EqualTo(types));
@@ -47,8 +47,8 @@ public class ReflectionHelperFilters
     {
         var types = new[] { TypeWithoutFullName, typeof(Ok) };
 
-        var included = Helper.FilterTypesByClasses(types, new List<string> { nameof(Ok) });
-        var excluded = Helper.FilterTypesByClasses(types, new List<string> { Starter.ExclusionSymbol + nameof(Ok) });
+        var included = Helper.FilterTypesByClasses(types, [nameof(Ok)]);
+        var excluded = Helper.FilterTypesByClasses(types, [Starter.ExclusionSymbol + nameof(Ok)]);
 
         Assert.That(TypeWithoutFullName.FullName, Is.Null);
         Assert.That(included, Is.EqualTo(new[] { typeof(Ok) }));

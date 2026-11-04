@@ -14,7 +14,7 @@ public class ExecOptionTypesByInterface : IStarterCommand, IHandleTester
     private const string LIST_OPTION_VALUE_2 = "list2";
     private readonly static List<string> LIST_OPTÌON_VALUE = new(new[] { LIST_OPTION_VALUE_1, LIST_OPTION_VALUE_2 });
 
-    private List<HandlerData> actualHandlerData = new();
+    private List<HandlerData> actualHandlerData = [];
 
     public string StringOpt { get; set; } = string.Empty;
     private const string STRING_OPT_KEBAB = "string-opt";
@@ -28,7 +28,7 @@ public class ExecOptionTypesByInterface : IStarterCommand, IHandleTester
     public DateTime DateTimeOpt { get; set; } = DateTime.MinValue;
     private const string DATETIME_OPT_KEBAB = "date-time-opt";
 
-    public List<string> ListOpt { get; set; } = new();
+    public List<string> ListOpt { get; set; } = [];
     private const string LIST_OPT_KEBAB = "list-opt";
 
     public Delegate HandlingMethod => Execute;

@@ -73,7 +73,7 @@ public class SystemCommandLineAccess
     // A subclass that customizes System.CommandLine's invocation: it keeps what it creates, one new configuration per call.
     private sealed class ConfigurationStarter : Starter
     {
-        internal List<InvocationConfiguration> Created { get; } = new();
+        internal List<InvocationConfiguration> Created { get; } = [];
 
         protected override InvocationConfiguration? CreateInvocationConfiguration()
         {

@@ -229,7 +229,7 @@ public class Repl
     {
         var codes = new List<int>();
         var repl = CreateScriptedStarter(codes, "exit");
-        repl.ExitCommands = System.Collections.Immutable.ImmutableList<string>.Empty;
+        repl.ExitCommands = [];
 
         await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
 
@@ -254,7 +254,7 @@ public class Repl
     {
         var codes = new List<int>();
         var repl = CreateScriptedStarter(codes, "help");
-        repl.HelpCommands = System.Collections.Immutable.ImmutableList<string>.Empty;
+        repl.HelpCommands = [];
 
         await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
 

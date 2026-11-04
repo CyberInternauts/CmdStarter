@@ -4,7 +4,7 @@ public static class LifecycleLog
 {
     private static int counter;
 
-    public static List<string> Entries { get; } = new();
+    public static List<string> Entries { get; } = [];
 
     public static int NextId() => ++counter;
 

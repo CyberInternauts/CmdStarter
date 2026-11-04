@@ -113,7 +113,7 @@ public class CommandsTypesSetter
         var starter = new Starter { Namespaces = [SequencesNamespace] };
         starter.CommandsTypes = [typeof(Ok)];
 
-        starter.CommandsTypes = ImmutableList<Type>.Empty;
+        starter.CommandsTypes = [];
         starter.InstantiateCommands();
 
         Assert.That(starter.RootCommand.Subcommands.Select(command => command.Name), Does.Contain("other").And.Contain("fail"));

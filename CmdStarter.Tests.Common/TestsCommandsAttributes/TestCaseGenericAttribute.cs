@@ -16,7 +16,7 @@ public class TestCaseGenericAttribute : TestCaseAttribute, ITestBuilder
         : base(arguments)
     {
     }
-    public Type[] TypeArguments { get; set; } = Array.Empty<Type>();
+    public Type[] TypeArguments { get; set; } = [];
 
     IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, Test? suite)
     {

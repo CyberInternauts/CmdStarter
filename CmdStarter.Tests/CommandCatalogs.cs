@@ -154,13 +154,13 @@ public class CommandCatalogs
     // Records what a catalog declares.
     private sealed class RecordingBuilder : ICommandCatalogBuilder
     {
-        internal List<Type> Commands { get; } = new();
+        internal List<Type> Commands { get; } = [];
 
-        internal List<Type> MethodClasses { get; } = new();
+        internal List<Type> MethodClasses { get; } = [];
 
-        internal List<Type> GlobalOptions { get; } = new();
+        internal List<Type> GlobalOptions { get; } = [];
 
-        internal List<Type> SymbolTypes { get; } = new();
+        internal List<Type> SymbolTypes { get; } = [];
 
         public void AddCommand<TCommand>() where TCommand : class, IStarterCommand => Commands.Add(typeof(TCommand));
 

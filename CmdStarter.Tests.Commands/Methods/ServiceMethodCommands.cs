@@ -6,7 +6,7 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
 public sealed class ServiceMethodCommands(SingletonService singleton)
 {
     public SingletonService Singleton { get; } = singleton;
-    public static List<object> Received { get; } = new();
+    public static List<object> Received { get; } = [];
 
     [Command]
     public int Inferred(string name, ScopedService scoped, ScopedConsumer consumer)

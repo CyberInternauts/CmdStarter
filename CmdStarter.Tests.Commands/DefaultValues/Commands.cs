@@ -10,7 +10,7 @@ public sealed class DefaultsCommand : StarterCommand
     public int Zero { get; set; }
     public string? Missing { get; set; }
     public string Empty { get; set; } = "";
-    public List<string> Tags { get; set; } = new();
+    public List<string> Tags { get; set; } = [];
     public bool Flag { get; set; }
     public bool FlagOn { get; set; } = true;
 

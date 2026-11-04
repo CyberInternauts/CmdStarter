@@ -21,9 +21,9 @@ public class Lifecycle
         var withFactory = CreateLifecycleStarter<DisposableCommand>();
         withFactory.SetFactory(type => { calls.Add(type); return new DisposableCommand(); });
         var withoutFactory = CreateLifecycleStarter<DisposableCommand>();
-        await withoutFactory.Start(Array.Empty<string>());
+        await withoutFactory.Start([]);
         Assert.That(calls, Is.Empty);
-        await withFactory.Start(Array.Empty<string>());
+        await withFactory.Start([]);
         Assert.That(calls, Is.Not.Empty);
         Assert.That(calls, Is.All.EqualTo(typeof(DisposableCommand)));
     }
@@ -42,7 +42,7 @@ public class Lifecycle
         var selfCreated = CreateLifecycleStarter<SelfCreatedCommand>();
         selfCreated.ServiceProvider = provider;
         selfCreated.SetFactory(_ => { factoryCalls++; return new SelfCreatedCommand("factory"); });
-        Assert.That(await selfCreated.Start(Array.Empty<string>()), Is.Zero);
+        Assert.That(await selfCreated.Start([]), Is.Zero);
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "origin:get-instance" }));
         Assert.That(providerCalls, Is.Zero);
         Assert.That(factoryCalls, Is.Zero);
@@ -51,7 +51,7 @@ public class Lifecycle
         var withoutGetInstance = CreateLifecycleStarter<DisposableCommand>();
         withoutGetInstance.ServiceProvider = provider;
         withoutGetInstance.SetFactory(_ => { factoryCalls++; return new DisposableCommand(); });
-        await withoutGetInstance.Start(Array.Empty<string>());
+        await withoutGetInstance.Start([]);
         Assert.That(providerCalls, Is.GreaterThan(0));
         Assert.That(factoryCalls, Is.Zero);
     }
@@ -63,7 +63,7 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<DisposableCommand>();
         starter.SetFactory(type => { calls.Add(type); return new DisposableCommand(); });
         starter.SetDefaultFactory();
-        await starter.Start(Array.Empty<string>());
+        await starter.Start([]);
         Assert.That(calls, Is.Empty);
     }
 
@@ -72,7 +72,7 @@ public class Lifecycle
     {
         var starter = CreateLifecycleStarter<DisposableCommand>();
         starter.SetFactory(_ => null!);
-        Assert.ThrowsAsync<InvalidOperationException>(() => starter.Start(Array.Empty<string>()));
+        Assert.ThrowsAsync<InvalidOperationException>(() => starter.Start([]));
     }
 
     [Test]
@@ -81,7 +81,7 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<DisposableCommand>();
         var received = new List<CommandHandledEventArgs>();
         starter.CommandHandled += (_, e) => received.Add(e);
-        var code = await starter.Start(Array.Empty<string>());
+        var code = await starter.Start([]);
         Assert.That(received, Has.Count.EqualTo(1));
         Assert.That(received[0].ExitCode, Is.EqualTo(code));
         Assert.That(received[0].Command, Is.SameAs(starter.FindCommand<DisposableCommand>()));
@@ -105,8 +105,8 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<DisposableCommand>();
         starter.InstantiateCommands();
         LifecycleLog.Reset();
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(1));
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(2));
+        Assert.That(await starter.Start([]), Is.EqualTo(1));
+        Assert.That(await starter.Start([]), Is.EqualTo(2));
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "execute:1", "dispose:1", "execute:2", "dispose:2" }));
     }
 
@@ -125,7 +125,7 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<AsyncDisposableCommand>();
         starter.InstantiateCommands();
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "dispose-async:1" }));
-        await starter.Start(Array.Empty<string>());
+        await starter.Start([]);
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "dispose-async:1", "execute:2", "dispose-async:2" }));
     }
 
@@ -135,7 +135,7 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<BothDisposableCommand>();
         starter.InstantiateCommands();
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "dispose:1" }));
-        await starter.Start(Array.Empty<string>());
+        await starter.Start([]);
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "dispose:1", "execute:2", "dispose-async:2" }));
     }
 
@@ -147,7 +147,7 @@ public class Lifecycle
         starter.CommandHandled += (_, e) => received.Add(e);
         starter.InstantiateCommands();
         LifecycleLog.Reset();
-        var code = await starter.Start(Array.Empty<string>());
+        var code = await starter.Start([]);
         Assert.That(code, Is.Not.EqualTo(0));
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "execute:1", "dispose:1" }));
         Assert.That(received, Is.Empty);
@@ -160,7 +160,7 @@ public class Lifecycle
         starter.SetFactory(_ => new DisposableCommand());
         starter.InstantiateCommands();
         LifecycleLog.Reset();
-        await starter.Start(Array.Empty<string>());
+        await starter.Start([]);
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "execute:1" }));
     }
 
@@ -172,8 +172,8 @@ public class Lifecycle
         starter.SetFactory(_ => { calls++; return new DisposableCommand(); });
         starter.InstantiateCommands();
         Assert.That(calls, Is.EqualTo(1));
-        await starter.Start(Array.Empty<string>());
-        await starter.Start(Array.Empty<string>());
+        await starter.Start([]);
+        await starter.Start([]);
         Assert.That(calls, Is.EqualTo(3));
     }
 
@@ -183,7 +183,7 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<DisposableCommand>();
         DisposableCommand? executed = null;
         starter.CommandHandled += (_, e) => executed = (DisposableCommand)e.Instance!;
-        var code = await starter.Start(Array.Empty<string>());
+        var code = await starter.Start([]);
         Assert.That(executed, Is.Not.SameAs(starter.FindCommandInstance<DisposableCommand>()));
         Assert.That(executed!.Id, Is.EqualTo(code));
     }
@@ -196,7 +196,7 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<TwoConstructorsCommand>();
         starter.ServiceProvider = provider;
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.Zero);
+        Assert.That(await starter.Start([]), Is.Zero);
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "command:short" }));
     }
 
@@ -226,7 +226,7 @@ public class Lifecycle
         starter.InstantiateCommands();
 
         Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "dispose:1" }));
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(2));
+        Assert.That(await starter.Start([]), Is.EqualTo(2));
     }
 
     private static Starter CreateLifecycleStarter<CommandType>() where CommandType : IStarterCommand

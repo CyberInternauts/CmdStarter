@@ -40,8 +40,8 @@ static ReplStarter CreateSession(IServiceProvider services) =>
         Namespaces = [typeof(CounterCommands).Namespace!],
         ServiceProvider = services,
         // A forwarded invocation then runs as Start(args) would: "app exit" and "app help" are not words of the session.
-        ExitCommands = ImmutableList<string>.Empty,
-        HelpCommands = ImmutableList<string>.Empty
+        ExitCommands = [],
+        HelpCommands = []
     };
 
 static async Task<int> ServeAsync(string pipeName)

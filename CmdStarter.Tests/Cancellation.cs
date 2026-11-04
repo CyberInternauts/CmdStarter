@@ -22,7 +22,7 @@ public class Cancellation
         };
         CancellableCommand.Reset();
 
-        var run = starter.Start(Array.Empty<string>(), cts.Token);
+        var run = starter.Start([], cts.Token);
         await CancellableCommand.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
         cts.Cancel();
 

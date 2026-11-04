@@ -11,7 +11,7 @@ namespace CyberInternauts.CmdStarter.Loader;
 public sealed class TreeNode<T> where T : class
 {
     private readonly T? _value;
-    private readonly List<TreeNode<T>> _children = new();
+    private readonly List<TreeNode<T>> _children = [];
     private bool isImmutable;
 
     /// <summary>

@@ -85,7 +85,7 @@ public class FluentTree
         var starter = new Starter(new[] { NamespaceName, TestsCommon.EXCLUSION_SYMBOL + NamespaceName + ".Methods" });
         starter.UseTree(tree => tree.Add<Status>());
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(33));
+        Assert.That(await starter.Start([]), Is.EqualTo(33));
     }
 
     [Test]
@@ -97,12 +97,12 @@ public class FluentTree
             .ConfigureStarter(starter => starter.Namespaces = ImmutableList.Create(NamespaceName, TestsCommon.EXCLUSION_SYMBOL + NamespaceName + ".Methods"))
             .UseTree(tree => tree.Add<Status>()));
         await using var provider = services.BuildServiceProvider();
-        Assert.That(await provider.GetRequiredService<Starter>().Start(Array.Empty<string>()), Is.EqualTo(33));
+        Assert.That(await provider.GetRequiredService<Starter>().Start([]), Is.EqualTo(33));
 
         // The namespace filter does not apply to the classes of a defined tree...
         var elsewhere = new Starter(new[] { "Nothing.Here" });
         elsewhere.UseTree(tree => tree.Add<Status>());
-        Assert.That(await elsewhere.Start(Array.Empty<string>()), Is.EqualTo(33));
+        Assert.That(await elsewhere.Start([]), Is.EqualTo(33));
 
         // ...but it still applies to method commands.
         Assert.That(await elsewhere.Start("users export"), Is.Not.Zero.And.Not.EqualTo(35));

@@ -207,7 +207,7 @@ public sealed class Filters
         var starter = CreateGetInstanceStarter(provider).AddFilter<MarkingFilter>();
         var (console, error) = CreateConsole();
 
-        var exitCode = await starter.Start(Array.Empty<string>(), console);
+        var exitCode = await starter.Start([], console);
 
         Assert.Multiple(() =>
         {
@@ -224,7 +224,7 @@ public sealed class Filters
         await using var provider = new ServiceCollection().BuildServiceProvider();
         var starter = CreateGetInstanceStarter(provider).AddFilter<ServicesProbeFilter>();
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+        Assert.That(await starter.Start([]), Is.EqualTo(0));
         Assert.That(ServicesProbeFilter.ServicesWereNull, Is.False);
     }
 
@@ -241,7 +241,7 @@ public sealed class Filters
         Assert.That(openedByTheTree, Is.GreaterThan(0));
         Assert.That(scopes.Closed, Is.EqualTo(scopes.Opened));
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+        Assert.That(await starter.Start([]), Is.EqualTo(0));
 
         Assert.That(scopes.Opened, Is.EqualTo(openedByTheTree + 1));
         Assert.That(scopes.Closed, Is.EqualTo(scopes.Opened));
@@ -257,7 +257,7 @@ public sealed class Filters
         MadeCommand? executed = null;
         starter.CommandHandled += (_, eventArgs) => executed = (MadeCommand?)eventArgs.Instance;
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+        Assert.That(await starter.Start([]), Is.EqualTo(0));
 
         Assert.That(executed, Is.Not.Null);
         Assert.That(executed!.Origin, Is.EqualTo("GetInstance"));
@@ -276,7 +276,7 @@ public sealed class Filters
             ServiceProvider = scopes
         };
 
-        Assert.ThrowsAsync<System.Reflection.TargetInvocationException>(async () => await starter.Start(Array.Empty<string>()));
+        Assert.ThrowsAsync<System.Reflection.TargetInvocationException>(async () => await starter.Start([]));
 
         Assert.That(scopes.Closed, Is.EqualTo(scopes.Opened));
         Assert.That(scopes.Opened, providerHasNoScopeFactory ? Is.EqualTo(0) : Is.GreaterThan(0));
@@ -293,7 +293,7 @@ public sealed class Filters
         starter.AddFilter<ServicesProbeFilter>();
         ServicesProbeFilter.ServicesWereNull = null;
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+        Assert.That(await starter.Start([]), Is.EqualTo(0));
 
         // Without a service provider there is no execution scope: the filter is created with its parameterless constructor.
         Assert.That(ServicesProbeFilter.ServicesWereNull, Is.True);

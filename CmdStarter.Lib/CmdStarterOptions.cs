@@ -8,8 +8,8 @@ namespace CyberInternauts.CmdStarter;
 /// <summary>Configures a CmdStarter registration in a service collection.</summary>
 public sealed class CmdStarterOptions
 {
-    internal List<Assembly> Assemblies { get; } = new();
-    internal List<Action<Starter>> StarterConfigurations { get; } = new();
+    internal List<Assembly> Assemblies { get; } = [];
+    internal List<Action<Starter>> StarterConfigurations { get; } = [];
     internal IReplInputProvider? ReplInputProvider { get; private set; }
 
     /// <summary>Adds an assembly to search for commands.</summary>

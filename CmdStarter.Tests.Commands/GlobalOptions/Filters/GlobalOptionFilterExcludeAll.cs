@@ -5,7 +5,7 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions.Filters;
 [AllOptionsExcluded]
 public sealed class GlobalOptionFilterExcludeAll : IGlobalOptionsContainer, IOptByAttribute
 {
-    public static string[] IncludedOptions => Array.Empty<string>();
+    public static string[] IncludedOptions => [];
 
     public static string[] ExcludedOptions => [NOT_INCLUDED_OPTION_1, NOT_INCLUDED_OPTION_2, NOT_INCLUDED_OPTION_3];
 

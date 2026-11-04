@@ -27,7 +27,7 @@ public sealed class Hosting
         var builder = CreateBuilder(options => options.UseRepl(new ScriptedInputProvider("probe", "probe")));
         using var host = builder.Build();
 
-        Assert.That(await host.RunCmdStarterAsync(Array.Empty<string>()), Is.Zero);
+        Assert.That(await host.RunCmdStarterAsync([]), Is.Zero);
         var ids = host.Services.GetRequiredService<ProbeLog>().Ids;
         Assert.That(ids, Has.Count.EqualTo(2));
         Assert.That(ids[0], Is.Not.EqualTo(ids[1]));

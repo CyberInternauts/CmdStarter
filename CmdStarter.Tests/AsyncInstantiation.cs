@@ -54,7 +54,7 @@ public class AsyncInstantiation
     {
         var starter = CreateStarter();
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.Zero);
+        Assert.That(await starter.Start([]), Is.Zero);
 
         // The description instance (when the tree is built), then the instance of the execution.
         Assert.That(AsyncDisposableDescription.AsyncDisposals, Is.EqualTo(2));

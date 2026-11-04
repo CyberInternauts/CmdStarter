@@ -4,7 +4,7 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.ExecutionPaths;
 // This namespace is excluded from the default discoveries of the tests: a test asks for one class with the Classes filter.
 public static class ExecutionLog
 {
-    public static List<string> Entries { get; } = new();
+    public static List<string> Entries { get; } = [];
 }
 
 public sealed class PlainService

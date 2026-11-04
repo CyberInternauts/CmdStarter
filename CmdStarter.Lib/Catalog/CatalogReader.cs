@@ -82,11 +82,11 @@ internal static class CatalogReader
     private sealed class CatalogCollector : ICommandCatalogBuilder
     {
         // Sets: a type that a hand-written catalog declares twice is found once, as the scan finds it once.
-        internal HashSet<Type> CommandTypes { get; } = new();
+        internal HashSet<Type> CommandTypes { get; } = [];
 
-        internal HashSet<Type> MethodCommandTypes { get; } = new();
+        internal HashSet<Type> MethodCommandTypes { get; } = [];
 
-        internal HashSet<Type> GlobalOptionsTypes { get; } = new();
+        internal HashSet<Type> GlobalOptionsTypes { get; } = [];
 
         public void AddCommand<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TCommand>() where TCommand : class, IStarterCommand => CommandTypes.Add(typeof(TCommand));
 

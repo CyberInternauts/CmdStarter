@@ -16,8 +16,8 @@ public class DependencyInjection
     {
         await using var app = CreateBuilder<ServicesCommand>().Build();
         var executed = Capture(app);
-        Assert.That(await app.RunAsync(Array.Empty<string>()), Is.EqualTo(0));
-        Assert.That(await app.RunAsync(Array.Empty<string>()), Is.EqualTo(0));
+        Assert.That(await app.RunAsync([]), Is.EqualTo(0));
+        Assert.That(await app.RunAsync([]), Is.EqualTo(0));
         Assert.That(executed, Has.Count.EqualTo(2));
         Assert.That(executed[0], Is.Not.SameAs(executed[1]));
     }
@@ -27,8 +27,8 @@ public class DependencyInjection
     {
         await using var app = CreateBuilder<ServicesCommand>().Build();
         var executed = Capture(app);
-        await app.RunAsync(Array.Empty<string>());
-        await app.RunAsync(Array.Empty<string>());
+        await app.RunAsync([]);
+        await app.RunAsync([]);
         Assert.That(executed[0].Singleton, Is.SameAs(executed[1].Singleton));
     }
 
@@ -37,8 +37,8 @@ public class DependencyInjection
     {
         await using var app = CreateBuilder<ServicesCommand>().Build();
         var executed = Capture(app);
-        await app.RunAsync(Array.Empty<string>());
-        await app.RunAsync(Array.Empty<string>());
+        await app.RunAsync([]);
+        await app.RunAsync([]);
         Assert.That(executed[0].Scoped, Is.SameAs(executed[0].Consumer.Scoped));
         Assert.That(executed[0].Scoped, Is.Not.SameAs(executed[1].Scoped));
     }
@@ -48,7 +48,7 @@ public class DependencyInjection
     {
         await using var app = CreateBuilder<ServicesCommand>().Build();
         var executed = Capture(app);
-        await app.RunAsync(Array.Empty<string>());
+        await app.RunAsync([]);
         Assert.That(executed[0].Transient1, Is.Not.SameAs(executed[0].Transient2));
     }
 
@@ -57,7 +57,7 @@ public class DependencyInjection
     {
         var app = CreateBuilder<ServicesCommand>().Build();
         var executed = Capture(app);
-        await app.RunAsync(Array.Empty<string>());
+        await app.RunAsync([]);
         Assert.That(executed[0].IsDisposed, Is.True);
         Assert.That(executed[0].Scoped.IsDisposed, Is.True);
         Assert.That(executed[0].Transient1.IsDisposed, Is.True);
@@ -74,7 +74,7 @@ public class DependencyInjection
         var builder = CreateBuilder<ThrowingServicesCommand>();
         builder.Services.AddScoped(_ => { var service = new ScopedService(); created.Add(service); return service; });
         await using var app = builder.Build();
-        var code = await app.RunAsync(Array.Empty<string>());
+        var code = await app.RunAsync([]);
         Assert.That(code, Is.Not.EqualTo(0));
         Assert.That(created, Has.Count.EqualTo(2));
         Assert.That(created, Is.All.Matches<ScopedService>(service => service.IsDisposed));
@@ -88,7 +88,7 @@ public class DependencyInjection
         builder.Services.AddScoped(_ => { var service = new ScopedService(); created.Add(service); return service; });
         await using var app = builder.Build();
 
-        var exception = Assert.CatchAsync<Exception>(() => app.RunAsync(Array.Empty<string>()));
+        var exception = Assert.CatchAsync<Exception>(() => app.RunAsync([]));
 
         Assert.That(exception!.ToString(), Does.Contain(ThrowingConstructorCommand.FailureMessage));
         Assert.That(created, Is.Not.Empty);
@@ -121,7 +121,7 @@ public class DependencyInjection
         starter.ServiceProvider = provider;
         ServicesCommand? executed = null;
         starter.CommandHandled += (_, e) => executed = (ServicesCommand)e.Instance!;
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
+        Assert.That(await starter.Start([]), Is.EqualTo(0));
         Assert.That(executed!.IsDisposed, Is.True);
         Assert.That(executed.Scoped.IsDisposed, Is.True);
     }

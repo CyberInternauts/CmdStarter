@@ -284,8 +284,8 @@ public class ReplDaemon
     private static ReplStarter CreateSessionWithoutBuiltInWords()
     {
         var session = CreateSession();
-        session.ExitCommands = ImmutableList<string>.Empty;
-        session.HelpCommands = ImmutableList<string>.Empty;
+        session.ExitCommands = [];
+        session.HelpCommands = [];
         return session;
     }
 

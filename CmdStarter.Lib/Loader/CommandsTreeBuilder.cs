@@ -11,7 +11,7 @@ internal sealed class CommandsTreeBuilder
     /// </summary>
     public ClassesBuildingMode ClassesBuildingMode { get; set; } = ClassesBuildingMode.Both;
 
-    public ImmutableList<Type> CommandsTypes { get; set; } = ImmutableList<Type>.Empty;
+    public ImmutableList<Type> CommandsTypes { get; set; } = [];
 
     public CommandsTreeBuilder(ClassesBuildingMode classesBuildingMode, ImmutableList<Type> commandsTypes)
     {

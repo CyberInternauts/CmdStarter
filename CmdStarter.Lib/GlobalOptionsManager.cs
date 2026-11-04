@@ -17,8 +17,8 @@ public sealed class GlobalOptionsManager
 {
 
     private static IEnumerable<Type>? foundTypes;
-    private readonly Dictionary<Type, object> globalOptions = new();
-    private readonly Dictionary<Type, List<OptionBinding>> optionBindings = new();
+    private readonly Dictionary<Type, object> globalOptions = [];
+    private readonly Dictionary<Type, List<OptionBinding>> optionBindings = [];
     private readonly Starter starter;
 
     internal GlobalOptionsManager(Starter starter)
@@ -29,7 +29,7 @@ public sealed class GlobalOptionsManager
     /// <summary>
     /// List of all global options types
     /// </summary>
-    public List<Type> GlobalOptionsTypes { get; private set; } = new();
+    public List<Type> GlobalOptionsTypes { get; private set; } = [];
 
     /// <summary>
     /// Retrieve a global options container of a specific type
@@ -121,7 +121,7 @@ public sealed class GlobalOptionsManager
                 return catalog.GlobalOptionsTypes;
             }
 
-            return dynamicCodeSupported ? GetLoadableTypes(assembly) : Enumerable.Empty<Type>();
+            return dynamicCodeSupported ? GetLoadableTypes(assembly) : [];
         }
 
         return new List<Type>(assemblies.SelectMany(Read).Where(t => t.IsClass && t.IsAssignableTo(typeof(IGlobalOptionsContainer))));

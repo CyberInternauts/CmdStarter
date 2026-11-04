@@ -116,10 +116,10 @@ public class States
         var starter = CreateStarter(provider);
         starter.Classes = [typeof(Enter).FullName!];
 
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(1));
+        Assert.That(await starter.Start([]), Is.EqualTo(1));
         Assert.That(starter.FindCommand<Enter>()!.Hidden, Is.True);
         provider.CurrentState = TestState.Anonymous;
-        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(10));
+        Assert.That(await starter.Start([]), Is.EqualTo(10));
         Assert.That(starter.FindCommand<Enter>()!.Hidden, Is.True);
     }
 

@@ -12,7 +12,7 @@ internal sealed class SymbolFactory<[DynamicallyAccessedMembers(DynamicallyAcces
     // A value type is constructed as Activator.CreateInstance(type) did: its parameterless constructor runs when it declares one. A reference type gives null.
     public object? DefaultValue => typeof(T).IsValueType ? Activator.CreateInstance<T>() : null;
 
-    public Option CreateOption(string name) => new Option<T>(name, Array.Empty<string>());
+    public Option CreateOption(string name) => new Option<T>(name, []);
 
     public Argument CreateArgument(string name) => new Argument<T>(name);
 

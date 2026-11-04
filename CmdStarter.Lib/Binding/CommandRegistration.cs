@@ -8,7 +8,7 @@ internal sealed class CommandRegistration
     internal Type CommandType { get; init; } = null!;
     internal IStarterCommand DescriptionInstance { get; init; } = null!;
     internal Command CliCommand { get; init; } = null!;
-    internal List<OptionBinding> OptionBindings { get; set; } = new();
-    internal Argument?[] HandlerArguments { get; set; } = Array.Empty<Argument?>();
+    internal List<OptionBinding> OptionBindings { get; set; } = [];
+    internal Argument?[] HandlerArguments { get; set; } = [];
     internal bool IsAvailable { get; set; } = true;
 }

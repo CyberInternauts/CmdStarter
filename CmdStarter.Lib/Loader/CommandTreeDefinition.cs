@@ -13,7 +13,7 @@ public sealed class CommandTreeDefinition
     private readonly List<GroupSegment> groups;
 
     internal CommandTreeDefinition(TreeNode<Type> node)
-        : this(node, new SharedState(), NodeKind.Root, null, new List<GroupSegment>())
+        : this(node, new SharedState(), NodeKind.Root, null, [])
     {
     }
 
@@ -73,7 +73,7 @@ public sealed class CommandTreeDefinition
 
         var childNode = node.AddChild(commandType);
         state.GroupPaths.Add(commandType, [.. groups]);
-        var childDefinition = new CommandTreeDefinition(childNode, state, NodeKind.Command, commandType, new List<GroupSegment>());
+        var childDefinition = new CommandTreeDefinition(childNode, state, NodeKind.Command, commandType, []);
         children?.Invoke(childDefinition);
         return this;
     }
@@ -141,7 +141,7 @@ public sealed class CommandTreeDefinition
         {
             if (!state.Aliases.TryGetValue(commandType, out var commandAliases))
             {
-                commandAliases = new List<string>();
+                commandAliases = [];
                 state.Aliases.Add(commandType, commandAliases);
             }
 
@@ -185,10 +185,10 @@ public sealed class CommandTreeDefinition
 
     private sealed class SharedState
     {
-        public HashSet<Type> Types { get; } = new();
-        public Dictionary<Type, List<GroupSegment>> GroupPaths { get; } = new();
-        public Dictionary<Type, string> Names { get; } = new();
-        public Dictionary<Type, List<string>> Aliases { get; } = new();
+        public HashSet<Type> Types { get; } = [];
+        public Dictionary<Type, List<GroupSegment>> GroupPaths { get; } = [];
+        public Dictionary<Type, string> Names { get; } = [];
+        public Dictionary<Type, List<string>> Aliases { get; } = [];
         public bool IsClosed { get; set; }
     }
 
@@ -197,7 +197,7 @@ public sealed class CommandTreeDefinition
     internal sealed class GroupSegment(string name)
     {
         public string Name { get; } = name;
-        public List<string> Aliases { get; } = new();
+        public List<string> Aliases { get; } = [];
         public GroupSegment Copy()
         {
             var copy = new GroupSegment(Name);

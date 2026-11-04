@@ -47,22 +47,22 @@ public class Starter
     /// </summary>
     public const string MultiAnyCharSymbolIncludeDots = "**";
 
-    private RootCommand rootCommand = new();
+    private RootCommand rootCommand = [];
     private readonly Dictionary<Command, CommandRegistration> registrationsByCommand = new(ReferenceEqualityComparer.Instance);
-    private readonly Dictionary<Type, CommandRegistration> registrationsByType = new();
-    private ImmutableList<string> namespaces = ImmutableList<string>.Empty;
-    private ImmutableList<string> classes = ImmutableList<string>.Empty;
-    private ImmutableList<Assembly> assemblies = ImmutableList<Assembly>.Empty;
+    private readonly Dictionary<Type, CommandRegistration> registrationsByType = [];
+    private ImmutableList<string> namespaces = [];
+    private ImmutableList<string> classes = [];
+    private ImmutableList<Assembly> assemblies = [];
     private bool useCommandCatalogs = true;
-    private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
-    private ImmutableList<Type> methodCommandsTypes = ImmutableList<Type>.Empty;
-    private readonly List<MethodCommandRegistration> methodRegistrations = new();
-    private readonly List<FilterRegistration> filters = new();
+    private ImmutableList<Type> commandsTypes = [];
+    private ImmutableList<Type> methodCommandsTypes = [];
+    private readonly List<MethodCommandRegistration> methodRegistrations = [];
+    private readonly List<FilterRegistration> filters = [];
     private readonly Dictionary<Command, CommandStateMetadata> commandStateMetadata = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<Command> implicitMethodGroups = new(ReferenceEqualityComparer.Instance);
     private TreeNode<Type>? definedTree;
     private CommandTreeDefinition.TreeState? definedTreeState;
-    private Dictionary<Type, List<CommandTreeDefinition.GroupSegment>> groupPaths = new();
+    private Dictionary<Type, List<CommandTreeDefinition.GroupSegment>> groupPaths = [];
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
     private bool hasToInstantiate = true;
@@ -71,7 +71,7 @@ public class Starter
     private bool isRootingLonelyCommand = true;
     private string? sequenceOption;
     private Func<Type, IStarterCommand>? factory;
-    private readonly ConditionalWeakTable<InvocationConfiguration, CommandConsole> consoles = new();
+    private readonly ConditionalWeakTable<InvocationConfiguration, CommandConsole> consoles = [];
 
     /// <summary>Raised after a command handler returns, before its instance and services are released. It is not raised when parsing fails or the handler throws.</summary>
     public event EventHandler<CommandHandledEventArgs>? CommandHandled;
@@ -104,7 +104,7 @@ public class Starter
         set
         {
             ResetCommands();
-            assemblies = value ?? ImmutableList<Assembly>.Empty;
+            assemblies = value ?? [];
         }
     }
 
@@ -192,7 +192,7 @@ public class Starter
         set
         {
             ResetCommands();
-            namespaces = value ?? ImmutableList<string>.Empty;
+            namespaces = value ?? [];
         }
     }
 
@@ -218,7 +218,7 @@ public class Starter
         set
         {
             ResetCommands();
-            classes = value ?? ImmutableList<string>.Empty;
+            classes = value ?? [];
         }
     }
 
@@ -290,7 +290,7 @@ public class Starter
         get => commandsTypes;
         set
         {
-            value ??= ImmutableList<Type>.Empty;
+            value ??= [];
             ValidateCommandsTypes(value, nameof(value));
 
             if (value.IsEmpty)
@@ -784,7 +784,7 @@ public class Starter
             CommandsTypesTree = builder.BuildTree();
             groupPaths = GroupsByNamespace && ClassesBuildingMode != ClassesBuildingMode.OnlyAttributes
                 ? BuildNamespaceGroupPaths()
-                : new Dictionary<Type, List<CommandTreeDefinition.GroupSegment>>();
+                : [];
             CommandsTypesTree.SetImmutable();
         }
 
@@ -1443,7 +1443,7 @@ public class Starter
     {
         hasToFindCommands = true;
         this.commandsTypes = commandsTypes.Clear();
-        MethodCommandsTypes = ImmutableList<Type>.Empty;
+        MethodCommandsTypes = [];
         ResetTrees();
     }
 
@@ -1452,13 +1452,13 @@ public class Starter
         hasToBuildTree = true;
         hasToInstantiate = true;
         this.CommandsTypesTree = new TreeNode<Type>(null);
-        groupPaths = new Dictionary<Type, List<CommandTreeDefinition.GroupSegment>>();
+        groupPaths = [];
         registrationsByCommand.Clear();
         registrationsByType.Clear();
         methodRegistrations.Clear();
         commandStateMetadata.Clear();
         implicitMethodGroups.Clear();
-        rootCommand = new();
+        rootCommand = [];
     }
 
     private CommandActivation Activate([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] Type commandType)

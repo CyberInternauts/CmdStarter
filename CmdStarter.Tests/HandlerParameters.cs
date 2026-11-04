@@ -18,7 +18,7 @@ public class HandlerParameters
         using var error = new StringWriter();
         var console = new CommandConsole(new StringReader(string.Empty), new StringWriter(), error);
 
-        var code = await starter.Start(Array.Empty<string>(), console);
+        var code = await starter.Start([], console);
 
         // 0 for the int and null for the string: the handler returns 0 + 2.
         Assert.That(code, Is.EqualTo(2), error.ToString());

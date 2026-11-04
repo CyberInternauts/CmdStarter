@@ -6,7 +6,7 @@ public sealed class GlobalOptionFilterByLackOfAttribute : IGlobalOptionsContaine
 {
     public static string[] IncludedOptions => [INCLUDED_OPTION_1, INCLUDED_OPTION_2];
 
-    public static string[] ExcludedOptions => Array.Empty<string>();
+    public static string[] ExcludedOptions => [];
 
     public int NoAttrIncludedOption1 { get; set; }
     public const string INCLUDED_OPTION_1 = "no-attr-included-option-1";

@@ -22,8 +22,8 @@ public static class TestsCommon
     public const string EXCLUSION_SYMBOL = CmdStarter.Starter.ExclusionSymbol;
     public readonly static string ERRONEOUS_NAMESPACE = typeof(Commands.Erroneous.Boggus).Namespace ?? string.Empty;
 
-    public readonly static IList<Type> CLASS_FILTERING_TYPES = new List<Type>
-            {
+    public readonly static IList<Type> CLASS_FILTERING_TYPES =
+            [
                 typeof(Commands.Loader.Filtering.Starter),
                 typeof(Commands.Loader.Filtering.StarterA),
                 typeof(Commands.Loader.Filtering.StarterB),
@@ -36,7 +36,7 @@ public static class TestsCommon
                 typeof(Commands.Loader.Filtering.NorthS.Starter),
                 typeof(Commands.Loader.Filtering.EastNS.Starter),
                 typeof(Commands.Loader.Filtering.NSouth.Starter)
-            };
+            ];
 
     public static void GlobalSetup()
     {

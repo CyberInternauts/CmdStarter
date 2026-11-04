@@ -2,7 +2,7 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.Sequences;
 
 public static class SequenceLog
 {
-    public static List<string> Entries = new();
+    public static List<string> Entries = [];
 }
 
 public sealed class Ok : StarterCommand

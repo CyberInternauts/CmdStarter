@@ -271,11 +271,11 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
 
     internal sealed class Found
     {
-        internal List<string> Commands { get; } = new();
+        internal List<string> Commands { get; } = [];
 
-        internal List<string> MethodClasses { get; } = new();
+        internal List<string> MethodClasses { get; } = [];
 
-        internal List<string> GlobalOptions { get; } = new();
+        internal List<string> GlobalOptions { get; } = [];
 
         internal HashSet<string> SymbolTypes { get; } = new(StringComparer.Ordinal);
 

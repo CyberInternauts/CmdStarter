@@ -97,7 +97,7 @@ public class CommandsResults
         var serviceManager = new ServiceManager(dependentService);
 
         starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
-        var actualReturn = await starter.Start(serviceManager, Array.Empty<string>());
+        var actualReturn = await starter.Start(serviceManager, []);
 
         Assert.That(dependentService.GetInt(), Is.EqualTo(actualReturn));
     }

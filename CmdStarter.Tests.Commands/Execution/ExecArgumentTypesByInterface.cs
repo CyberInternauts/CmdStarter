@@ -10,7 +10,7 @@ public class ExecArgumentTypesByInterface : IStarterCommand, IHandleTester
     private const bool BOOL_PARAM_VALUE = true;
     private const int INT_PARAM_VALUE = 42;
 
-    private List<HandlerData> actualHandlerData = new();
+    private List<HandlerData> actualHandlerData = [];
 
     public Delegate HandlingMethod => Execute;
 

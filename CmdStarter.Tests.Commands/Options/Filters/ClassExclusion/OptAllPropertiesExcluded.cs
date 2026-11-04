@@ -5,7 +5,7 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.Options.Filters.ClassExclusi
 [AllOptionsExcluded]
 public class OptAllPropertiesExcluded : StarterCommand, IOptByAttribute
 {
-    public static string[] IncludedOptions => Array.Empty<string>();
+    public static string[] IncludedOptions => [];
 
     public static string[] ExcludedOptions => [nameof(OptionOne), nameof(OptionTwo), nameof(OptionThree), nameof(OptionFour)];
 

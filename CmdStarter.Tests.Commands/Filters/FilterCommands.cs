@@ -4,7 +4,7 @@ public sealed class FilterLog
 {
     public static FilterLog Current { get; set; } = new();
 
-    public List<string> Entries { get; } = new();
+    public List<string> Entries { get; } = [];
 }
 
 public sealed class Probe : StarterCommand
@@ -89,7 +89,7 @@ public sealed class FilterScopedService
 
 public sealed class ScopedFilter(FilterScopedService service) : ICommandFilter
 {
-    public static List<FilterScopedService> ResolvedServices { get; } = new();
+    public static List<FilterScopedService> ResolvedServices { get; } = [];
 
     public Task<int> InvokeAsync(CommandContext context, Func<Task<int>> next)
     {
@@ -105,7 +105,7 @@ public interface IMarker
 
 public sealed class Marker : IMarker
 {
-    public List<string> Marks { get; } = new();
+    public List<string> Marks { get; } = [];
 }
 
 public sealed class MarkingFilter(IMarker marker) : ICommandFilter
@@ -137,7 +137,7 @@ public sealed class ScopedDisposable : IDisposable
 
 public sealed class ScopedResolvingFilter(ScopedDisposable resource) : ICommandFilter
 {
-    public static List<ScopedDisposable> Resolved { get; } = new();
+    public static List<ScopedDisposable> Resolved { get; } = [];
 
     public Task<int> InvokeAsync(CommandContext context, Func<Task<int>> next)
     {

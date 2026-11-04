@@ -263,7 +263,7 @@ public sealed class CommandSequence
     // Splits the text of a step on its pipes into trimmed commands; an empty command is an error.
     private static string? SplitPipeline(string line, int segmentStart, int segmentEnd, List<int> pipes, out List<string> pipeline)
     {
-        pipeline = new List<string>();
+        pipeline = [];
         var commandStart = segmentStart;
         foreach (var pipe in pipes.Append(segmentEnd))
         {
