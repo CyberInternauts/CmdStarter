@@ -33,6 +33,7 @@
     <ProjectReference Include="..\samples\CmdStarter.Samples.GlobalOptions\CmdStarter.Samples.GlobalOptions.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.Validation\CmdStarter.Samples.Validation.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.Configuration\CmdStarter.Samples.Configuration.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\samples\CmdStarter.Samples.DevOpsTool\CmdStarter.Samples.DevOpsTool.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
