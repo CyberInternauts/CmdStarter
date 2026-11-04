@@ -20,6 +20,7 @@ These examples are small, runnable programs that show common ways to build comma
 | [Filters](CmdStarter.Samples.Filters) | Logging and confirmation filters around command execution | `dotnet run --project samples/CmdStarter.Samples.Filters -- deploy --yes` | [Filters](../docs/guides/filters.md) |
 | [Hosting](CmdStarter.Samples.Hosting) | Generic Host, appsettings.json, environment variables, options and logging | `dotnet run --project samples/CmdStarter.Samples.Hosting -- greet Ann` | [Hosting](../docs/guides/hosting.md) |
 | [ReplServer](CmdStarter.Samples.ReplServer) | An administration console served over a named pipe, one session at a time | `dotnet run --project samples/CmdStarter.Samples.ReplServer -- demo` | [Remote REPL](../docs/guides/remote-repl.md) |
+| [Daemon](CmdStarter.Samples.Daemon) | An application that forwards its arguments to a running copy of itself, and runs them locally when none answers | `dotnet run --project samples/CmdStarter.Samples.Daemon -- demo` | [Daemon mode](../docs/guides/daemon-mode.md) |
 
 Run the in-process tests for the Testing example with `dotnet test CmdStarter.sln --filter "FullyQualifiedName~CmdStarter.Samples.Testing.Tests"`.
 

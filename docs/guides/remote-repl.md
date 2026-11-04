@@ -96,5 +96,5 @@ public static int Echo(CommandConsole console, string text)
 ## See also
 
 - Examples: [ReplServer](../../samples/CmdStarter.Samples.ReplServer/Program.cs).
-- Neighbouring pages: [REPL](repl.md), [Sequences and pipes](sequences-and-pipes.md), [Command console](command-console.md), [Filters](filters.md).
+- Neighbouring pages: [REPL](repl.md), [Sequences and pipes](sequences-and-pipes.md), [Command console](command-console.md), [Filters](filters.md), [Daemon mode](daemon-mode.md).
 - ADR: [0024, remote REPL](../adr/0024-remote-repl.md).

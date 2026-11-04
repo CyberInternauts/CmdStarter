@@ -44,6 +44,8 @@
     href: guides/sequences-and-pipes.md
   - name: Remote REPL
     href: guides/remote-repl.md
+  - name: Daemon mode
+    href: guides/daemon-mode.md
 - name: Advanced
   items:
   - name: Analyzers

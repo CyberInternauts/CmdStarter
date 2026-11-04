@@ -45,7 +45,7 @@ The following are outside this decision:
 - several simultaneous sessions, because the state is per session and a `Starter` is not designed for concurrent `Start` calls;
 - TCP or any other network access;
 - authentication;
-- daemon mode (passing `software.exe <args>` to a server that is already running). This is left for a later decision, based on the startup measurements ([performance](../advanced/performance.md)).
+- daemon mode (passing `software.exe <args>` to a server that is already running), which [ADR 0026](0026-daemon-mode.md) decides, from the startup measurements ([performance](../advanced/performance.md)).
 
 ## Consequences
 

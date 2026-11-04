@@ -330,6 +330,21 @@ public sealed class SamplesTests
     }
 
     [Test]
+    public async Task DaemonSampleDemo()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Daemon", "demo");
+        Assert.That(result.ExitCode, Is.Zero);
+
+        // Two counts forwarded to the daemon share its counter; once it stopped, the count runs on a counter of its own.
+        var first = result.StdOut.IndexOf("forwarded: 1", StringComparison.Ordinal);
+        var second = result.StdOut.IndexOf("forwarded: 2", StringComparison.Ordinal);
+        var local = result.StdOut.IndexOf("local: 1", StringComparison.Ordinal);
+        Assert.That(first, Is.GreaterThanOrEqualTo(0));
+        Assert.That(second, Is.GreaterThan(first));
+        Assert.That(local, Is.GreaterThan(second));
+    }
+
+    [Test]
     public async Task CommandStatesSampleFollowsSession()
     {
         var result = await AppRunner.RunWithInputAsync(
