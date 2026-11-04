@@ -299,4 +299,28 @@ public sealed class SamplesTests
         Assert.That(result.StdErr, Does.Contain("Command 'whoami' is not available in the current state."));
         Assert.That(result.StdErr, Does.Contain("Command 'login' is not available in the current state."));
     }
+
+    [Test]
+    public async Task HostingSampleReadsAppSettings()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Hosting", "greet", "Ann");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hello, Ann!"));
+    }
+
+    [Test]
+    public async Task HostingSampleEnvironmentOverridesSettings()
+    {
+        var environment = new Dictionary<string, string?> { ["Greeting__Prefix"] = "Hey" };
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Hosting", environment, "greet", "Ann");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hey, Ann!"));
+    }
+
+    [Test]
+    public async Task HostingSampleWritesNoHostStatus()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Hosting", "greet", "Ann");
+        Assert.That(result.StdOut, Does.Not.Contain("Application started"));
+    }
 }

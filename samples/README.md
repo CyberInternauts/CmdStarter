@@ -16,6 +16,7 @@ These examples are small, runnable programs that show common ways to build comma
 | [DevOpsTool](CmdStarter.Samples.DevOpsTool) | Global deployment options, command groups, services, async handlers and exit codes | `dotnet run --project samples/CmdStarter.Samples.DevOpsTool -- service deploy api --version 1.2.3` |
 | [Repl](CmdStarter.Samples.Repl) | Interactive REPL with dependency injection and a scope per command | `dotnet run --project samples/CmdStarter.Samples.Repl` then enter `login ann`, `whoami`, `exit` |
 | [CommandStates](CmdStarter.Samples.CommandStates) | Commands and help that follow the application's current session state | `dotnet run --project samples/CmdStarter.Samples.CommandStates` then enter `login ann`, `whoami`, `logout` |
+| [Hosting](CmdStarter.Samples.Hosting) | Generic Host, appsettings.json, environment variables, options and logging | `dotnet run --project samples/CmdStarter.Samples.Hosting -- greet Ann` |
 
 Run the in-process tests for the Testing example with `dotnet test CmdStarter.sln --filter "FullyQualifiedName~CmdStarter.Samples.Testing.Tests"`.
 
