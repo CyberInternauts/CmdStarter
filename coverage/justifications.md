@@ -275,10 +275,10 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`: contract of IDisposable.
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Lib/Binding/CommandBinder.cs:86
+### CmdStarter.Lib/Binding/CommandBinder.cs:87
 
 - **File**: `CmdStarter.Lib/Binding/CommandBinder.cs`
-- **Line**: 86, the statement after `ExceptionDispatchInfo.Throw()`.
+- **Line**: 87, the statement after `ExceptionDispatchInfo.Throw()`.
 - **Code**:
 
   ```csharp
