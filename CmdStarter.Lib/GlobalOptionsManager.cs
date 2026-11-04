@@ -1,3 +1,4 @@
+using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Parsing;
@@ -83,11 +84,23 @@ public sealed class GlobalOptionsManager
         {
             var bindings = Reflection.Loader.LoadOptions(type, receptacle);
             optionBindings[type] = bindings;
-            var sample = Activator.CreateInstance(type)!;
+            var sample = CreateSample(type);
             foreach (var binding in bindings)
             {
                 Reflection.Loader.SetImplicitDefault(binding.Option, binding.Property.GetValue(sample));
             }
+        }
+    }
+
+    private static object CreateSample(Type type)
+    {
+        try
+        {
+            return Activator.CreateInstance(type)!;
+        }
+        catch (MissingMethodException exception)
+        {
+            throw new InvalidAttributeException($"The global options container '{type.FullName}' needs a public parameterless constructor. {exception.Message}");
         }
     }
 
@@ -107,7 +120,7 @@ public sealed class GlobalOptionsManager
         if (foundTypes != null) return;
 
         var types = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(a => a.GetTypes())
+            .SelectMany(GetLoadableTypes)
             .Where(t => t.IsClass && t.IsAssignableTo(typeof(IGlobalOptionsContainer)));
 
         foundTypes = new List<Type>(types);

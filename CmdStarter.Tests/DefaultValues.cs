@@ -61,6 +61,17 @@ public sealed class DefaultValues
     }
 
     [Test]
+    public void OptionalParameterWithoutValueGetsNoDefault()
+    {
+        var starter = CreateStarter();
+        starter.InstantiateCommands();
+
+        var argument = starter.FindCommand<OptionalParameterCommand>()!.Arguments.Single();
+
+        Assert.That(argument.HasDefaultValue, Is.False);
+    }
+
+    [Test]
     public void GlobalOptionInitialValueBecomesDefault()
     {
         var starter = CreateStarter();

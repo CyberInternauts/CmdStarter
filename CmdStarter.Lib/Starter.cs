@@ -602,9 +602,22 @@ public class Starter
         if (!hasToFindCommands) return; // Quit, job already done
         hasToFindCommands = false;
 
+        try
+        {
+            DiscoverCommandsTypes();
+        }
+        catch
+        {
+            ResetCommands(); // A failed discovery leaves nothing half done: the next call runs it again
+            throw;
+        }
+    }
+
+    private void DiscoverCommandsTypes()
+    {
         var searchAssemblies = Assemblies.IsEmpty ? AppDomain.CurrentDomain.GetAssemblies() : Assemblies.Distinct();
         var commandCandidates = definedTree is null ? searchAssemblies
-                    .SelectMany(a => a.GetTypes()
+                    .SelectMany(a => GetLoadableTypes(a)
                         .Where(t =>
                             t.IsClass &&
                             !t.IsAbstract &&
@@ -616,7 +629,7 @@ public class Starter
         var libraryName = typeof(Starter).Assembly.GetName().Name;
         var methodCandidates = searchAssemblies
             .Where(assembly => assembly == typeof(Starter).Assembly || assembly.GetReferencedAssemblies().Any(reference => reference.Name == libraryName))
-            .SelectMany(assembly => assembly.GetTypes().Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(type)));
+            .SelectMany(assembly => GetLoadableTypes(assembly).Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(type)));
 
         var classTypes = definedTree?.FlattenValues().ToArray() ?? commandCandidates.ToArray();
         var methodTypes = methodCandidates.ToArray();
@@ -645,6 +658,19 @@ public class Starter
         if (!hasToBuildTree) return;
         hasToBuildTree = false;
 
+        try
+        {
+            BuildCommandsTree();
+        }
+        catch
+        {
+            ResetTrees(); // A failed build leaves nothing half done: the next call runs it again
+            throw;
+        }
+    }
+
+    private void BuildCommandsTree()
+    {
         FindCommandsTypes();
 
         if (definedTree is not null)
@@ -679,6 +705,11 @@ public class Starter
         {
             InstantiateCommandsCore(activations);
         }
+        catch
+        {
+            ResetTrees(); // A failed instantiation leaves nothing half done: the next call runs it again
+            throw;
+        }
         finally
         {
             foreach (var activation in activations) activation.Dispose();
@@ -698,6 +729,11 @@ public class Starter
         try
         {
             InstantiateCommandsCore(activations);
+        }
+        catch
+        {
+            ResetTrees(); // A failed instantiation leaves nothing half done: the next call runs it again
+            throw;
         }
         finally
         {

@@ -170,17 +170,32 @@ public static partial class Helper
         return commandsTypes;
     }
 
+    // The filter is text: every character is escaped first, then the escaped wildcards become their regular expression.
     private static string WildcardsToRegex(string wildcard)
     {
         const string STAR_PLACEHOLDER = "<-starplaceholder->";
 
-        return @$"(.|^){wildcard}$"
-            .Replace(".", @"\.")
-            .Replace(Starter.AnyCharSymbolIncludeDots, ".")
-            .Replace(Starter.AnyCharSymbol, @"\w")
-            .Replace(Starter.MultiAnyCharSymbolIncludeDots, @$".{STAR_PLACEHOLDER}")
-            .Replace(Starter.MultiAnyCharSymbol, @"\w*")
+        return @$"(\.|^){Regex.Escape(wildcard)}$"
+            .Replace(Regex.Escape(Starter.AnyCharSymbolIncludeDots), ".")
+            .Replace(Regex.Escape(Starter.AnyCharSymbol), @"\w")
+            .Replace(Regex.Escape(Starter.MultiAnyCharSymbolIncludeDots), @$".{STAR_PLACEHOLDER}")
+            .Replace(Regex.Escape(Starter.MultiAnyCharSymbol), @"\w*")
             .Replace(STAR_PLACEHOLDER, "*");
+    }
+
+    /// <summary>
+    /// Gets the types of an assembly that can be loaded: the others (a type that depends on a missing assembly) are left out instead of failing the whole assembly.
+    /// </summary>
+    internal static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException exception)
+        {
+            return exception.Types.OfType<Type>();
+        }
     }
 
     private static void LoadInterfaceProperties()

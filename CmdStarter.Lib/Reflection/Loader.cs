@@ -76,7 +76,7 @@ internal static class Loader
         var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name! });
         argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
         AddValidationAttributes(parameter, argument, parameter.Name!);
-        if (parameter.DefaultValue is not System.DBNull)
+        if (parameter.HasDefaultValue)
         {
             typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
                 .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { argument, parameter.DefaultValue });

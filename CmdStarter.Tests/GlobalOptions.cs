@@ -68,4 +68,18 @@ public class GlobalOptions
             Assert.That(excludedOption, Is.Null);
         }
     }
+
+    [Test]
+    public void GlobalOptionsContainerWithoutParameterlessConstructorThrows()
+    {
+        // This namespace is excluded from the default discoveries: only this starter asks for it.
+        var broken = new Starter
+        {
+            Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Commands.BrokenGlobalOptions.HealthyCommand).Namespace!)
+        };
+
+        var exception = Assert.Throws<InvalidAttributeException>(() => broken.InstantiateCommands());
+
+        Assert.That(exception!.Message, Does.Contain(typeof(Commands.BrokenGlobalOptions.ContainerWithoutParameterlessConstructor).FullName!));
+    }
 }

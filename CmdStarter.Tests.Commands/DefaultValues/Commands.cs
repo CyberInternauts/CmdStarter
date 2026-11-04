@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices;
 
 namespace CyberInternauts.CmdStarter.Tests.Commands.DefaultValues;
 
@@ -22,4 +23,12 @@ public sealed class DefaultsCommand : StarterCommand
 public sealed class OtherCommand : StarterCommand
 {
     public override Delegate HandlingMethod => (Func<int>)(() => 0);
+}
+
+public sealed class OptionalParameterCommand : StarterCommand
+{
+    public override Delegate HandlingMethod => Handle;
+
+    // [Optional] without a value: ParameterInfo.DefaultValue is Missing.Value and HasDefaultValue is false.
+    private static int Handle([Optional] string text) => text is null ? 0 : 1;
 }
