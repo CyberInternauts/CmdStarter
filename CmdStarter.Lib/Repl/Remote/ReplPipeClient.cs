@@ -164,14 +164,7 @@ public sealed class ReplPipeClient : IAsyncDisposable
     // False when an argument cannot be written on a line (a double quote or a line break); a null list or a null argument is a mistake of the caller and throws.
     internal static bool TryJoinArguments(IReadOnlyList<string> arguments, [NotNullWhen(true)] out string? line)
     {
-        ArgumentNullException.ThrowIfNull(arguments);
-        for (var index = 0; index < arguments.Count; index++)
-        {
-            if (arguments[index] is null)
-            {
-                throw new ArgumentException($"The argument at index {index} is null.", nameof(arguments));
-            }
-        }
+        ThrowIfAnyNull(arguments);
 
         var builder = new StringBuilder();
         foreach (var argument in arguments)
@@ -199,6 +192,95 @@ public sealed class ReplPipeClient : IAsyncDisposable
 
         line = builder.ToString();
         return true;
+    }
+
+    // A null list or a null argument is a mistake of the caller, found before anything is read or written.
+    private static void ThrowIfAnyNull(IReadOnlyList<string> arguments)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        for (var index = 0; index < arguments.Count; index++)
+        {
+            if (arguments[index] is null)
+            {
+                throw new ArgumentException($"The argument at index {index} is null.", nameof(arguments));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Runs the arguments of a process on a server that is already running (see <see cref="ReplPipeServer"/>), and returns its exit code,
+    /// or returns <see langword="null"/> when the caller has to run them itself. The arguments become one line of REPL as <see cref="JoinArguments(IReadOnlyList{string})"/> writes it,
+    /// except for the sequence option below. The output and the errors of the line are copied to the console.
+    /// The usual call is <c>return await ReplPipeClient.TryForwardAsync(pipeName, args, TimeSpan.FromMilliseconds(500), CommandConsole.Standard, starter.SequenceOption) ?? await starter.Start(args);</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The result is <see langword="null"/>, with nothing sent, when no server accepted the session before the timeout (the client does not tell an absent server from a busy one,
+    /// which accepts one session at a time), when <paramref name="arguments"/> is empty, and when an argument contains a double quote or a line break: such an argument cannot be written on a line.
+    /// </para>
+    /// <para>
+    /// <paramref name="sequenceOption"/> follows the same rule as <see cref="Starter.Start(string[])"/> with <see cref="Starter.SequenceOption"/>:
+    /// when it is not <see langword="null"/> and <paramref name="arguments"/> is exactly that option followed by one line, the line is sent as it is, because a line of REPL is already a sequence.
+    /// Such a line may contain double quotes. It gives <see langword="null"/>, with nothing sent, when it is blank or contains a line break.
+    /// </para>
+    /// <para>
+    /// Without any server, the connection is retried until the timeout: every local fallback costs the whole timeout, so choose a short one.
+    /// </para>
+    /// <para>
+    /// Once the session is open, the command may have run on the server: a failure from then on is not turned into <see langword="null"/>, because the application must not run the command a second time.
+    /// </para>
+    /// </remarks>
+    /// <param name="pipeName">The name of the pipe of the server. A pipe name is shared by all the users of the machine: it should contain the name of the user.</param>
+    /// <param name="arguments">The arguments, as a process receives them.</param>
+    /// <param name="timeout">How long to wait for a server that accepts the session.</param>
+    /// <param name="console">Receives the output and the errors of the line. Its input is not sent: a remote command reads no standard input.</param>
+    /// <param name="sequenceOption">The value of <see cref="Starter.SequenceOption"/> of the application, or <see langword="null"/> when it has none.</param>
+    /// <param name="cancellationToken">Token that cancels the wait for the server and for the answer.</param>
+    /// <returns>The exit code of the line, or <see langword="null"/> when nothing was sent and the caller has to run the arguments itself.</returns>
+    /// <exception cref="ArgumentException"><paramref name="pipeName"/> is null, empty or blank, or an argument is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="arguments"/> or <paramref name="console"/> is null.</exception>
+    /// <exception cref="IOException">The session was closed before the answer ended.</exception>
+    /// <exception cref="InvalidDataException">The server sent a line that the protocol does not know.</exception>
+    /// <exception cref="OperationCanceledException">The token was cancelled.</exception>
+    /// <exception cref="UnauthorizedAccessException">A pipe of this name belongs to another user.</exception>
+    public static async Task<int?> TryForwardAsync(string pipeName, IReadOnlyList<string> arguments, TimeSpan timeout, CommandConsole console, string? sequenceOption = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(pipeName);
+        ArgumentNullException.ThrowIfNull(arguments);
+        ArgumentNullException.ThrowIfNull(console);
+        ThrowIfAnyNull(arguments);
+
+        string line;
+        if (sequenceOption is not null && arguments.Count == 2 && string.Equals(arguments[0], sequenceOption, StringComparison.Ordinal))
+        {
+            // A line of REPL may hold double quotes, so it does not go through TryJoinArguments.
+            line = arguments[1];
+            if (string.IsNullOrWhiteSpace(line) || line.Contains('\r', StringComparison.Ordinal) || line.Contains('\n', StringComparison.Ordinal))
+            {
+                return null;
+            }
+        }
+        else
+        {
+            if (arguments.Count == 0 || !TryJoinArguments(arguments, out var joined))
+            {
+                return null;
+            }
+
+            line = joined;
+        }
+
+        await using var client = new ReplPipeClient(pipeName);
+        try
+        {
+            await client.ConnectAsync(timeout, cancellationToken);
+        }
+        catch (TimeoutException)
+        {
+            return null;
+        }
+
+        return await client.ExecuteAsync(line, console.Out, console.Error, cancellationToken);
     }
 
     private static bool NeedsQuotes(string argument) => argument.Length == 0 || argument.Any(c => char.IsWhiteSpace(c) || c is ';' or '&' or '|');
