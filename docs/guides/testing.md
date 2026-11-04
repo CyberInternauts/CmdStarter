@@ -158,7 +158,7 @@ A `Starter` can have a default console, `Starter.DefaultConsole`. CmdStarter use
 ```csharp
 await using var app = new CmdStarterBuilder()
     .AddCommandsFromAssembly(typeof(Write).Assembly)
-    .ConfigureStarter(starter => starter.Namespaces = ImmutableList.Create(typeof(Write).Namespace!))
+    .ConfigureStarter(starter => starter.Namespaces = [typeof(Write).Namespace!])
     .Build();
 
 // RunAsync has no console parameter: the console goes through the app's Starter.

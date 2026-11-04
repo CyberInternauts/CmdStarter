@@ -22,8 +22,6 @@ CmdStarter turns plain C# code into a command-line interface built on System.Com
 
 <!-- snippet: samples/CmdStarter.Samples.HelloWorld/Commands/Hello.cs -->
 ```csharp
-using CyberInternauts.CmdStarter;
-
 public sealed class Hello : StarterCommand
 {
     public string To { get; set; } = "World";

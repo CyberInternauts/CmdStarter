@@ -22,7 +22,7 @@ The built-in words `exit` and `quit` end the loop, whatever their case. `help` s
 ```csharp
 var codes = new List<int>();
 var repl = CreateScriptedStarter(codes, "exit");
-repl.ExitCommands = System.Collections.Immutable.ImmutableList<string>.Empty;
+repl.ExitCommands = [];
 ```
 
 ## Stopping the loop

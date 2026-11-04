@@ -38,8 +38,6 @@ The project must target `net10.0`. A command is a class that derives from `Start
 
 <!-- snippet: samples/CmdStarter.Samples.HelloWorld/Commands/Hello.cs -->
 ```csharp
-using CyberInternauts.CmdStarter;
-
 public sealed class Hello : StarterCommand
 {
     public string To { get; set; } = "World";

@@ -28,7 +28,7 @@ The sample builds each session by hand, and sets the `Namespaces` of its `ReplSt
 static ReplStarter CreateSession() =>
     new(new ConsoleReplProvider()) // The server never reads this provider, but a ReplStarter needs one.
     {
-        Namespaces = ImmutableList.Create(typeof(AdminCommands).Namespace!)
+        Namespaces = [typeof(AdminCommands).Namespace!]
     };
 ```
 

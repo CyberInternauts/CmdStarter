@@ -28,7 +28,7 @@ The following line keeps only the commands of the namespace of `AdminCommands`, 
 
 <!-- snippet: samples/CmdStarter.Samples.ReplServer/Program.cs -->
 ```csharp
-Namespaces = ImmutableList.Create(typeof(AdminCommands).Namespace!)
+Namespaces = [typeof(AdminCommands).Namespace!]
 ```
 
 ## Filtering by class name

@@ -42,11 +42,11 @@ A forwarded invocation is a line of REPL for the session. The first word of the 
 static ReplStarter CreateSession(IServiceProvider services) =>
     new(new ConsoleReplProvider()) // The server never reads this provider, but a ReplStarter needs one.
     {
-        Namespaces = ImmutableList.Create(typeof(CounterCommands).Namespace!),
+        Namespaces = [typeof(CounterCommands).Namespace!],
         ServiceProvider = services,
         // A forwarded invocation then runs as Start(args) would: "app exit" and "app help" are not words of the session.
-        ExitCommands = ImmutableList<string>.Empty,
-        HelpCommands = ImmutableList<string>.Empty
+        ExitCommands = [],
+        HelpCommands = []
     };
 ```
 

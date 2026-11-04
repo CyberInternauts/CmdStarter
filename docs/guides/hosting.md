@@ -42,7 +42,7 @@ builder.Services.AddSingleton<LifecycleRecorder>();
 builder.Services.AddHostedService<RecordingHostedService>();
 using var host = builder.Build();
 
-await host.RunCmdStarterAsync(new[] { "probe" });
+await host.RunCmdStarterAsync(["probe"]);
 ```
 
 ## Services in commands
@@ -70,7 +70,7 @@ A REPL runs under the host too. Configure `UseRepl(provider)` in the options. `R
 var builder = CreateBuilder(options => options.UseRepl(new ScriptedInputProvider("probe", "probe")));
 using var host = builder.Build();
 
-Assert.That(await host.RunCmdStarterAsync(Array.Empty<string>()), Is.Zero);
+Assert.That(await host.RunCmdStarterAsync([]), Is.Zero);
 ```
 
 See [REPL](repl.md).
