@@ -41,6 +41,8 @@ The executable stops before any command runs. The native runtime does not suppor
 
 An application that describes its tree with `Starter.UseTree` was not tried.
 
+The [command catalog](source-generator.md) reads an assembly that has one without calling `Assembly.GetReferencedAssemblies`, but an assembly without a catalog is still scanned, and that scan makes the call. The results above were taken without catalogs, and Native AOT with them has not been tried.
+
 ## Conclusion
 
 Version 2.0 does not support Native AOT. The test applications publish, but they stop at start-up, before any command runs. The reasons and the other results are on the [Trimming](trimming.md) page, and the decision is recorded in [ADR 0025](../adr/0025-trimming-and-native-aot.md).

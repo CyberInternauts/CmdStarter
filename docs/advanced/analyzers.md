@@ -4,11 +4,11 @@ CmdStarter ships a Roslyn analyzer. At compile time, it reports mistakes that Cm
 
 ## Installation
 
-The analyzer ships in the main package, `cints.CmdStarter`, under `analyzers/dotnet/cs`, with no extra package dependency.
+The analyzer ships in the main package, `cints.CmdStarter`, under `analyzers/dotnet/cs`, with no extra package dependency. The same assembly holds the generator of the command catalog, described in [Source generator](source-generator.md).
 
 ## The rules
 
-There are 13 rules, `CMDS0001` to `CMDS0013`, in the category Usage. Rules `CMDS0001` to `CMDS0011` repeat, at compile time, checks that CmdStarter makes when it builds the command tree. Rules `CMDS0012` and `CMDS0013` are advice.
+There are 14 rules, `CMDS0001` to `CMDS0014`, in the category Usage. Rules `CMDS0001` to `CMDS0011` repeat, at compile time, checks that CmdStarter makes when it builds the command tree. Rules `CMDS0012` and `CMDS0013` are advice. Rule `CMDS0014` is reported by the catalog generator.
 
 | Id | Title | What is reported |
 | --- | --- | --- |
@@ -25,12 +25,13 @@ There are 13 rules, `CMDS0001` to `CMDS0013`, in the category Usage. Rules `CMDS
 | `CMDS0011` | Empty command group | A class marked `[Command]` that declares no `[Command]` method |
 | `CMDS0012` | Global option is hidden | A command option (property, or `[Option]` parameter of a method) with the same name or alias as a global option |
 | `CMDS0013` | Empty global options container | A non-abstract global options container that has no option property |
+| `CMDS0014` | Type is not in the command catalog | A type that the generator leaves out of the catalog, with the reason (severity `Info`) |
 
 Each diagnostic message names the type, method, parameter or option concerned.
 
 ## Severity
 
-Every rule has the severity `Warning`.
+Rules `CMDS0001` to `CMDS0013` have the severity `Warning`. `CMDS0014` has the severity `Info`.
 
 Like any Roslyn diagnostic, each rule's severity can be raised or lowered, for example in `.editorconfig`. The following lines make `CMDS0001` an error and turn `CMDS0012` off:
 

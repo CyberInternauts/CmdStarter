@@ -50,6 +50,8 @@
   items:
   - name: Analyzers
     href: advanced/analyzers.md
+  - name: Source generator
+    href: advanced/source-generator.md
   - name: System.CommandLine
     href: advanced/system-command-line.md
   - name: Performance

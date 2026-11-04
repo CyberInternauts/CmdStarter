@@ -6,6 +6,8 @@ This page explains how CmdStarter finds the class commands, how it filters them,
 
 `Starter` searches the assemblies listed in `Starter.Assemblies`. When that list is empty, it searches every loaded assembly. For class commands, it keeps the non-abstract classes that implement `IStarterCommand` and have a namespace.
 
+An assembly is searched in one of two ways. When it carries a `[CommandCatalog]` attribute and `Starter.UseCommandCatalogs` is `true` (the default), `Starter` reads the catalog that the attribute designates: the generator of the package writes one at compile time, and its types are the candidates, without a scan of the types of the assembly. Otherwise, the assembly is scanned by reflection. The predicate above applies to the types of both sources. See [Source generator](../advanced/source-generator.md).
+
 The filters run in this order:
 
 1. the assemblies;
@@ -55,7 +57,7 @@ The result of discovery is sorted by full type name, with an ordinal comparison.
 
 ## When the commands are rebuilt
 
-- Changing `Namespaces`, `Classes` or `Assemblies` resets the commands and the tree, and the discovery runs again.
+- Changing `Namespaces`, `Classes`, `Assemblies` or `UseCommandCatalogs` resets the commands and the tree, and the discovery runs again.
 - Changing `ClassesBuildingMode`, `IsRootingLonelyCommand` or `GroupsByNamespace` resets the tree.
 - Setting `CommandsTypes` resets the tree, and the list is checked first: a type that is not a non-abstract class implementing `IStarterCommand`, that has no namespace or that is listed twice raises an `ArgumentException` that names the type, and nothing changes. `null` means an empty list.
   - Before the first discovery, a non-empty list stands for the discovery of the class commands: the discovery does not run, so there are no method commands.
@@ -159,5 +161,5 @@ A command is rooted as a lonely command only when it is the only command and has
 ## See also
 
 - Examples: [NestedCommands](../../samples/CmdStarter.Samples.NestedCommands), [FluentTree](../../samples/CmdStarter.Samples.FluentTree).
-- Neighbouring pages: [Commands](commands.md), [Attributes](attributes.md), [Nested commands](../guides/nested-commands.md), [Fluent tree](../guides/fluent-tree.md).
-- ADRs: [0004, class-based command model](../adr/0004-class-based-command-model.md), [0016, fluent command tree](../adr/0016-fluent-command-tree.md), [0017, namespace groups](../adr/0017-namespace-groups.md).
+- Neighbouring pages: [Commands](commands.md), [Attributes](attributes.md), [Nested commands](../guides/nested-commands.md), [Fluent tree](../guides/fluent-tree.md), [Source generator](../advanced/source-generator.md).
+- ADRs: [0004, class-based command model](../adr/0004-class-based-command-model.md), [0016, fluent command tree](../adr/0016-fluent-command-tree.md), [0017, namespace groups](../adr/0017-namespace-groups.md), [0027, command catalog](../adr/0027-command-catalog.md).

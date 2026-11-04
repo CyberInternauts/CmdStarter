@@ -53,6 +53,7 @@ The measures use 12 class commands on three levels placed with `[Parent<T>]`, ea
 
 - `DiscoverAllAssemblies`: a new `Starter`, then `InstantiateCommands()`, searching every assembly loaded in the benchmark process.
 - `DiscoverOneAssembly`: the same, with `Assemblies` reduced to the benchmark assembly.
+- `DiscoverAllAssembliesByScan` and `DiscoverOneAssemblyByScan` (third series): the same two measures with `Starter.UseCommandCatalogs` set to `false`.
 - `DefinedTree`: the same, with the 12 class commands placed by `UseTree`; method commands are still discovered.
 - `ExecuteCommand`: a `Starter` built once in a `GlobalSetup` method, then `Start("beta beta-two --count 1 value")` for each invocation.
 - `ExecuteCommandWithDependencyInjection`: a `CmdStarterBuilder` application built once in a `GlobalSetup` method, with a transient service injected into the `beta-two` command, then `RunAsync("beta beta-two --count 1 value")` for each invocation.
@@ -91,6 +92,80 @@ BenchmarkDotNet reported:
 BenchmarkDotNet reported: none.
 
 The two series were taken at different times on the same machine, so part of a difference can be noise.
+
+## With command catalogs
+
+These two series were taken on 2026-11-04, one after the other, after the [command catalog](source-generator.md) was added, with the same machine, the same jobs and the same conditions as in [Conditions](#conditions). The first was taken from 11:16:45 to 11:18:15, the second from 11:22:35 to 11:24:03. The assembly of the measures now has a generated catalog, because the project references the analyzer package. Two measures were added, `DiscoverAllAssembliesByScan` and `DiscoverOneAssemblyByScan`: they are `DiscoverAllAssemblies` and `DiscoverOneAssembly` with `Starter.UseCommandCatalogs` set to `false`, so that every assembly is scanned by reflection.
+
+What the code does, and what the measures cover:
+
+- Every searched assembly has its catalog attribute read. Without `Assemblies`, every loaded assembly pays that read, and only an assembly that has a catalog avoids its scan.
+- Without `Assemblies`, `Starter` searches every loaded assembly. Only the assembly of the measures has a catalog; the assemblies of the framework and the others are scanned in both variants, `GetReferencedAssemblies` included. `DiscoverOneAssembly`, with `Assemblies` reduced to the assembly of the measures, is the measure that shows what a catalog replaces.
+- The global options containers are found once per process, so between the two variants only the discovery of the commands differs.
+
+### Series of 11:16:45 to 11:18:15
+
+#### Startup and execution
+
+| Method                                | Mean         | Error       | StdDev      | Gen0    | Gen1    | Gen2    | Allocated |
+|-------------------------------------- |-------------:|------------:|------------:|--------:|--------:|--------:|----------:|
+| DiscoverAllAssemblies                 | 2,065.198 μs | 261.4089 μs | 155.5603 μs | 85.9375 | 85.9375 | 85.9375 | 890.43 KB |
+| DiscoverOneAssembly                   |   538.299 μs | 159.4757 μs |  94.9014 μs | 25.3906 |  3.9063 |       - | 220.07 KB |
+| DiscoverAllAssembliesByScan           | 1,837.083 μs | 104.6353 μs |  54.7263 μs | 85.9375 | 85.9375 | 85.9375 | 862.64 KB |
+| DiscoverOneAssemblyByScan             |   702.277 μs | 246.9527 μs | 163.3439 μs | 27.3438 |  3.9063 |       - | 224.17 KB |
+| DefinedTree                           |   903.380 μs |  23.6361 μs |  12.3621 μs | 48.8281 |  7.8125 |       - | 410.53 KB |
+| ExecuteCommand                        |     4.849 μs |   0.1722 μs |   0.1139 μs |  1.2054 |  0.0076 |       - |    9.9 KB |
+| ExecuteCommandWithDependencyInjection |     4.899 μs |   0.1617 μs |   0.1070 μs |  1.2283 |  0.0076 |       - |  10.05 KB |
+
+BenchmarkDotNet reported:
+
+- `DiscoverAllAssemblies`: 1 outlier removed (2.60 ms).
+- `DiscoverOneAssembly`: 1 outlier removed (917.15 μs).
+- `DiscoverAllAssembliesByScan`: 2 outliers removed (2.15 ms, 2.64 ms).
+- `DefinedTree`: 2 outliers removed (969.11 μs, 1.11 ms).
+- None for the other measures.
+
+#### Cold start
+
+| Method           | Mean     | Error   | StdDev  |
+|----------------- |---------:|--------:|--------:|
+| FirstInstantiate | 148.3 ms | 9.24 ms | 6.11 ms |
+
+BenchmarkDotNet reported: none.
+
+### Series of 11:22:35 to 11:24:03
+
+#### Startup and execution
+
+| Method                                | Mean         | Error       | StdDev      | Gen0    | Gen1    | Gen2    | Allocated |
+|-------------------------------------- |-------------:|------------:|------------:|--------:|--------:|--------:|----------:|
+| DiscoverAllAssemblies                 | 2,032.974 μs | 332.3952 μs | 197.8031 μs | 85.9375 | 85.9375 | 85.9375 | 890.43 KB |
+| DiscoverOneAssembly                   |   601.921 μs | 244.0300 μs | 161.4107 μs | 25.3906 |  3.9063 |       - | 220.07 KB |
+| DiscoverAllAssembliesByScan           | 1,844.305 μs |  97.1134 μs |  50.7922 μs | 85.9375 | 85.9375 | 85.9375 | 862.64 KB |
+| DiscoverOneAssemblyByScan             |   681.376 μs | 256.0471 μs | 169.3593 μs | 27.3438 |  3.9063 |       - | 224.17 KB |
+| DefinedTree                           |   862.431 μs |  63.8533 μs |  37.9981 μs | 48.8281 |  7.8125 |       - | 410.52 KB |
+| ExecuteCommand                        |     4.583 μs |   0.1377 μs |   0.0720 μs |  1.2054 |  0.0076 |       - |    9.9 KB |
+| ExecuteCommandWithDependencyInjection |     5.014 μs |   0.1027 μs |   0.0679 μs |  1.2283 |  0.0076 |       - |  10.05 KB |
+
+BenchmarkDotNet reported:
+
+- `DiscoverAllAssemblies`: 1 outlier removed (2.65 ms).
+- `DiscoverAllAssembliesByScan`: 2 outliers removed (2.05 ms, 2.20 ms).
+- `DefinedTree`: 1 outlier removed (1.06 ms).
+- `ExecuteCommand`: 2 outliers removed, 3 outliers detected (4.41 μs, 4.71 μs, 4.79 μs).
+- None for the other measures.
+
+#### Cold start
+
+| Method           | Mean     | Error   | StdDev  |
+|----------------- |---------:|--------:|--------:|
+| FirstInstantiate | 147.5 ms | 7.39 ms | 4.89 ms |
+
+BenchmarkDotNet reported: 1 outlier detected (156.76 ms), not removed.
+
+### Reading the two series
+
+In each series, the error intervals of `DiscoverOneAssembly` and `DiscoverOneAssemblyByScan` overlap, and so do those of `DiscoverAllAssemblies` and `DiscoverAllAssembliesByScan`: no measurable gain. `FirstInstantiate` has no twin by scan. Its error interval in each of the two series overlaps that of the series before catalogs (137.3 ms, with an error of 2.96 ms): no measurable gain.
 
 ## How to run
 

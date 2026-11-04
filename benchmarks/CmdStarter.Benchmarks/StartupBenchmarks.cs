@@ -55,6 +55,33 @@ public class StartupBenchmarks
         return starter.RootCommand.Subcommands.Count;
     }
 
+    /// <summary>
+    /// Like <see cref="DiscoverAllAssemblies"/>, but with <see cref="Starter.UseCommandCatalogs"/> off: every assembly is scanned by reflection, as before catalogs.
+    /// </summary>
+    /// <returns>The number of root subcommands.</returns>
+    [Benchmark]
+    public int DiscoverAllAssembliesByScan()
+    {
+        var starter = BenchmarkSetup.CreateStarter();
+        starter.UseCommandCatalogs = false;
+        starter.InstantiateCommands();
+        return starter.RootCommand.Subcommands.Count;
+    }
+
+    /// <summary>
+    /// Like <see cref="DiscoverOneAssembly"/>, but with <see cref="Starter.UseCommandCatalogs"/> off: the assembly of the measures is scanned by reflection.
+    /// </summary>
+    /// <returns>The number of root subcommands.</returns>
+    [Benchmark]
+    public int DiscoverOneAssemblyByScan()
+    {
+        var starter = BenchmarkSetup.CreateStarter();
+        starter.UseCommandCatalogs = false;
+        starter.Assemblies = ImmutableList.Create(typeof(StartupBenchmarks).Assembly);
+        starter.InstantiateCommands();
+        return starter.RootCommand.Subcommands.Count;
+    }
+
     /// <summary>Instantiates the commands of a new starter whose class commands are placed with <see cref="Starter.UseTree"/>.</summary>
     /// <returns>The number of root subcommands.</returns>
     [Benchmark]
