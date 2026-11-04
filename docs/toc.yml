@@ -54,6 +54,8 @@
     href: advanced/source-generator.md
   - name: System.CommandLine
     href: advanced/system-command-line.md
+  - name: Public API tracking
+    href: advanced/public-api.md
   - name: Performance
     href: advanced/performance.md
   - name: Trimming

@@ -24,6 +24,7 @@ public sealed class PackageTests
         Assert.That(package.Entries.Select(entry => entry.FullName), Does.Contain("analyzers/dotnet/cs/CmdStarter.Analyzers.dll"));
         Assert.That(metadata.Descendants().Where(element => element.Name.LocalName == "dependency").Select(dependency => (string?)dependency.Attribute("id")),
             Has.None.Contain("CmdStarter.Analyzers"));
+        AssertNoPublicApiTracking(package, metadata);
     }
 
     [Test]
@@ -35,6 +36,7 @@ public sealed class PackageTests
 
         AssertCommonMetadata(metadata, "cints.CmdStarter.Hosting", version);
         AssertPackageContent(package, assembly);
+        AssertNoPublicApiTracking(package, metadata);
 
         // The dependencies sit in groups, one per target framework.
         var library = metadata.Descendants()
@@ -90,6 +92,17 @@ public sealed class PackageTests
             var repository = metadata.Elements().Single(element => element.Name.LocalName == "repository");
             Assert.That((string?)repository.Attribute("type"), Is.EqualTo("git"));
             Assert.That((string?)repository.Attribute("url"), Is.EqualTo(RepositoryUrl));
+        });
+    }
+
+    // The public API tracking (ADR 0031) is a build tool: no package depends on the analyzer or carries the PublicAPI files.
+    private static void AssertNoPublicApiTracking(ZipArchive package, XElement metadata)
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(metadata.Descendants().Where(element => element.Name.LocalName == "dependency").Select(dependency => (string?)dependency.Attribute("id")),
+                Has.None.EqualTo("Microsoft.CodeAnalysis.PublicApiAnalyzers"));
+            Assert.That(package.Entries.Select(entry => entry.Name), Has.None.StartsWith("PublicAPI."));
         });
     }
 

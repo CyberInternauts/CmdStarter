@@ -24,5 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
   </ItemGroup>
 </Project>
