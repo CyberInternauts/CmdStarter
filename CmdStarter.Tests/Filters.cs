@@ -135,6 +135,31 @@ public sealed class Filters
         Assert.That(ScopedFilter.ResolvedServices[0], Is.Not.SameAs(ScopedFilter.ResolvedServices[1]));
     }
 
+    [Test]
+    public async Task OptionsAddFilterRunsFilterAndRegistersItAsTransient()
+    {
+        var services = new ServiceCollection();
+        services.AddCmdStarter(options => options
+            .ConfigureStarter(starter =>
+            {
+                starter.Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).Namespace!);
+                starter.IsRootingLonelyCommand = false;
+            })
+            .AddFilter<ScopedFilter>());
+        services.AddScoped<FilterScopedService>();
+        services.AddSingleton<ICommandStateProvider>(new TestStateProvider { CurrentState = "open" });
+        await using var provider = services.BuildServiceProvider();
+
+        Assert.That(await provider.GetRequiredService<Starter>().Start("probe"), Is.EqualTo(0));
+        Assert.That(ScopedFilter.ResolvedServices, Has.Count.EqualTo(1));
+
+        // The filter type is registered as a transient service: each resolution gives a new instance.
+        using var scope = provider.CreateScope();
+        var first = scope.ServiceProvider.GetRequiredService<ScopedFilter>();
+        var second = scope.ServiceProvider.GetRequiredService<ScopedFilter>();
+        Assert.That(first, Is.Not.SameAs(second));
+    }
+
     private static Starter CreateStarter() => new()
     {
         Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).Namespace!),

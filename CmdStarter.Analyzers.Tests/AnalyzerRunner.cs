@@ -9,7 +9,7 @@ namespace CyberInternauts.CmdStarter.Analyzers.Tests;
 
 internal static class AnalyzerRunner
 {
-    internal static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string source, bool includeCmdStarter = true)
+    internal static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string source, bool includeCmdStarter = true, IReadOnlyDictionary<string, ReportDiagnostic>? severities = null)
     {
         var references = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES"))!
             .Split(Path.PathSeparator)
@@ -25,7 +25,7 @@ internal static class AnalyzerRunner
             "AnalyzerInput",
             new[] { CSharpSyntaxTree.ParseText("#nullable enable\n" + source, new CSharpParseOptions(LanguageVersion.Preview)) },
             references.DistinctBy(reference => reference.Display),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions(severities ?? new Dictionary<string, ReportDiagnostic>()));
         var errors = compilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToArray();
         if (errors.Length > 0)
         {

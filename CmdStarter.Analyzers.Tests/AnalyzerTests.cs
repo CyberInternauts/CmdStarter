@@ -128,6 +128,27 @@ public sealed class AnalyzerTests
         """);
 
     [Test]
+    public async Task SeverityCanBeRaisedToError()
+    {
+        const string Source = """
+            using CyberInternauts.CmdStarter;
+            using CyberInternauts.CmdStarter.Attributes;
+            [Parent<B>] public sealed class A : StarterCommand { }
+            [Parent<A>] public sealed class B : StarterCommand { }
+            """;
+
+        // By default the rule is a warning.
+        var byDefault = await AnalyzerRunner.GetDiagnosticsAsync(Source);
+        Assert.That(byDefault, Has.Length.EqualTo(2));
+        Assert.That(byDefault, Has.All.Matches<Microsoft.CodeAnalysis.Diagnostic>(diagnostic => diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Warning));
+
+        // The severity of a rule is configurable like any Roslyn rule: this is the setting that dotnet_diagnostic.CMDS0001.severity gives.
+        var raised = await AnalyzerRunner.GetDiagnosticsAsync(Source, severities: new Dictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> { ["CMDS0001"] = Microsoft.CodeAnalysis.ReportDiagnostic.Error });
+        Assert.That(raised, Has.Length.EqualTo(2));
+        Assert.That(raised, Has.All.Matches<Microsoft.CodeAnalysis.Diagnostic>(diagnostic => diagnostic.Id == "CMDS0001" && diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error));
+    }
+
+    [Test]
     public void KebabCaseMatchesLibrary()
     {
         foreach (var value in new[] { "Verbose", "MyOption", "HTTPPort", "Option2", "A1B2", "X", "lowercase", "ABC" })
@@ -141,6 +162,7 @@ public sealed class AnalyzerTests
         var diagnostics = await AnalyzerRunner.GetDiagnosticsAsync(source);
         Assert.That(diagnostics.Count(diagnostic => diagnostic.Id == id), Is.EqualTo(count));
         Assert.That(diagnostics, Has.All.Matches<Microsoft.CodeAnalysis.Diagnostic>(diagnostic => diagnostic.Id == id));
+        Assert.That(diagnostics, Has.All.Matches<Microsoft.CodeAnalysis.Diagnostic>(diagnostic => diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Warning));
     }
 }
 

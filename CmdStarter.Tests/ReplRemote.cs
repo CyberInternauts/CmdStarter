@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.IO.Pipes;
+using System.Text;
 using CyberInternauts.CmdStarter.Repl;
 using CyberInternauts.CmdStarter.Repl.Remote;
 using CyberInternauts.CmdStarter.Tests.Commands.Remote;
@@ -195,6 +197,64 @@ public class ReplRemote
         Assert.That(localLoop.IsCompleted, Is.False);
         await localCancellation.CancelAsync();
         await localLoop.WaitAsync(Limit);
+    }
+
+    [Test]
+    public async Task RawProtocolUsesPrefixedLines()
+    {
+        await using var server = new RunningServer();
+        await using var pipe = new NamedPipeClientStream(".", server.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        await pipe.ConnectAsync((int)Limit.TotalMilliseconds);
+        var encoding = new UTF8Encoding(false);
+        using var reader = new StreamReader(pipe, encoding, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
+        using var writer = new StreamWriter(pipe, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
+
+        // Output lines are prefixed "O ", error lines "E ", and the answer ends with "X <code>".
+        Assert.That(await SendAsync("hello"), Is.EqualTo(new[] { "O hello", "X 0" }));
+        Assert.That(await SendAsync("oops"), Is.EqualTo(new[] { "E oops", "X 2" }));
+
+        // A blank line has no answer: the first line read after it belongs to the next command.
+        await writer.WriteLineAsync(string.Empty);
+        Assert.That(await SendAsync("hello"), Is.EqualTo(new[] { "O hello", "X 0" }));
+
+        // After exit the answer is "X 0" and the server closes the session.
+        Assert.That(await SendAsync("exit"), Is.EqualTo(new[] { "X 0" }));
+        Assert.That(await reader.ReadLineAsync().WaitAsync(Limit), Is.Null);
+
+        async Task<List<string>> SendAsync(string line)
+        {
+            await writer.WriteLineAsync(line);
+            await writer.FlushAsync();
+            var answer = new List<string>();
+            while (true)
+            {
+                var received = await reader.ReadLineAsync().WaitAsync(Limit) ?? throw new IOException("The session closed before the answer ended.");
+                answer.Add(received);
+                if (received.StartsWith("X ", StringComparison.Ordinal))
+                {
+                    return answer;
+                }
+            }
+        }
+    }
+
+    [Test]
+    public async Task InteractiveLoopStopsAtExit()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+        using var input = new StringReader("hello\nexit\nhello");
+        using var output = new StringWriter { NewLine = "\n" };
+        using var error = new StringWriter { NewLine = "\n" };
+
+        var code = await client.RunInteractiveAsync(input, output, error).WaitAsync(Limit);
+
+        Assert.That(code, Is.EqualTo(0));
+        Assert.That(output.ToString(), Is.EqualTo("> hello\n> "));
+        Assert.That(error.ToString(), Is.Empty);
+
+        // The loop stopped after exit: the last line was never read, so never sent.
+        Assert.That(input.ReadLine(), Is.EqualTo("hello"));
     }
 
     private static ReplStarter CreateSession(params string?[] lines) => new(new ScriptedInputProvider(lines))
