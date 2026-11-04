@@ -11,11 +11,15 @@ internal static class MethodCommandsLoader
         || type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Any(method => Attribute.IsDefined(method, typeof(CommandAttribute)));
 
-    internal static IReadOnlyList<MethodInfo> GetCommandMethods(Type type) => type
-        .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
-        .Where(method => Attribute.IsDefined(method, typeof(CommandAttribute)))
-        .OrderBy(method => method.MetadataToken)
-        .ToArray();
+    // The commands of a class in the order of their declaration (the metadata token). Without dynamic code (Native AOT), a method has no metadata token:
+    // the order is the one that GetMethods gives, which is not necessarily the order of the declarations.
+    internal static IReadOnlyList<MethodInfo> GetCommandMethods(Type type, bool dynamicCodeSupported)
+    {
+        var methods = type
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(method => Attribute.IsDefined(method, typeof(CommandAttribute)));
+        return (dynamicCodeSupported ? methods.OrderBy(method => method.MetadataToken) : methods).ToArray();
+    }
 
     internal static void Validate(Type type)
     {

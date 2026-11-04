@@ -25,16 +25,37 @@ internal sealed class CatalogContent
 // The one decision, shared by the search of the commands and the search of the global options containers: is this assembly read from its catalog or scanned?
 internal static class CatalogReader
 {
-    // False when catalogs are not used or when the assembly has no catalog: the caller scans it. A catalog that cannot be created, or whose Describe fails, is a configuration error.
-    internal static bool TryRead(Assembly assembly, bool useCatalogs, [NotNullWhen(true)] out CatalogContent? content)
+    private static readonly Assembly Library = typeof(CatalogReader).Assembly;
+    private static readonly string? LibraryName = Library.GetName().Name;
+
+    // Whether the assembly is the library or references it: only such an assembly can carry a catalog or declare method commands.
+    // GetReferencedAssemblies is not supported by Native AOT: a caller that runs without dynamic code does not ask.
+    internal static bool ReferencesLibrary(Assembly assembly) =>
+        assembly == Library || assembly.GetReferencedAssemblies().Any(reference => reference.Name == LibraryName);
+
+    // False when catalogs are not used, when the assembly cannot have a catalog, or when it has none: the caller scans it, or leaves it when nothing can be scanned.
+    // A catalog that cannot be created, or whose Describe fails, is a configuration error.
+    // canHaveCatalog is false for an assembly that does not reference the library: the attribute is not even read, because the attributes of an unrelated assembly may not be resolvable
+    // (the satellite assembly of System.CommandLine in a trimmed application references a System.Runtime that the application no longer has).
+    internal static bool TryRead(Assembly assembly, bool useCatalogs, bool canHaveCatalog, [NotNullWhen(true)] out CatalogContent? content)
     {
         content = null;
-        if (!useCatalogs)
+        if (!useCatalogs || !canHaveCatalog)
         {
             return false;
         }
 
-        var attribute = assembly.GetCustomAttribute<CommandCatalogAttribute>();
+        CommandCatalogAttribute? attribute;
+        try
+        {
+            attribute = assembly.GetCustomAttribute<CommandCatalogAttribute>();
+        }
+        catch (Exception exception) when (exception is FileNotFoundException or FileLoadException or TypeLoadException)
+        {
+            // The attributes of the assembly cannot be loaded: it has no catalog that can be read, like a type that does not load is skipped by the scan.
+            return false;
+        }
+
         if (attribute is null)
         {
             return false;

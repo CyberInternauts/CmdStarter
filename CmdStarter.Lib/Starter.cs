@@ -128,6 +128,10 @@ public class Starter
         }
     }
 
+    // False when the runtime cannot generate code (Native AOT). Then only the catalogs are read: no assembly is scanned and GetReferencedAssemblies is never called, because the runtime does not support it,
+    // and the methods of a class keep the order that GetMethods gives, because MetadataToken does not exist there. Tests set it.
+    internal bool DynamicCodeSupported { get; init; } = RuntimeFeature.IsDynamicCodeSupported;
+
     /// <summary>Gets or sets the Microsoft.Extensions.DependencyInjection service provider used to create command instances.</summary>
     /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, IStarterCommand})"/>; a command type's own <see cref="IStarterCommand.GetInstance{TCommand}"/> takes precedence over both.</remarks>
     public IServiceProvider? ServiceProvider { get; set; }
@@ -685,15 +689,23 @@ public class Starter
 
         // An assembly with a catalog is read from it, without loading its types or its references; the others are scanned.
         // The predicates below apply to both sources, so a catalog cannot add a type that the scan would not find.
-        var libraryName = typeof(Starter).Assembly.GetName().Name;
         var classCandidates = new List<Type>();
         var methodCandidates = new List<Type>();
         foreach (var assembly in searchAssemblies)
         {
-            if (CatalogReader.TryRead(assembly, UseCommandCatalogs, out var catalog))
+            // The references of the assembly are asked once: they decide whether it can carry a catalog and whether its methods are searched. Without dynamic code, they cannot be asked,
+            // and every assembly may carry a catalog.
+            var referencesLibrary = DynamicCodeSupported && CatalogReader.ReferencesLibrary(assembly);
+            if (CatalogReader.TryRead(assembly, UseCommandCatalogs, referencesLibrary || !DynamicCodeSupported, out var catalog))
             {
                 classCandidates.AddRange(catalog.CommandTypes);
                 methodCandidates.AddRange(catalog.MethodCommandTypes);
+                continue;
+            }
+
+            // Only the catalogs can be read without dynamic code: an assembly that has none is not scanned.
+            if (!DynamicCodeSupported)
+            {
                 continue;
             }
 
@@ -702,7 +714,7 @@ public class Starter
                 classCandidates.AddRange(GetLoadableTypes(assembly));
             }
 
-            if (assembly == typeof(Starter).Assembly || assembly.GetReferencedAssemblies().Any(reference => reference.Name == libraryName))
+            if (referencesLibrary)
             {
                 methodCandidates.AddRange(GetLoadableTypes(assembly));
             }
@@ -1270,7 +1282,7 @@ public class Starter
             AddStateMetadata(group, type, canHide: true);
         }
         var parent = group ?? RootCommand;
-        foreach (var method in MethodCommandsLoader.GetCommandMethods(type))
+        foreach (var method in MethodCommandsLoader.GetCommandMethods(type, DynamicCodeSupported))
         {
             var attribute = method.GetCustomAttribute<CommandAttribute>()!;
             var inferredName = method.Name.EndsWith("Async", StringComparison.Ordinal) ? method.Name[..^5] : method.Name;
