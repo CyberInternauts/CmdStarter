@@ -60,11 +60,21 @@ Each command type gets one **description instance**, created when the tree is bu
 - A cancelled command returns 130. Class-model handlers can take a `CancellationToken` parameter, which is not turned into an argument.
 - `CmdStarterBuilder.UseRepl` plus `CmdStarterApp.RunReplAsync` give the REPL Microsoft DI with one scope per command. The builder registers the `Starter` (and the `ReplStarter`) as singleton services.
 
+**Command states** (`docs/adr/0012`) work with or without the REPL.
+- The library defines no state. A command (class, method group or method) carries `[AvailableInState(...)]` with the application's own values, and the application exposes its current state through `ICommandStateProvider`. The provider comes from `Starter.StateProvider`, or else from `ServiceProvider` (register it as a singleton).
+- Before each `Start`, `UpdateCommandAvailability` asks for the current state:
+  - an unavailable command, and its whole subtree, gets `Hidden` (combined with `[Hidden]`);
+  - typing it anyway returns 1 with "Command '…' is not available in the current state.";
+  - the tree is not rebuilt;
+  - the rooted lonely command is refused but never unhidden;
+  - commands the application added to `RootCommand` itself are left alone.
+- The attribute without any provider throws `InvalidAttributeException` when the tree is built.
+
 ## Tests
 
 - `CmdStarter.Tests` (NUnit) exercises commands defined in `CmdStarter.Tests.Commands`; `CmdStarter.Tests.Common` holds the shared interfaces and the generic `[TestCase<T>]` attributes.
 - **The namespaces and attributes of the test commands are test data.** Tree-building tests depend on where a command class lives, so moving or adding a class in `CmdStarter.Tests.Commands` can change other tests' trees.
-- Each test isolates its commands by setting `Namespaces`/`Classes` on a fresh `Starter`. `TestsCommon.CreateCmdStarter()` excludes the `Erroneous`, `DepencendyInjection`, `Lifecycle`, `Methods`, `Cancellation` and `ReplApp` namespaces by default (a new namespace of special-purpose test commands is added to both lists) (exclusions also repeated in `Repl.SetDefaultNamespaces`). The lifecycle and DI tests instead isolate one command type with a `Classes` filter, which makes it a lonely, rooted command.
+- Each test isolates its commands by setting `Namespaces`/`Classes` on a fresh `Starter`. `TestsCommon.CreateCmdStarter()` excludes the `Erroneous`, `DepencendyInjection`, `Lifecycle`, `Methods`, `Cancellation`, `ReplApp` and `States` namespaces by default (a new namespace of special-purpose test commands is added to both lists) (exclusions also repeated in `Repl.SetDefaultNamespaces`). The lifecycle and DI tests instead isolate one command type with a `Classes` filter, which makes it a lonely, rooted command.
 - Command test classes must expose read-only public properties unless the property is meant to be an option: any setter, even a private one, makes `Helper.GetProperties` turn the property into an option.
 - Discovery only sees loaded assemblies, so fixtures call `TestsCommon.GlobalSetup()`, which forces `CmdStarter.Tests.Commands` to load (`DirectoryCatalog`). That catalog loads every DLL in the test output folder, so any command assembly copied there joins every default discovery.
 - `CmdStarter.Tests.App` is a real CLI app (class and method commands, Microsoft DI) that `Integration/AppProcessTests` runs as a separate process (`dotnet <dll>`) to check exit codes, stdout and stderr. The test project references it with `ReferenceOutputAssembly="false"` (build order only), for the reason above.
