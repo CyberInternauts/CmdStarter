@@ -131,9 +131,9 @@ public sealed class CommandSequence
     /// Runs the steps from left to right. The first step and the steps after <c>;</c> always run; a step after <c>&amp;&amp;</c> runs if the last executed
     /// code is 0; a step after <c>||</c> runs if it is not; a skipped step does not change the last executed code.
     /// </summary>
-    /// <param name="runStep">Runs a step and returns its exit code, or <see langword="null"/> to stop the sequence.</param>
+    /// <param name="runStep">Runs a whole step (its pipeline included) and returns its exit code, or <see langword="null"/> to stop the sequence.</param>
     /// <returns>The exit code of the last executed step, or 0 when none was executed. A step that returns 130 (cancelled) stops the sequence.</returns>
-    internal async Task<int> ExecuteAsync(Func<string, Task<int?>> runStep)
+    internal async Task<int> ExecuteAsync(Func<CommandSequenceStep, Task<int?>> runStep)
     {
         var lastCode = 0;
         foreach (var step in Steps)
@@ -149,7 +149,7 @@ public sealed class CommandSequence
                 continue;
             }
 
-            var code = await runStep(step.CommandLine);
+            var code = await runStep(step);
             if (code is null)
             {
                 return lastCode;

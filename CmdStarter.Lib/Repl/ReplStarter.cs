@@ -116,7 +116,7 @@ public sealed class ReplStarter : Starter
                     else
                     {
                         // A line without operator behaves as before (an unclosed quote is left to System.CommandLine).
-                        await RunReplStepAsync(line, cancellationToken);
+                        await RunReplStepAsync(line, null, cancellationToken);
                     }
 
                     continue;
@@ -128,7 +128,7 @@ public sealed class ReplStarter : Starter
                     continue;
                 }
 
-                await sequence.ExecuteAsync(step => RunReplStepAsync(step, cancellationToken));
+                await sequence.ExecuteAsync(step => RunReplPipelineAsync(step, cancellationToken));
             }
         }
         finally
@@ -137,26 +137,44 @@ public sealed class ReplStarter : Starter
         }
     }
 
-    // Runs one step of a REPL line: the built-in words keep their meaning inside a sequence.
-    // Returns null to stop the sequence when the step ends the loop.
-    private async Task<int?> RunReplStepAsync(string step, CancellationToken cancellationToken)
+    // Runs one step of a REPL line, a pipeline of commands. A built-in exit word cannot be part of a pipeline of several commands:
+    // nothing of the pipeline runs and the step returns 1.
+    private async Task<int?> RunReplPipelineAsync(CommandSequenceStep step, CancellationToken cancellationToken)
     {
-        if (ExitCommands.Any(command => string.Equals(step, command, StringComparison.OrdinalIgnoreCase)))
+        if (step.Pipeline.Count > 1)
+        {
+            var exitWord = step.Pipeline.FirstOrDefault(IsExitWord);
+            if (exitWord is not null)
+            {
+                (DefaultConsole?.Error ?? Console.Error).WriteLine($"Command '{exitWord}' cannot be piped.");
+                return 1;
+            }
+        }
+
+        return await RunPipelineAsync(step.Pipeline, null, (command, console) => RunReplStepAsync(command, console, cancellationToken));
+    }
+
+    // Runs one command of a REPL line: the built-in words keep their meaning inside a sequence.
+    // Returns null to stop the sequence when the command ends the loop. A null console means a plain Start.
+    private async Task<int?> RunReplStepAsync(string command, CommandConsole? console, CancellationToken cancellationToken)
+    {
+        if (IsExitWord(command))
         {
             allowReplLoop = false;
             return null;
         }
 
-        var firstSpace = FindWhitespace(step);
-        var firstWord = firstSpace < 0 ? step : step[..firstSpace];
-        var rest = firstSpace < 0 ? string.Empty : step[(firstSpace + 1)..].Trim();
-        if (IsHelpWord(firstWord))
-        {
-            return await Start(rest.Length == 0 ? "--help" : $"{rest} --help", cancellationToken);
-        }
-
-        return await Start(step, cancellationToken);
+        var firstSpace = FindWhitespace(command);
+        var firstWord = firstSpace < 0 ? command : command[..firstSpace];
+        var rest = firstSpace < 0 ? string.Empty : command[(firstSpace + 1)..].Trim();
+        var commandLine = IsHelpWord(firstWord) ? (rest.Length == 0 ? "--help" : $"{rest} --help") : command;
+        return console is null
+            ? await Start(commandLine, cancellationToken)
+            : await Start(commandLine, console, cancellationToken);
     }
+
+    private bool IsExitWord(string command) =>
+        ExitCommands.Any(exitCommand => string.Equals(command, exitCommand, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// Gets the completion candidates for a line at a cursor position: the visible commands in the current state,
@@ -282,7 +300,7 @@ public sealed class ReplStarter : Starter
     public new Task<int> StartSequence(string commandLine, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(commandLine);
-        return RunSequenceAsync(commandLine, null, step => Start(step, cancellationToken));
+        return RunSequenceAsync(commandLine, null, (command, commandConsole) => commandConsole is null ? Start(command, cancellationToken) : Start(command, commandConsole, cancellationToken));
     }
 
     /// <summary>Runs a sequence of commands with the given console (see <see cref="Starter.StartSequence(string, CommandConsole, CancellationToken)"/>); each executed command raises <see cref="OnCommandExecuted"/>.</summary>
@@ -295,7 +313,7 @@ public sealed class ReplStarter : Starter
     {
         ArgumentNullException.ThrowIfNull(commandLine);
         ArgumentNullException.ThrowIfNull(console);
-        return RunSequenceAsync(commandLine, console, step => Start(step, console, cancellationToken));
+        return RunSequenceAsync(commandLine, console, (command, commandConsole) => Start(command, commandConsole ?? console, cancellationToken));
     }
 
     /// <inheritdoc/>

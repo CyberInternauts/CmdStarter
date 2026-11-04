@@ -278,6 +278,107 @@ public class CommandSequences
         Assert.That(completions, Does.Not.Contain("exit"));
     }
 
+    [Test]
+    public async Task PipelinePassesOutputToNextInput()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("emit | sort", ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task ThreeStagePipelineReturnsLastCode()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("emit | sort | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(3));
+        Assert.That(output.ToString().Trim(), Is.EqualTo("3"));
+    }
+
+    [Test]
+    public async Task ErrorsBypassThePipe()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("warn | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(1));
+        Assert.That(error.ToString(), Does.Contain("warning"));
+        Assert.That(output.ToString().Trim(), Is.EqualTo("1"));
+    }
+
+    [Test]
+    public async Task PipelineRunsEveryCommandEvenAfterFailure()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("fail | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "fail", "count" }));
+    }
+
+    [Test]
+    public async Task PipelinesCombineWithOperators()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var console = ConsoleWith(string.Empty, output, error);
+
+        // The code of a pipeline is the one of its last command: count reads nothing and returns 0, so "&&" goes on.
+        Assert.That(await starter.StartSequence("fail | count && ok", console), Is.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "fail", "count", "ok" }));
+
+        // Here count returns 3, so "&&" skips ok.
+        SequenceLog.Entries.Clear();
+        Assert.That(await starter.StartSequence("emit | count && ok", console), Is.EqualTo(3));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "emit", "count" }));
+    }
+
+    [Test]
+    public async Task ReplRunsPipeline()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var executed = 0;
+        var repl = CreateRepl("emit | sort");
+        repl.DefaultConsole = ConsoleWith(string.Empty, output, error);
+        repl.OnCommandExecuted += (_, _) => executed++;
+
+        await repl.Launch();
+
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+        Assert.That(executed, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task ExitCannotBePiped()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var repl = CreateRepl("ok | exit", "other");
+        repl.DefaultConsole = ConsoleWith(string.Empty, output, error);
+
+        await repl.Launch();
+
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "other" }));
+        Assert.That(error.ToString(), Does.Contain("cannot be piped"));
+    }
+
+    [Test]
+    public void CompletionAfterPipe()
+    {
+        Assert.That(CreateRepl().GetCompletions("emit | so", 9), Does.Contain("sort"));
+    }
+
+    private static CommandConsole ConsoleWith(string input, StringWriter output, StringWriter error) => new(new StringReader(input), output, error);
+
     private static Starter CreateStarter() => new()
     {
         Namespaces = ImmutableList.Create(typeof(Ok).Namespace!)

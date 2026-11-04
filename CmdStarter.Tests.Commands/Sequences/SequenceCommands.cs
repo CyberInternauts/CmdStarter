@@ -31,3 +31,62 @@ public sealed class Other : StarterCommand
         return 0;
     });
 }
+
+public sealed class Emit : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<CommandConsole, int>)(console =>
+    {
+        SequenceLog.Entries.Add("emit");
+        console.Out.WriteLine("b");
+        console.Out.WriteLine("a");
+        console.Out.WriteLine("c");
+        return 0;
+    });
+}
+
+public sealed class Sort : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<CommandConsole, int>)(console =>
+    {
+        SequenceLog.Entries.Add("sort");
+        foreach (var line in ReadLines(console).Order(StringComparer.Ordinal))
+        {
+            console.Out.WriteLine(line);
+        }
+
+        return 0;
+    });
+
+    internal static List<string> ReadLines(CommandConsole console)
+    {
+        var lines = new List<string>();
+        while (console.In.ReadLine() is { } line)
+        {
+            lines.Add(line);
+        }
+
+        return lines;
+    }
+}
+
+public sealed class Count : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<CommandConsole, int>)(console =>
+    {
+        SequenceLog.Entries.Add("count");
+        var count = Sort.ReadLines(console).Count(line => line.Length > 0);
+        console.Out.WriteLine(count);
+        return count;
+    });
+}
+
+public sealed class Warn : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<CommandConsole, int>)(console =>
+    {
+        SequenceLog.Entries.Add("warn");
+        console.Error.WriteLine("warning");
+        console.Out.WriteLine("x");
+        return 0;
+    });
+}

@@ -403,7 +403,7 @@ public class Starter
     public Task<int> StartSequence(string commandLine, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(commandLine);
-        return RunSequenceAsync(commandLine, null, step => Start(step, cancellationToken));
+        return RunSequenceAsync(commandLine, null, (command, commandConsole) => commandConsole is null ? Start(command, cancellationToken) : Start(command, commandConsole, cancellationToken));
     }
 
     /// <summary>
@@ -418,22 +418,23 @@ public class Starter
     {
         ArgumentNullException.ThrowIfNull(commandLine);
         ArgumentNullException.ThrowIfNull(console);
-        return RunSequenceAsync(commandLine, console, step => Start(step, console, cancellationToken));
+        return RunSequenceAsync(commandLine, console, (command, commandConsole) => Start(command, commandConsole ?? console, cancellationToken));
     }
 
     // True when the sequence option is set and the arguments are exactly that option followed by the line to run.
     private protected bool IsSequenceInvocation(string[]? args) =>
         SequenceOption is not null && args is { Length: 2 } && string.Equals(args[0], SequenceOption, StringComparison.Ordinal);
 
-    // The semantics of a sequence live in CommandSequence.ExecuteAsync; startStep runs one step with the right Start overload.
-    private protected async Task<int> RunSequenceAsync(string commandLine, CommandConsole? console, Func<string, Task<int>> startStep)
+    // The semantics of a sequence live in CommandSequence.ExecuteAsync and those of a pipeline in RunPipelineAsync;
+    // runCommand runs one command with the console it is given (null: the console of the process or DefaultConsole, as a plain Start).
+    private protected async Task<int> RunSequenceAsync(string commandLine, CommandConsole? console, Func<string, CommandConsole?, Task<int>> runCommand)
     {
         if (!CommandSequence.TryParse(commandLine, out var sequence, out var error))
         {
             // A line without operator is a plain command line, even with an unclosed quote: it runs as a Start would.
             if (!CommandSequence.HasOperator(commandLine))
             {
-                return await startStep(commandLine);
+                return await runCommand(commandLine, console);
             }
 
             var errorOutput = (console ?? DefaultConsole)?.Error ?? Console.Error;
@@ -443,10 +444,42 @@ public class Starter
 
         if (sequence.Steps.Count == 0)
         {
-            return await startStep(commandLine);
+            return await runCommand(commandLine, console);
         }
 
-        return await sequence.ExecuteAsync(async step => await startStep(step));
+        return await sequence.ExecuteAsync(step => RunPipelineAsync(step.Pipeline, console, async (command, commandConsole) => await runCommand(command, commandConsole)));
+    }
+
+    // Runs the commands of a step. A single command runs with the console as given (a plain Start, nothing forced).
+    // Several commands are buffered: the first reads the input of the execution console, each command output becomes the input of the next,
+    // the last writes to the output of the execution console, and every command writes its errors to the error output of the execution console.
+    // Returns the code of the last command, 130 as soon as a command is cancelled, or null when a command asks to stop the sequence.
+    private protected async Task<int?> RunPipelineAsync(IReadOnlyList<string> pipeline, CommandConsole? console, Func<string, CommandConsole?, Task<int?>> runCommand)
+    {
+        if (pipeline.Count == 1)
+        {
+            return await runCommand(pipeline[0], console);
+        }
+
+        var execution = console ?? DefaultConsole ?? CommandConsole.Standard;
+        var input = execution.In;
+        int? code = 0;
+        for (var index = 0; index < pipeline.Count; index++)
+        {
+            using var buffer = index == pipeline.Count - 1 ? null : new StringWriter();
+            code = await runCommand(pipeline[index], new CommandConsole(input, buffer ?? execution.Out, execution.Error));
+            if (code is null or 130)
+            {
+                return code;
+            }
+
+            if (buffer is not null)
+            {
+                input = new StringReader(buffer.ToString());
+            }
+        }
+
+        return code;
     }
 
     // The single implementation of every Start. The console of the execution is attached to the invocation configuration itself,
