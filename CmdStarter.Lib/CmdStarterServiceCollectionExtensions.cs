@@ -28,6 +28,10 @@ public static class CmdStarterServiceCollectionExtensions
         {
             services.TryAddTransient(commandType);
         }
+        foreach (var filterType in starter.FilterTypes)
+        {
+            services.TryAddTransient(filterType);
+        }
         services.TryAddSingleton<Starter>(provider =>
         {
             starter.ServiceProvider ??= provider;

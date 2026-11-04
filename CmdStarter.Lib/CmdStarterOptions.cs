@@ -31,6 +31,14 @@ public sealed class CmdStarterOptions
         return this;
     }
 
+    /// <summary>Adds a command filter type to the configured starter.</summary>
+    /// <typeparam name="TFilter">The filter type.</typeparam>
+    /// <returns>This options instance.</returns>
+    public CmdStarterOptions AddFilter<TFilter>() where TFilter : class, ICommandFilter
+    {
+        return ConfigureStarter(starter => starter.AddFilter<TFilter>());
+    }
+
     /// <summary>Configures the application to run in REPL mode.</summary>
     /// <param name="inputProvider">Provides lines to the REPL.</param>
     /// <returns>This options instance.</returns>

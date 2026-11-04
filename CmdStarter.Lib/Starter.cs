@@ -55,6 +55,7 @@ public class Starter
     private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
     private ImmutableList<Type> methodCommandsTypes = ImmutableList<Type>.Empty;
     private readonly List<MethodCommandRegistration> methodRegistrations = new();
+    private readonly List<FilterRegistration> filters = new();
     private readonly Dictionary<Command, CommandStateMetadata> commandStateMetadata = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<Command> implicitMethodGroups = new(ReferenceEqualityComparer.Instance);
     private TreeNode<Type>? definedTree;
@@ -70,6 +71,27 @@ public class Starter
 
     /// <summary>Raised after a command handler returns, before its instance and services are released. It is not raised when parsing fails or the handler throws.</summary>
     public event EventHandler<CommandHandledEventArgs>? CommandHandled;
+
+    internal IReadOnlyList<Type> FilterTypes => filters.Where(filter => filter.FilterType is not null).Select(filter => filter.FilterType!).ToArray();
+
+    /// <summary>Adds a command filter instance.</summary>
+    /// <param name="filter">The filter instance to use for every command execution.</param>
+    /// <returns>This starter.</returns>
+    public Starter AddFilter(ICommandFilter filter)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        filters.Add(new FilterRegistration(filter, null));
+        return this;
+    }
+
+    /// <summary>Adds a command filter type, activated for each command execution.</summary>
+    /// <typeparam name="TFilter">The filter type.</typeparam>
+    /// <returns>This starter.</returns>
+    public Starter AddFilter<TFilter>() where TFilter : class, ICommandFilter
+    {
+        filters.Add(new FilterRegistration(null, typeof(TFilter)));
+        return this;
+    }
 
     /// <summary>Assemblies searched for commands and global options. An empty list searches all assemblies loaded in the AppDomain.</summary>
     public ImmutableList<Assembly> Assemblies
@@ -765,17 +787,21 @@ public class Starter
         if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         CommandBinder.BindOptions(parseResult, instance, registration.OptionBindings);
-        int exitCode;
-        try
+        var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.CommandType, instance, parseResult, activation.Services, cancellationToken);
+        return await InvokeFiltersAsync(context, async () =>
         {
-            exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments, cancellationToken);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            exitCode = 130;
-        }
-        CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, instance, exitCode));
-        return exitCode;
+            int exitCode;
+            try
+            {
+                exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                exitCode = 130;
+            }
+            CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, instance, exitCode));
+            return exitCode;
+        });
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "Converts any command failure into a one-line message and exit code 1 unless ShowExceptionDetails is set.")]
@@ -820,18 +846,76 @@ public class Starter
                 _ => null
             };
         }
-        int exitCode;
+        var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.Method, activation.Instance, parseResult, activation.Services, cancellationToken);
+        return await InvokeFiltersAsync(context, async () =>
+        {
+            int exitCode;
+            try
+            {
+                var result = CommandBinder.Invoke(() => registration.Method.Invoke(activation.Instance, values));
+                exitCode = await CommandBinder.ToExitCodeAsync(result);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                exitCode = 130;
+            }
+            CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, activation.Instance, exitCode));
+            return exitCode;
+        });
+    }
+
+    private async Task<int> InvokeFiltersAsync(CommandContext context, Func<Task<int>> command)
+    {
+        var activatedFilters = new List<(ICommandFilter Filter, bool Owned)>();
         try
         {
-            var result = CommandBinder.Invoke(() => registration.Method.Invoke(activation.Instance, values));
-            exitCode = await CommandBinder.ToExitCodeAsync(result);
+            foreach (var registration in filters)
+            {
+                if (registration.Instance is not null)
+                {
+                    activatedFilters.Add((registration.Instance, false));
+                    continue;
+                }
+
+                var filterType = registration.FilterType!;
+                var resolved = context.Services?.GetService(filterType);
+                var filter = resolved as ICommandFilter;
+                var owned = false;
+                if (filter is null)
+                {
+                    filter = context.Services is null
+                        ? (ICommandFilter)Activator.CreateInstance(filterType)!
+                        : (ICommandFilter)ActivatorUtilities.CreateInstance(context.Services, filterType);
+                    owned = true;
+                }
+                activatedFilters.Add((filter, owned));
+            }
+
+            Func<Task<int>> next = command;
+            for (var index = activatedFilters.Count - 1; index >= 0; index--)
+            {
+                var filter = activatedFilters[index].Filter;
+                var following = next;
+                next = () => filter.InvokeAsync(context, following);
+            }
+            return await next();
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        finally
         {
-            exitCode = 130;
+            for (var index = activatedFilters.Count - 1; index >= 0; index--)
+            {
+                if (!activatedFilters[index].Owned) continue;
+                var filter = activatedFilters[index].Filter;
+                if (filter is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+                else if (filter is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
-        CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, activation.Instance, exitCode));
-        return exitCode;
     }
 
     private static object? GetMethodOptionValue(ParseResult result, Option option, ParameterInfo parameter)
@@ -1117,5 +1201,7 @@ public class Starter
         FindCommandsTypes();
         CommandsTypes.ForEach(type => serviceManager.SetService(type));
     }
+
+    private sealed record FilterRegistration(ICommandFilter? Instance, Type? FilterType);
 
 }

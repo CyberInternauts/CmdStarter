@@ -35,6 +35,15 @@ public sealed class CmdStarterBuilder
         return this;
     }
 
+    /// <summary>Adds a command filter type to the configured starter.</summary>
+    /// <typeparam name="TFilter">The filter type.</typeparam>
+    /// <returns>This builder.</returns>
+    public CmdStarterBuilder AddFilter<TFilter>() where TFilter : class, ICommandFilter
+    {
+        options.AddFilter<TFilter>();
+        return this;
+    }
+
     /// <summary>Configures the application to run in REPL mode.</summary>
     /// <param name="inputProvider">Provides lines to the REPL.</param>
     /// <returns>This builder.</returns>
