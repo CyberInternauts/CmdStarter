@@ -36,12 +36,41 @@ public class CommandSequences
     }
 
     [Test]
-    public void SinglePipeAndAmpersandAreText()
+    public void SingleAmpersandIsText()
     {
-        var steps = Parse("a | b & c");
+        var steps = Parse("a & b");
 
-        Assert.That(steps.Select(step => step.CommandLine), Is.EqualTo(new[] { "a | b & c" }));
+        Assert.That(steps.Select(step => step.CommandLine), Is.EqualTo(new[] { "a & b" }));
         Assert.That(steps.Select(step => step.Operator), Is.EqualTo(new[] { SequenceOperator.None }));
+    }
+
+    [Test]
+    public void SplitsPipelines()
+    {
+        var steps = Parse("a | b \"c|d\" || e");
+
+        Assert.That(steps, Has.Count.EqualTo(2));
+        Assert.That(steps[0].CommandLine, Is.EqualTo("a | b \"c|d\""));
+        Assert.That(steps[0].Operator, Is.EqualTo(SequenceOperator.None));
+        Assert.That(steps[0].Pipeline, Is.EqualTo(new[] { "a", "b \"c|d\"" }));
+        Assert.That(steps[1].Operator, Is.EqualTo(SequenceOperator.OnFailure));
+        Assert.That(steps[1].Pipeline, Is.EqualTo(new[] { "e" }));
+    }
+
+    [Test]
+    public void InvalidPipelinesAreRejected()
+    {
+        var invalidLines = new[] { "| a", "a |", "a | | b", "a || | b", "a | && b" };
+
+        Assert.Multiple(() =>
+        {
+            foreach (var line in invalidLines)
+            {
+                Assert.That(CommandSequence.TryParse(line, out var sequence, out var error), Is.False, line);
+                Assert.That(sequence, Is.Null, line);
+                Assert.That(error, Does.Contain("'|'"), line);
+            }
+        });
     }
 
     [Test]

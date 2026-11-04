@@ -21,11 +21,12 @@ public enum SequenceOperator
 /// <summary>One command line of a <see cref="CommandSequence"/> and the way it is bound to the previous step.</summary>
 /// <param name="CommandLine">The trimmed text of the step, quotes included.</param>
 /// <param name="Operator">How this step is bound to the previous one.</param>
-public sealed record CommandSequenceStep(string CommandLine, SequenceOperator Operator);
+/// <param name="Pipeline">The trimmed commands of the step, split on a single <c>|</c> outside double quotes: one command when the step has no pipe.</param>
+public sealed record CommandSequenceStep(string CommandLine, SequenceOperator Operator, IReadOnlyList<string> Pipeline);
 
 /// <summary>
-/// A line split into command lines joined by <c>;</c>, <c>&amp;&amp;</c> and <c>||</c>.
-/// Operators only count outside double quotes, which stay in the text of the step; a single <c>|</c> or <c>&amp;</c> is text.
+/// A line split into command lines joined by <c>;</c>, <c>&amp;&amp;</c> and <c>||</c>; each step is itself a pipeline of commands joined by a single <c>|</c>.
+/// Operators only count outside double quotes, which stay in the text of the step; a single <c>&amp;</c> is text.
 /// </summary>
 public sealed class CommandSequence
 {
@@ -54,9 +55,17 @@ public sealed class CommandSequence
         var steps = new List<CommandSequenceStep>();
         var pending = SequenceOperator.None;
         var segmentStart = 0;
+        var pipes = new List<int>();
 
         foreach (var token in operators)
         {
+            if (token.IsPipe)
+            {
+                // A pipe is inside a step: it does not end the step.
+                pipes.Add(token.Index);
+                continue;
+            }
+
             var text = line[segmentStart..token.Index].Trim();
             error = text.Length == 0 ? CheckEmptyStep(token.Symbol, token.Kind, pending, steps.Count) : null;
             if (error is not null)
@@ -67,10 +76,18 @@ public sealed class CommandSequence
 
             if (text.Length > 0)
             {
-                steps.Add(new CommandSequenceStep(text, pending));
+                error = SplitPipeline(line, segmentStart, token.Index, pipes, out var pipeline);
+                if (error is not null)
+                {
+                    sequence = null;
+                    return false;
+                }
+
+                steps.Add(new CommandSequenceStep(text, pending, pipeline));
                 pending = token.Kind;
             }
 
+            pipes.Clear();
             segmentStart = token.Index + token.Symbol.Length;
         }
 
@@ -84,7 +101,14 @@ public sealed class CommandSequence
         var lastText = line[segmentStart..].Trim();
         if (lastText.Length > 0)
         {
-            steps.Add(new CommandSequenceStep(lastText, pending));
+            error = SplitPipeline(line, segmentStart, line.Length, pipes, out var lastPipeline);
+            if (error is not null)
+            {
+                sequence = null;
+                return false;
+            }
+
+            steps.Add(new CommandSequenceStep(lastText, pending, lastPipeline));
         }
         else if (pending is SequenceOperator.OnSuccess or SequenceOperator.OnFailure)
         {
@@ -100,7 +124,7 @@ public sealed class CommandSequence
 
     /// <summary>Tells whether a line contains at least one operator outside double quotes, even when the line is not a valid sequence.</summary>
     /// <param name="line">The line to read.</param>
-    /// <returns><see langword="true"/> when <c>;</c>, <c>&amp;&amp;</c> or <c>||</c> is found outside double quotes.</returns>
+    /// <returns><see langword="true"/> when <c>;</c>, <c>&amp;&amp;</c>, <c>||</c> or a single <c>|</c> is found outside double quotes.</returns>
     internal static bool HasOperator(string line) => Scan(line).Operators.Count > 0;
 
     /// <summary>
@@ -143,7 +167,8 @@ public sealed class CommandSequence
 
     /// <summary>
     /// Finds the step that contains a cursor position, in a line that may be unfinished (a trailing operator, an open quote).
-    /// The step starts just after the last operator before the cursor and ends at the next operator or at the end of the line.
+    /// The step starts just after the last operator before the cursor and ends at the next operator or at the end of the line;
+    /// a single <c>|</c> is an operator here, so the step is the command of the pipeline that contains the cursor.
     /// </summary>
     /// <param name="line">The line being edited.</param>
     /// <param name="position">The cursor position in <paramref name="line"/>.</param>
@@ -174,7 +199,8 @@ public sealed class CommandSequence
     }
 
     // The single reading of quotes and operators, shared by TryParse and FindStep.
-    // A double quote opens or closes a quoted zone (no escape); outside quotes, "&&" and "||" (two characters) are read first, then ";".
+    // A double quote opens or closes a quoted zone (no escape); outside quotes, "&&" and "||" (two characters) are read first, then ";" and a single "|".
+    // A single "|" is a token with no step operator of its own (SequenceOperator.None): it separates the commands of a pipeline inside a step.
     private static (List<OperatorToken> Operators, bool HasUnclosedQuote) Scan(string line)
     {
         var operators = new List<OperatorToken>();
@@ -211,6 +237,7 @@ public sealed class CommandSequence
     {
         ('&', '&') => ("&&", SequenceOperator.OnSuccess),
         ('|', '|') => ("||", SequenceOperator.OnFailure),
+        ('|', _) => ("|", SequenceOperator.None),
         (';', _) => (";", SequenceOperator.Always),
         _ => (null, SequenceOperator.None)
     };
@@ -233,7 +260,30 @@ public sealed class CommandSequence
             : $"Unexpected '{symbol}' after ';'.";
     }
 
+    // Splits the text of a step on its pipes into trimmed commands; an empty command is an error.
+    private static string? SplitPipeline(string line, int segmentStart, int segmentEnd, List<int> pipes, out List<string> pipeline)
+    {
+        pipeline = new List<string>();
+        var commandStart = segmentStart;
+        foreach (var pipe in pipes.Append(segmentEnd))
+        {
+            var command = line[commandStart..pipe].Trim();
+            if (command.Length == 0)
+            {
+                return pipeline.Count == 0 ? "Missing command before '|'." : "Missing command after '|'.";
+            }
+
+            pipeline.Add(command);
+            commandStart = pipe + 1;
+        }
+
+        return null;
+    }
+
     private static string Symbol(SequenceOperator kind) => kind == SequenceOperator.OnSuccess ? "&&" : "||";
 
-    private sealed record OperatorToken(int Index, string Symbol, SequenceOperator Kind);
+    private sealed record OperatorToken(int Index, string Symbol, SequenceOperator Kind)
+    {
+        public bool IsPipe => string.Equals(Symbol, "|", StringComparison.Ordinal);
+    }
 }
