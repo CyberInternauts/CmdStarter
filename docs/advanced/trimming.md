@@ -74,7 +74,7 @@ Version 2.0 does not support trimming. The library is not annotated with `Requir
 
 - A trimmed application does not find its commands, as shown above.
 - Existing applications are not affected: neither `PublishTrimmed` nor `PublishAot` is enabled by default.
-- A source generator, which would replace discovery and binding with generated code, is the route under consideration. Its first step exists: the [command catalog](source-generator.md) replaces the search of the commands in an assembly that has one. The results on this page were taken without it, and trimming with the catalog has not been measured.
+- A source generator, which would replace discovery and binding with generated code, is the route under consideration. Its first step exists: the [command catalog](source-generator.md) replaces the search of the commands in an assembly that has one. The results on this page were taken without it, and trimming with the catalog has not been measured. The second step, the [symbol factories](source-generator.md#symbol-factories), targets the warnings `IL3050` and `IL2060` of the table above and will be measured in a later step; the results of this page do not change.
 - Workarounds, such as a root file or `DynamicDependency` attributes, were not tried, and none is supported.
 
 The decision is recorded in [ADR 0025](../adr/0025-trimming-and-native-aot.md). The Native AOT results are on the [Native AOT](native-aot.md) page.

@@ -29,3 +29,4 @@
 | 0025 | [Trimming and Native AOT](0025-trimming-and-native-aot.md) | Accepted |
 | 0026 | [Daemon Mode](0026-daemon-mode.md) | Accepted |
 | 0027 | [Command Catalog Generated at Compile Time](0027-command-catalog.md) | Accepted |
+| 0028 | [Typed Symbol Factories](0028-typed-symbol-factories.md) | Accepted |

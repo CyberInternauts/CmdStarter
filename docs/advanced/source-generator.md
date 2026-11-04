@@ -72,6 +72,55 @@ An application that declares `CommandCatalogAttribute` itself replaces the gener
 [assembly: CommandCatalog(typeof(CyberInternauts.CmdStarter.Tests.Commands.Catalog.HandWrittenCatalog))]
 ```
 
+## Symbol factories
+
+Each option and each argument is a System.CommandLine symbol typed by its value, and reading its value goes through a generic method of the parse result. Without the generator, `Starter` builds these generic types at run time, with the type of the value. A **typed factory of symbols** does it for one value type without building a generic type at run time. `ISymbolFactory` is its interface:
+
+<!-- snippet: CmdStarter.Lib/Catalog/ISymbolFactory.cs -->
+```csharp
+Option CreateOption(string name);
+Argument CreateArgument(string name);
+void SetDefault(Option optionSymbol, object? value);
+object? GetValue(ParseResult parseResult, Option optionSymbol);
+```
+
+The generator writes, in `Describe`, one line `AddSymbolType` for each distinct value type that the commands of the assembly use, after the lines of the other families and in the ordinal order of the full names. When `Starter` reads the catalog, each of these lines registers the factory of its type, and the registration lasts for the whole process. A hand-written catalog can do the same with `ICommandCatalogBuilder.AddSymbolType`.
+
+### What is registered
+
+The registration over-approximates on purpose: a type registered for nothing costs one instantiation.
+
+- The type of every public instance property that has a getter and a setter (a private setter and `init` count; a property without setter, a static property and an indexer do not), in each listed command and each listed global options container, with the inherited properties. The properties that the library itself declares are not counted.
+- The type of every parameter of the methods marked `[Command]`, except `CancellationToken`, `CommandConsole`, and the parameters passed by reference. A method that is not marked does not count.
+- The types of the parameters of the delegate that the `HandlingMethod` of a command gives, when they can be read at compile time.
+
+### How `HandlingMethod` is read
+
+The generator reads the property when it is overridden in the compilation, and its body is an expression, a `get =>` or a `get` made of a single `return`. The rule is then:
+
+1. When the static type of the expression is a concrete delegate type, the parameters are those of its `Invoke`. The expression can be a lambda (it has a natural type), a cast, the creation of a delegate, a field, a property or a call, as long as its type is a delegate type. A lambda without parameter registers nothing and reports nothing, and a `ref` parameter is not registered.
+2. Otherwise, when the expression is a name that designates a method group with a single method, the parameters are those of that method.
+3. Otherwise, the rule `CMDS0015` is reported (severity `Info`) on the property, and no type is registered for that command. It happens, for example, when the static type is `Delegate` itself (a field or a call of that type, a cast to `Delegate`), or when the property is not written as an expression or a getter with a single `return` (an initializer, two statements, no getter). The message says that the argument types of the handler are created by reflection at run time. The rest of the catalog is not affected. A `HandlingMethod` that is not overridden is not reported: it is the empty delegate of the library.
+
+The first class of the hierarchy that is in the compilation and declares the property decides, and a class that implements `IStarterCommand` itself declares it too.
+
+### The fallback by reflection
+
+A type that is not registered is not an error. When no factory is registered for it, the library makes the same factory by reflection, once per type, and uses it. A registration made later replaces a fallback that already exists, and the first registration of a type is kept. The two factories behave the same: the types of the symbols, the default value, and the value read from a parse result are identical, checked for `int`, `string`, `bool`, `int?`, `string[]` and `FileInfo`.
+
+The generator does not register, and does not report, the types that it cannot write as a type argument or that the generated code cannot name. They are:
+
+- the types that cannot be a type argument: ref-like types such as `Span<char>`, pointers, function pointers, `dynamic`, type parameters, and unknown types;
+- the types that cannot be reached from the catalog: a type, or an enclosing type, that is `private`, `protected` or `private protected`, and a `file` type;
+- the types marked `[Obsolete(..., true)]` or `[Experimental]`;
+- the types marked `[Obsolete]` with a `DiagnosticId` that cannot be written in a `#pragma`.
+
+A generic type is left out when one of its type arguments is. An array is registered by its array type, such as `int[]`. For all of them the fallback by reflection is used.
+
+### Nothing changes on CoreCLR
+
+The factories exist so that an application can build its symbols without a generic type made at run time (the warnings `IL3050` and `IL2060`, see [Trimming](trimming.md)). On CoreCLR the symbols are the same as before. The default value of a value type is the one `Activator.CreateInstance` gives, so a struct with an explicit parameterless constructor keeps it. The whole test suite runs through the factories that the generator wrote for the test commands.
+
 ## Start-up
 
 [Performance](performance.md) gives two series of measures of the discovery with and without catalogs, taken on 2026-11-04 (means, in μs):
@@ -87,7 +136,7 @@ Every searched assembly has its catalog attribute read. Without `Assemblies`, ev
 
 ## What it does not do yet
 
-- It does not generate the binding: the options, arguments, values and instances are still read by reflection.
+- It does not generate the binding: the options, arguments, values and instances are still read and set by reflection. The factories only replace the construction of generic types for the symbols.
 - It does not make trimming or Native AOT work. [Trimming](trimming.md) and [Native AOT](native-aot.md) give the results taken without it, and neither has been measured with a catalog.
 - A `Starter` with no `Assemblies` still scans the assemblies that have no catalog, those of the framework included.
 
@@ -95,4 +144,4 @@ Every searched assembly has its catalog attribute read. Without `Assemblies`, ev
 
 - Examples: [HandWrittenCatalog](../../CmdStarter.Tests.CatalogCommands/HandWrittenCatalog.cs).
 - Neighbouring pages: [Discovery](../concepts/discovery.md), [Analyzers](analyzers.md), [Trimming](trimming.md), [Native AOT](native-aot.md), [Performance](performance.md).
-- ADR: [0027, command catalog](../adr/0027-command-catalog.md).
+- ADRs: [0027, command catalog](../adr/0027-command-catalog.md), [0028, typed symbol factories](../adr/0028-typed-symbol-factories.md).
