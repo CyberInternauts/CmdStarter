@@ -60,6 +60,38 @@ The measures use 12 class commands on three levels placed with `[Parent<T>]`, ea
 
 Global options containers are found by `GlobalOptionsManager` through a static cache shared by every `Starter` of the process, so the warm measures pay that search once per process, while `FirstInstantiate` includes it.
 
+## After the activation cache
+
+This second series was taken after the lookup of each command type's `GetInstance` method was cached (it was computed at every execution), with the same machine and the same jobs as above; the factory of `ActivatorUtilities` is not cached (a type with two constructors would no longer be created).
+
+The conditions are those in [Conditions](#conditions).
+
+### Startup and execution
+
+| Method                                | Mean         | Error       | StdDev      | Gen0    | Gen1   | Allocated |
+|-------------------------------------- |-------------:|------------:|------------:|--------:|-------:|----------:|
+| DiscoverAllAssemblies                 | 1,626.578 μs | 110.8445 μs |  57.9738 μs | 62.5000 | 7.8125 | 510.63 KB |
+| DiscoverOneAssembly                   |   635.556 μs | 251.1641 μs | 166.1295 μs | 25.3906 | 3.9063 | 223.23 KB |
+| DefinedTree                           |   808.635 μs | 112.6081 μs |  67.0113 μs | 42.9688 | 7.8125 |  365.2 KB |
+| ExecuteCommand                        |     4.550 μs |   0.1237 μs |   0.0818 μs |  1.2054 | 0.0076 |    9.9 KB |
+| ExecuteCommandWithDependencyInjection |     4.953 μs |   0.1661 μs |   0.1099 μs |  1.2283 | 0.0076 |  10.05 KB |
+
+BenchmarkDotNet reported:
+
+- `DiscoverAllAssemblies`: 2 outliers removed (1.87 ms, 2.04 ms).
+- `DefinedTree`: 1 outlier removed (1.13 ms).
+- None for the other measures.
+
+### Cold start
+
+| Method           | Mean     | Error   | StdDev  |
+|----------------- |---------:|--------:|--------:|
+| FirstInstantiate | 137.3 ms | 2.96 ms | 1.96 ms |
+
+BenchmarkDotNet reported: none.
+
+The two series were taken at different times on the same machine, so part of a difference can be noise.
+
 ## How to run
 
 ```powershell
