@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Sequences;
 
 namespace CyberInternauts.CmdStarter.Repl;
 
@@ -106,27 +107,55 @@ public sealed class ReplStarter : Starter
                     continue;
                 }
 
-                if (ExitCommands.Any(command => string.Equals(line, command, StringComparison.OrdinalIgnoreCase)))
+                if (!CommandSequence.TryParse(line, out var sequence, out var error))
                 {
-                    break;
-                }
+                    if (CommandSequence.HasOperator(line))
+                    {
+                        (DefaultConsole?.Error ?? Console.Error).WriteLine(error);
+                    }
+                    else
+                    {
+                        // A line without operator behaves as before (an unclosed quote is left to System.CommandLine).
+                        await RunReplStepAsync(line, cancellationToken);
+                    }
 
-                var firstSpace = FindWhitespace(line);
-                var firstWord = firstSpace < 0 ? line : line[..firstSpace];
-                var rest = firstSpace < 0 ? string.Empty : line[(firstSpace + 1)..].Trim();
-                if (HelpCommands.Any(command => string.Equals(firstWord, command, StringComparison.OrdinalIgnoreCase)))
-                {
-                    await Start(rest.Length == 0 ? "--help" : $"{rest} --help", cancellationToken);
                     continue;
                 }
 
-                await Start(line, cancellationToken);
+                if (sequence.Steps.Count == 0)
+                {
+                    await Start(line, cancellationToken);
+                    continue;
+                }
+
+                await sequence.ExecuteAsync(step => RunReplStepAsync(step, cancellationToken));
             }
         }
         finally
         {
             Console.CancelKeyPress -= cancelHandler;
         }
+    }
+
+    // Runs one step of a REPL line: the built-in words keep their meaning inside a sequence.
+    // Returns null to stop the sequence when the step ends the loop.
+    private async Task<int?> RunReplStepAsync(string step, CancellationToken cancellationToken)
+    {
+        if (ExitCommands.Any(command => string.Equals(step, command, StringComparison.OrdinalIgnoreCase)))
+        {
+            allowReplLoop = false;
+            return null;
+        }
+
+        var firstSpace = FindWhitespace(step);
+        var firstWord = firstSpace < 0 ? step : step[..firstSpace];
+        var rest = firstSpace < 0 ? string.Empty : step[(firstSpace + 1)..].Trim();
+        if (IsHelpWord(firstWord))
+        {
+            return await Start(rest.Length == 0 ? "--help" : $"{rest} --help", cancellationToken);
+        }
+
+        return await Start(step, cancellationToken);
     }
 
     /// <summary>
@@ -147,6 +176,15 @@ public sealed class ReplStarter : Starter
 
         InstantiateCommands();
         UpdateCommandAvailability();
+
+        // In a sequence, only the step that contains the cursor is completed (the whole line when the cursor is inside an operator).
+        if (CommandSequence.FindStep(line, position) is { } step)
+        {
+            var segment = line[step.Start..step.End];
+            var leadingBlanks = segment.Length - segment.TrimStart().Length;
+            line = segment[leadingBlanks..];
+            position = Math.Max(0, position - step.Start - leadingBlanks);
+        }
 
         var firstSpace = FindWhitespace(line);
         if (firstSpace >= 0 && position > firstSpace && IsHelpWord(line[..firstSpace]))
@@ -199,7 +237,9 @@ public sealed class ReplStarter : Starter
     /// <param name="cancellationToken">Token used to cancel command execution.</param>
     /// <returns>The command exit code.</returns>
     public new Task<int> Start(string[] args, CancellationToken cancellationToken) =>
-        ExecuteAndRaiseAsync(token => base.Start(args, token), cancellationToken);
+        IsSequenceInvocation(args)
+            ? StartSequence(args[1], cancellationToken)
+            : ExecuteAndRaiseAsync(token => base.Start(args, token), cancellationToken);
 
     /// <summary>Executes arguments and raises <see cref="OnCommandExecuted"/>.</summary>
     /// <param name="args">Command line arguments.</param>
@@ -217,7 +257,9 @@ public sealed class ReplStarter : Starter
     public new Task<int> Start(string[] args, CommandConsole console, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(console);
-        return ExecuteAndRaiseAsync(token => base.Start(args, console, token), cancellationToken);
+        return IsSequenceInvocation(args)
+            ? StartSequence(args[1], console, cancellationToken)
+            : ExecuteAndRaiseAsync(token => base.Start(args, console, token), cancellationToken);
     }
 
     /// <summary>Executes arguments with the console of this execution and raises <see cref="OnCommandExecuted"/>.</summary>
@@ -230,6 +272,30 @@ public sealed class ReplStarter : Starter
     {
         ArgumentNullException.ThrowIfNull(console);
         return ExecuteAndRaiseAsync(token => base.Start(args, console, token), cancellationToken);
+    }
+
+    /// <summary>Runs a sequence of commands (see <see cref="Starter.StartSequence(string, CancellationToken)"/>); each executed command raises <see cref="OnCommandExecuted"/>.</summary>
+    /// <param name="commandLine">The line to run.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <returns>The exit code of the last executed command; 1 when the line is not a valid sequence.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="commandLine"/> is null.</exception>
+    public new Task<int> StartSequence(string commandLine, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(commandLine);
+        return RunSequenceAsync(commandLine, null, step => Start(step, cancellationToken));
+    }
+
+    /// <summary>Runs a sequence of commands with the given console (see <see cref="Starter.StartSequence(string, CommandConsole, CancellationToken)"/>); each executed command raises <see cref="OnCommandExecuted"/>.</summary>
+    /// <param name="commandLine">The line to run.</param>
+    /// <param name="console">The input, output and error of this execution, also used to report an invalid line.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <returns>The exit code of the last executed command; 1 when the line is not a valid sequence.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="commandLine"/> or <paramref name="console"/> is null.</exception>
+    public new Task<int> StartSequence(string commandLine, CommandConsole console, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(commandLine);
+        ArgumentNullException.ThrowIfNull(console);
+        return RunSequenceAsync(commandLine, console, step => Start(step, console, cancellationToken));
     }
 
     /// <inheritdoc/>

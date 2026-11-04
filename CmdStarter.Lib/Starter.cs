@@ -13,6 +13,7 @@ using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Attributes;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using CyberInternauts.CmdStarter.Sequences;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CyberInternauts.CmdStarter;
@@ -68,6 +69,7 @@ public class Starter
     private ClassesBuildingMode classesBuildingMode = ClassesBuildingMode.Both;
     private bool groupsByNamespace;
     private bool isRootingLonelyCommand = true;
+    private string? sequenceOption;
     private Func<Type, IStarterCommand>? factory;
     private readonly ConditionalWeakTable<InvocationConfiguration, CommandConsole> consoles = new();
 
@@ -221,6 +223,21 @@ public class Starter
     }
 
     /// <summary>
+    /// Gets or sets the option that carries a whole sequence of commands (for example <c>-c</c>), or <see langword="null"/> (the default) for none.
+    /// When set, <c>Start</c> with exactly two arguments, the first one equal to this value, runs the second one with <see cref="StartSequence(string, CancellationToken)"/>:
+    /// <c>app -c "login; list"</c>. Building the commands throws <see cref="InvalidAttributeException"/> when this value is also the name or an alias of a root option or of a first-level command.
+    /// </summary>
+    public string? SequenceOption
+    {
+        get => sequenceOption;
+        set
+        {
+            ResetTrees();
+            sequenceOption = value;
+        }
+    }
+
+    /// <summary>
     /// If true and only one command is found, assign the options and arguments to root instead.
     /// </summary>
     public bool IsRootingLonelyCommand
@@ -315,6 +332,11 @@ public class Starter
     /// <param name="cancellationToken">Token used to cancel command execution.</param>
     public Task<int> Start(string[] args, CancellationToken cancellationToken)
     {
+        if (IsSequenceInvocation(args))
+        {
+            return StartSequence(args[1], cancellationToken);
+        }
+
         return StartCoreAsync(root => root.Parse(args), null, cancellationToken);
     }
 
@@ -328,6 +350,11 @@ public class Starter
     public Task<int> Start(string[] args, CommandConsole console, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(console);
+        if (IsSequenceInvocation(args))
+        {
+            return StartSequence(args[1], console, cancellationToken);
+        }
+
         return StartCoreAsync(root => root.Parse(args), console, cancellationToken);
     }
 
@@ -361,6 +388,65 @@ public class Starter
     {
         ArgumentNullException.ThrowIfNull(console);
         return StartCoreAsync(root => root.Parse(args), console, cancellationToken);
+    }
+
+    /// <summary>
+    /// Runs a line of commands joined by <c>;</c> (always run the next), <c>&amp;&amp;</c> (run the next if the last executed code is 0) and <c>||</c>
+    /// (run the next if it is not), from left to right, with the state of the application kept from one command to the next.
+    /// Operators only count outside double quotes. A cancelled command (code 130) stops the sequence.
+    /// A line without operator is the same as <see cref="Start(string, CancellationToken)"/>, even when it is not a valid sequence (an unclosed quote).
+    /// </summary>
+    /// <param name="commandLine">The line to run.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <returns>The exit code of the last executed command; 1 (with the reason written to the error output of <see cref="DefaultConsole"/> or of the process) when the line is not a valid sequence.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="commandLine"/> is null.</exception>
+    public Task<int> StartSequence(string commandLine, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(commandLine);
+        return RunSequenceAsync(commandLine, null, step => Start(step, cancellationToken));
+    }
+
+    /// <summary>
+    /// Runs a sequence of commands (see <see cref="StartSequence(string, CancellationToken)"/>) with the given console for every command of the sequence.
+    /// </summary>
+    /// <param name="commandLine">The line to run.</param>
+    /// <param name="console">The input, output and error of this execution, also used to report an invalid line.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <returns>The exit code of the last executed command; 1 when the line is not a valid sequence.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="commandLine"/> or <paramref name="console"/> is null.</exception>
+    public Task<int> StartSequence(string commandLine, CommandConsole console, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(commandLine);
+        ArgumentNullException.ThrowIfNull(console);
+        return RunSequenceAsync(commandLine, console, step => Start(step, console, cancellationToken));
+    }
+
+    // True when the sequence option is set and the arguments are exactly that option followed by the line to run.
+    private protected bool IsSequenceInvocation(string[]? args) =>
+        SequenceOption is not null && args is { Length: 2 } && string.Equals(args[0], SequenceOption, StringComparison.Ordinal);
+
+    // The semantics of a sequence live in CommandSequence.ExecuteAsync; startStep runs one step with the right Start overload.
+    private protected async Task<int> RunSequenceAsync(string commandLine, CommandConsole? console, Func<string, Task<int>> startStep)
+    {
+        if (!CommandSequence.TryParse(commandLine, out var sequence, out var error))
+        {
+            // A line without operator is a plain command line, even with an unclosed quote: it runs as a Start would.
+            if (!CommandSequence.HasOperator(commandLine))
+            {
+                return await startStep(commandLine);
+            }
+
+            var errorOutput = (console ?? DefaultConsole)?.Error ?? Console.Error;
+            errorOutput.WriteLine(error);
+            return 1;
+        }
+
+        if (sequence.Steps.Count == 0)
+        {
+            return await startStep(commandLine);
+        }
+
+        return await sequence.ExecuteAsync(async step => await startStep(step));
     }
 
     // The single implementation of every Start. The console of the execution is attached to the invocation configuration itself,
@@ -600,7 +686,7 @@ public class Starter
                 throw new InvalidAttributeException("Commands use [AvailableInState] but no ICommandStateProvider is configured: set Starter.StateProvider or register an ICommandStateProvider service.");
             }
 
-            SymbolNamesValidator.Validate(RootCommand);
+            SymbolNamesValidator.Validate(RootCommand, SequenceOption);
         }
         finally
         {

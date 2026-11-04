@@ -76,6 +76,15 @@ public class ReplLineEditing
     }
 
     [Test]
+    public void CompletesAfterSequenceOperator()
+    {
+        var editor = CreateEditor('o', 'k', ';', 'o', 't', Key(ConsoleKey.Tab), Key(ConsoleKey.Enter));
+        editor.CompletionSource = (_, _) => ["other", "ok"];
+
+        Assert.That(editor.ReadLine("> "), Is.EqualTo("ok;other "));
+    }
+
+    [Test]
     public void TabCompletesSingleCandidate()
     {
         var editor = CreateEditor('s', 't', 'a', Key(ConsoleKey.Tab), Key(ConsoleKey.Enter));

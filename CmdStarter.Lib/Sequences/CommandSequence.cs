@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace CyberInternauts.CmdStarter.Sequences;
 
@@ -30,6 +29,9 @@ public sealed record CommandSequenceStep(string CommandLine, SequenceOperator Op
 /// </summary>
 public sealed class CommandSequence
 {
+    // Exit code of a cancelled command: it stops the sequence.
+    private const int CancelledExitCode = 130;
+
     private CommandSequence(IReadOnlyList<CommandSequenceStep> steps)
     {
         Steps = steps;
@@ -48,32 +50,15 @@ public sealed class CommandSequence
     {
         ArgumentNullException.ThrowIfNull(line);
 
+        var (operators, hasUnclosedQuote) = Scan(line);
         var steps = new List<CommandSequenceStep>();
-        var current = new StringBuilder();
         var pending = SequenceOperator.None;
-        var inQuotes = false;
+        var segmentStart = 0;
 
-        for (var index = 0; index < line.Length; index++)
+        foreach (var token in operators)
         {
-            var character = line[index];
-            if (character == '"')
-            {
-                inQuotes = !inQuotes;
-                current.Append(character);
-                continue;
-            }
-
-            var next = index + 1 < line.Length ? line[index + 1] : '\0';
-            var (symbol, kind) = inQuotes ? (null, SequenceOperator.None) : ReadOperator(character, next);
-            if (symbol is null)
-            {
-                current.Append(character);
-                continue;
-            }
-
-            var text = current.ToString().Trim();
-            current.Clear();
-            error = text.Length == 0 ? CheckEmptyStep(symbol, kind, pending, steps.Count) : null;
+            var text = line[segmentStart..token.Index].Trim();
+            error = text.Length == 0 ? CheckEmptyStep(token.Symbol, token.Kind, pending, steps.Count) : null;
             if (error is not null)
             {
                 sequence = null;
@@ -83,23 +68,20 @@ public sealed class CommandSequence
             if (text.Length > 0)
             {
                 steps.Add(new CommandSequenceStep(text, pending));
-                pending = kind;
+                pending = token.Kind;
             }
 
-            if (symbol.Length == 2)
-            {
-                index++;
-            }
+            segmentStart = token.Index + token.Symbol.Length;
         }
 
-        if (inQuotes)
+        if (hasUnclosedQuote)
         {
             sequence = null;
             error = "Unclosed double quote.";
             return false;
         }
 
-        var lastText = current.ToString().Trim();
+        var lastText = line[segmentStart..].Trim();
         if (lastText.Length > 0)
         {
             steps.Add(new CommandSequenceStep(lastText, pending));
@@ -116,7 +98,115 @@ public sealed class CommandSequence
         return true;
     }
 
-    // Reads an operator at the current character: "&&" and "||" (two characters) first, then ";".
+    /// <summary>Tells whether a line contains at least one operator outside double quotes, even when the line is not a valid sequence.</summary>
+    /// <param name="line">The line to read.</param>
+    /// <returns><see langword="true"/> when <c>;</c>, <c>&amp;&amp;</c> or <c>||</c> is found outside double quotes.</returns>
+    internal static bool HasOperator(string line) => Scan(line).Operators.Count > 0;
+
+    /// <summary>
+    /// Runs the steps from left to right. The first step and the steps after <c>;</c> always run; a step after <c>&amp;&amp;</c> runs if the last executed
+    /// code is 0; a step after <c>||</c> runs if it is not; a skipped step does not change the last executed code.
+    /// </summary>
+    /// <param name="runStep">Runs a step and returns its exit code, or <see langword="null"/> to stop the sequence.</param>
+    /// <returns>The exit code of the last executed step, or 0 when none was executed. A step that returns 130 (cancelled) stops the sequence.</returns>
+    internal async Task<int> ExecuteAsync(Func<string, Task<int?>> runStep)
+    {
+        var lastCode = 0;
+        foreach (var step in Steps)
+        {
+            var mustRun = step.Operator switch
+            {
+                SequenceOperator.OnSuccess => lastCode == 0,
+                SequenceOperator.OnFailure => lastCode != 0,
+                _ => true
+            };
+            if (!mustRun)
+            {
+                continue;
+            }
+
+            var code = await runStep(step.CommandLine);
+            if (code is null)
+            {
+                return lastCode;
+            }
+
+            lastCode = code.Value;
+            if (lastCode == CancelledExitCode)
+            {
+                break;
+            }
+        }
+
+        return lastCode;
+    }
+
+    /// <summary>
+    /// Finds the step that contains a cursor position, in a line that may be unfinished (a trailing operator, an open quote).
+    /// The step starts just after the last operator before the cursor and ends at the next operator or at the end of the line.
+    /// </summary>
+    /// <param name="line">The line being edited.</param>
+    /// <param name="position">The cursor position in <paramref name="line"/>.</param>
+    /// <returns>The start (inclusive) and the end (exclusive) of the step, or <see langword="null"/> when the cursor is inside an operator.</returns>
+    internal static (int Start, int End)? FindStep(string line, int position)
+    {
+        var start = 0;
+        var end = line.Length;
+        foreach (var token in Scan(line).Operators)
+        {
+            var tokenEnd = token.Index + token.Symbol.Length;
+            if (tokenEnd <= position)
+            {
+                start = tokenEnd;
+            }
+            else if (token.Index >= position)
+            {
+                end = token.Index;
+                break;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        return (start, end);
+    }
+
+    // The single reading of quotes and operators, shared by TryParse and FindStep.
+    // A double quote opens or closes a quoted zone (no escape); outside quotes, "&&" and "||" (two characters) are read first, then ";".
+    private static (List<OperatorToken> Operators, bool HasUnclosedQuote) Scan(string line)
+    {
+        var operators = new List<OperatorToken>();
+        var inQuotes = false;
+        for (var index = 0; index < line.Length; index++)
+        {
+            var character = line[index];
+            if (character == '"')
+            {
+                inQuotes = !inQuotes;
+                continue;
+            }
+
+            if (inQuotes)
+            {
+                continue;
+            }
+
+            var next = index + 1 < line.Length ? line[index + 1] : '\0';
+            var (symbol, kind) = ReadOperator(character, next);
+            if (symbol is null)
+            {
+                continue;
+            }
+
+            operators.Add(new OperatorToken(index, symbol, kind));
+            index += symbol.Length - 1;
+        }
+
+        return (operators, inQuotes);
+    }
+
     private static (string? Symbol, SequenceOperator Kind) ReadOperator(char character, char next) => (character, next) switch
     {
         ('&', '&') => ("&&", SequenceOperator.OnSuccess),
@@ -144,4 +234,6 @@ public sealed class CommandSequence
     }
 
     private static string Symbol(SequenceOperator kind) => kind == SequenceOperator.OnSuccess ? "&&" : "||";
+
+    private sealed record OperatorToken(int Index, string Symbol, SequenceOperator Kind);
 }

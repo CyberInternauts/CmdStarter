@@ -31,6 +31,8 @@ public sealed class ConsoleReplProvider : IReplInputProvider
     /// <summary>
     /// Gets or sets the source of completion candidates, which receives the line and the cursor position.
     /// <see cref="ReplStarter"/> sets it when it is not set yet.
+    /// The current word starts after the last white space, <c>;</c>, <c>&amp;</c> or <c>|</c> before the cursor,
+    /// so a candidate that itself contains one of these characters is not completed past it.
     /// </summary>
     public Func<string, int, IEnumerable<string>>? CompletionSource { get; set; }
 

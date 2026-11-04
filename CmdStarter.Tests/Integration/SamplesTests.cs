@@ -301,6 +301,18 @@ public sealed class SamplesTests
     }
 
     [Test]
+    public async Task ReplSampleRunsSequence()
+    {
+        var result = await AppRunner.RunWithInputAsync(
+            "samples/CmdStarter.Samples.Repl",
+            "login ann; whoami\nexit\n");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Logged in as ann (scope 1)"));
+        Assert.That(result.StdOut, Does.Contain("ann (scope 2)"));
+        Assert.That(result.StdErr, Is.Empty);
+    }
+
+    [Test]
     public async Task ReplSampleEndsAtEndOfInput()
     {
         var result = await AppRunner.RunWithInputAsync("samples/CmdStarter.Samples.Repl", "whoami\n");

@@ -36,7 +36,11 @@ public sealed class ReplLineEditor
     /// <summary>Gets the entered nonblank lines, from oldest to newest.</summary>
     public IReadOnlyList<string> History => history.AsReadOnly();
 
-    /// <summary>Gets or sets a source of completion candidates for the current line and cursor position.</summary>
+    /// <summary>
+    /// Gets or sets a source of completion candidates for the current line and cursor position.
+    /// The current word starts after the last white space, <c>;</c>, <c>&amp;</c> or <c>|</c> before the cursor,
+    /// so a candidate that itself contains one of these characters is not completed past it.
+    /// </summary>
     public Func<string, int, IEnumerable<string>>? CompletionSource { get; set; }
 
     /// <summary>Reads an editable line from the key reader.</summary>
@@ -166,7 +170,12 @@ public sealed class ReplLineEditor
             return false;
         }
 
-        var start = buffer.ToString(0, cursor).LastIndexOf(' ') + 1;
+        var start = cursor;
+        while (start > 0 && !IsWordBoundary(buffer[start - 1]))
+        {
+            start--;
+        }
+
         var word = buffer.ToString(start, cursor - start);
         var candidates = CompletionSource(buffer.ToString(), cursor)
             .Where(candidate => candidate.StartsWith(word, StringComparison.Ordinal))
@@ -213,6 +222,9 @@ public sealed class ReplLineEditor
         output.Write(new string('\b', backspaces));
         renderedLength = buffer.Length;
     }
+
+    // A word ends at a white space or at a sequence operator character (";", "&", "|").
+    private static bool IsWordBoundary(char character) => char.IsWhiteSpace(character) || character is ';' or '&' or '|';
 
     // Windows reports AltGr as Control+Alt, so a key with Alt is never an end-of-input request.
     private static bool IsControlWithoutAlt(ConsoleKeyInfo key)

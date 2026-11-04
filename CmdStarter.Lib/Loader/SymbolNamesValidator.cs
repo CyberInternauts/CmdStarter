@@ -5,9 +5,34 @@ namespace CyberInternauts.CmdStarter.Loader;
 
 internal static class SymbolNamesValidator
 {
-    internal static void Validate(Command root)
+    internal static void Validate(Command root, string? sequenceOption = null)
     {
+        if (sequenceOption is not null)
+        {
+            ValidateSequenceOption(root, sequenceOption);
+        }
+
         ValidateCommand(root);
+    }
+
+    // In normal mode the sequence option is read before the parsing: it must not also be a name or alias of a root option or of a first-level command.
+    private static void ValidateSequenceOption(Command root, string sequenceOption)
+    {
+        foreach (var option in root.Options)
+        {
+            if (GetTokens(option.Name, option.Aliases).Contains(sequenceOption, StringComparer.Ordinal))
+            {
+                throw new InvalidAttributeException($"Sequence option '{sequenceOption}' is also the name or an alias of the option '{option.Name}' of the root command.");
+            }
+        }
+
+        foreach (var command in root.Subcommands)
+        {
+            if (GetTokens(command.Name, command.Aliases).Contains(sequenceOption, StringComparer.Ordinal))
+            {
+                throw new InvalidAttributeException($"Sequence option '{sequenceOption}' is also the name or an alias of the command '{GetPath(command)}'.");
+            }
+        }
     }
 
     private static void ValidateCommand(Command command)
