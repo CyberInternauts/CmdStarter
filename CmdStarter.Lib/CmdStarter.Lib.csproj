@@ -29,6 +29,8 @@
   </PropertyGroup>
 	
   <ItemGroup>
+    <ProjectReference Include="..\CmdStarter.Analyzers\CmdStarter.Analyzers.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="..\CmdStarter.Analyzers\bin\$(Configuration)\netstandard2.0\CmdStarter.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
