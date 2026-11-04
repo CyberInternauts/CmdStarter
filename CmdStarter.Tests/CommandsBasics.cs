@@ -79,11 +79,11 @@ public class CommandsBasics
         Assert.Throws<LoopException>(starter.BuildTree);
 
         // Test erroneous multilevel case
-        namespaces = new string[] {
+        namespaces = [
             typeof(Erroneous.LoopChildrenMoreLevels.Parent.LoopParent).Namespace ?? string.Empty ,
             typeof(Erroneous.LoopChildrenMoreLevels.Child.LoopChild).Namespace ?? string.Empty ,
             typeof(Erroneous.LoopChildrenMoreLevels.ChildChild.LoopChildChild).Namespace ?? string.Empty
-        };
+        ];
         starter.Namespaces = starter.Namespaces.Clear().AddRange(namespaces);
         Assert.Throws<LoopException>(starter.BuildTree);
     }
@@ -372,7 +372,7 @@ public class CommandsBasics
         Assert.That(executed, Is.Not.Null);
         Assert.That(executed!.MyOpt, Is.EqualTo(optionValue));
 
-        var failingArgs = (isRootingLonelyCommand ? Array.Empty<string>() : new string[] { commandName });
+        var failingArgs = (isRootingLonelyCommand ? Array.Empty<string>() : [commandName]);
         Assert.That(await starter.Start(failingArgs), Is.Not.EqualTo(0));
     }
 

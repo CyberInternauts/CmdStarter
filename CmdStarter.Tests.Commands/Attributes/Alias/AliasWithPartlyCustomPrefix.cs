@@ -9,9 +9,9 @@ public sealed class AliasWithPartlyCustomPrefix : StarterCommand, IHasAliases
     private const string ALIAS = "custom";
     private const string PREFIX = "/";
 
-    public string[] ExpectedOptionAliases => new string[] { OptionPrefix + OPTION_NAME, PREFIX + ALIAS, AliasAttribute.DefaultPrefix + ALIAS };
+    public string[] ExpectedOptionAliases => [OptionPrefix + OPTION_NAME, PREFIX + ALIAS, AliasAttribute.DefaultPrefix + ALIAS];
 
-    public string[] ExpectedCommandAliases => new string[] { COMMAND_NAME };
+    public string[] ExpectedCommandAliases => [COMMAND_NAME];
 
     [Alias(true, ALIAS, Prefix = PREFIX)]
     [Alias(true, ALIAS)]

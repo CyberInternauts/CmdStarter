@@ -33,26 +33,23 @@ public sealed class AnalyzerBranchTests
                 Declare(Attributes, "public sealed class AliasAttribute : System.Attribute { }")
             },
             // CommandDefinitionAnalyzer
-            new[]
-            {
+            [
                 Declare(Attributes, "public sealed class CommandAttribute : System.Attribute { }"),
                 Declare("CyberInternauts.CmdStarter", "public class StarterCommand { }"),
                 Declare(Interfaces, "public interface IStarterCommand { }")
-            },
+            ],
             // AutoCompleteAttributeAnalyzer
-            new[]
-            {
+            [
                 Declare(Attributes, "public class AutoCompleteAttribute : System.Attribute { }"),
                 Declare(Attributes, "public sealed class AutoCompleteAttribute<T> : System.Attribute { }"),
                 Declare(Interfaces, "public interface IAutoCompleteProvider { }"),
                 Declare(Interfaces, "public interface IAutoCompleteFactory { }")
-            },
+            ],
             // ParentAttributeAnalyzer
-            new[]
-            {
+            [
                 Declare(Attributes, "public class ParentAttribute : System.Attribute { }"),
                 Declare(Attributes, "public class ParentAttribute<T> : ParentAttribute { }")
-            }
+            ]
         };
 
         foreach (var sequence in sequences)

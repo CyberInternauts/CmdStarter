@@ -4,9 +4,9 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.Options.Filters;
 
 public sealed class OptByExcludeAttribute : StarterCommand, IOptByAttribute
 {
-    public static string[] IncludedOptions => new[] { nameof(OptionToInclude) };
+    public static string[] IncludedOptions => [nameof(OptionToInclude)];
 
-    public static string[] ExcludedOptions => new[] { nameof(OptionToExclude) };
+    public static string[] ExcludedOptions => [nameof(OptionToExclude)];
 
     public int OptionToInclude { get; set; }
 

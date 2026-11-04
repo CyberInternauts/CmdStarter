@@ -40,7 +40,7 @@ public class Cancellation
         };
         CancellableMethods.Reset();
 
-        var run = starter.Start(new[] { "wait-for-cancel" }, cts.Token);
+        var run = starter.Start(["wait-for-cancel"], cts.Token);
         await CancellableMethods.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
         cts.Cancel();
 
@@ -55,7 +55,7 @@ public class Cancellation
         var handled = false;
         starter.CommandHandled += (_, _) => handled = true;
 
-        Assert.That(await starter.Start(new[] { "probe" }, cts.Token), Is.EqualTo(130));
+        Assert.That(await starter.Start(["probe"], cts.Token), Is.EqualTo(130));
         Assert.That(handled, Is.False);
     }
 
@@ -67,7 +67,7 @@ public class Cancellation
         var handled = false;
         starter.CommandHandled += (_, _) => handled = true;
 
-        Assert.That(await starter.Start(new[] { "probe-method" }, cts.Token), Is.EqualTo(130));
+        Assert.That(await starter.Start(["probe-method"], cts.Token), Is.EqualTo(130));
         Assert.That(handled, Is.False);
     }
 

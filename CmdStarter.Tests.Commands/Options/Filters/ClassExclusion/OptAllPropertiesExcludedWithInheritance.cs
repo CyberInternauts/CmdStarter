@@ -4,9 +4,9 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.Options.Filters.ClassExclusi
 
 public sealed class OptAllPropertiesExcludedWithInheritance : OptAllExcludedInheritor, IOptByAttribute
 {
-    public static string[] IncludedOptions => new[] { nameof(IncludedOption) };
+    public static string[] IncludedOptions => [nameof(IncludedOption)];
 
-    public static string[] ExcludedOptions => new[] { nameof(OptionOne), nameof(OptionTwo), nameof(OptionThree), nameof(OptionFour) };
+    public static string[] ExcludedOptions => [nameof(OptionOne), nameof(OptionTwo), nameof(OptionThree), nameof(OptionFour)];
 
     public int IncludedOption { get; set; }
 }

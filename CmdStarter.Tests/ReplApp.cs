@@ -54,7 +54,7 @@ public class ReplApp
     {
         await using var app = CreateBuilder().Build();
 
-        var exception = Assert.Throws<InvalidOperationException>(() => app.RunReplAsync(new[] { "probe" }));
+        var exception = Assert.Throws<InvalidOperationException>(() => app.RunReplAsync(["probe"]));
 
         Assert.That(exception!.Message, Does.Contain("UseRepl"));
         Assert.That(app.Services.GetRequiredService<ProbeLog>().Ids, Is.Empty);
@@ -66,7 +66,7 @@ public class ReplApp
         var builder = CreateBuilder().UseRepl(new ScriptedInputProvider("probe"));
         await using var app = builder.Build();
 
-        await app.RunReplAsync(new[] { "probe" }).WaitAsync(TimeSpan.FromSeconds(10));
+        await app.RunReplAsync(["probe"]).WaitAsync(TimeSpan.FromSeconds(10));
 
         // One execution for the arguments, one for the line of the loop, each in its own scope.
         var ids = app.Services.GetRequiredService<ProbeLog>().Ids;

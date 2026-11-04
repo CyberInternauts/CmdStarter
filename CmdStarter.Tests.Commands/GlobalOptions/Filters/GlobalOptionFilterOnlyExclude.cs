@@ -4,9 +4,9 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions.Filters;
 
 public sealed class GlobalOptionFilterOnlyExclude : IGlobalOptionsContainer, IOptByAttribute
 {
-    public static string[] IncludedOptions => new string[] { INCLUDED_OPTION };
+    public static string[] IncludedOptions => [INCLUDED_OPTION];
 
-    public static string[] ExcludedOptions => new string[] { NOT_INCLUDED_OPTION_1, NOT_INCLUDED_OPTION_2 };
+    public static string[] ExcludedOptions => [NOT_INCLUDED_OPTION_1, NOT_INCLUDED_OPTION_2];
 
     public int OnlyExcludeIncludedOption { get; set; }
     public const string INCLUDED_OPTION = "only-exclude-included-option";

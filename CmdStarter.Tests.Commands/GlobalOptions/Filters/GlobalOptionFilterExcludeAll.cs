@@ -7,7 +7,7 @@ public sealed class GlobalOptionFilterExcludeAll : IGlobalOptionsContainer, IOpt
 {
     public static string[] IncludedOptions => Array.Empty<string>();
 
-    public static string[] ExcludedOptions => new string[] { NOT_INCLUDED_OPTION_1, NOT_INCLUDED_OPTION_2, NOT_INCLUDED_OPTION_3 };
+    public static string[] ExcludedOptions => [NOT_INCLUDED_OPTION_1, NOT_INCLUDED_OPTION_2, NOT_INCLUDED_OPTION_3];
 
     public int AllExcludeNotIncludedOption3 { get; set; }
     public const string NOT_INCLUDED_OPTION_3 = "all-exclude-not-included-option-3";

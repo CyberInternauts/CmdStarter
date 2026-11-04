@@ -9,7 +9,7 @@ internal static class AnalyzerRunner
 {
     // The assemblies of CmdStarter are among the platform assemblies of the test process, because the test project references them:
     // a source "without CmdStarter" has to leave them out.
-    private static readonly string[] CmdStarterAssemblies = { "CmdStarter.Lib.dll", "CmdStarter.Hosting.dll" };
+    private static readonly string[] CmdStarterAssemblies = ["CmdStarter.Lib.dll", "CmdStarter.Hosting.dll"];
 
     /// <summary>The references of a compilation of the tests: the platform, and CmdStarter.Lib with System.CommandLine unless <paramref name="includeCmdStarter"/> is false.</summary>
     internal static IEnumerable<MetadataReference> CreateReferences(bool includeCmdStarter)

@@ -41,7 +41,7 @@ public class Options
         starter.Namespaces = starter.Namespaces.Add(commandType.Namespace!);
         CommandType? executed = null;
         starter.CommandHandled += (_, e) => executed = e.Instance as CommandType;
-        await starter.Start(new string[] { commandName });
+        await starter.Start([commandName]);
         var optionCommand = starter.FindCommand<CommandType>();
         Assert.That(optionCommand, Is.Not.Null);
         Assert.That(executed, Is.Not.Null);

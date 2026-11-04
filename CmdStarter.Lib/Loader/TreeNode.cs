@@ -88,7 +88,7 @@ public sealed class TreeNode<T> where T : class
     public IEnumerable<T> FlattenValues()
     {
         var valueAsArray = Array.Empty<T>();
-        if (Value != null) valueAsArray = new[] { Value };
+        if (Value != null) valueAsArray = [Value];
 
         return valueAsArray.Concat(_children.SelectMany(x => x.FlattenValues()));
     }

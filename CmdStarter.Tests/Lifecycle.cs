@@ -94,7 +94,7 @@ public class Lifecycle
         var starter = CreateLifecycleStarter<DisposableCommand>();
         var received = new List<CommandHandledEventArgs>();
         starter.CommandHandled += (_, e) => received.Add(e);
-        var code = await starter.Start(new[] { "--option-inconnue" });
+        var code = await starter.Start(["--option-inconnue"]);
         Assert.That(code, Is.Not.EqualTo(0));
         Assert.That(received, Is.Empty);
     }

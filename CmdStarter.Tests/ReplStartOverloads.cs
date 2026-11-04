@@ -54,7 +54,7 @@ public class ReplStartOverloads
         var repl = CreateRepl();
         repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
 
-        Assert.That(await repl.Start(new[] { "fail" }), Is.EqualTo(3));
+        Assert.That(await repl.Start(["fail"]), Is.EqualTo(3));
         Assert.That(await repl.Start("ok"), Is.EqualTo(0));
 
         Assert.That(codes, Is.EqualTo(new[] { 3, 0 }));
@@ -71,7 +71,7 @@ public class ReplStartOverloads
         using var error = new StringWriter();
         var console = ConsoleWith(output, error);
 
-        Assert.That(await repl.Start(new[] { "fail" }, console), Is.EqualTo(3));
+        Assert.That(await repl.Start(["fail"], console), Is.EqualTo(3));
         Assert.That(await repl.Start("ok", console), Is.EqualTo(0));
 
         Assert.That(codes, Is.EqualTo(new[] { 3, 0 }));
@@ -85,7 +85,7 @@ public class ReplStartOverloads
         repl.SequenceOption = "-c";
         repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
 
-        Assert.That(await repl.Start(new[] { "-c", "fail; ok" }), Is.EqualTo(0));
+        Assert.That(await repl.Start(["-c", "fail; ok"]), Is.EqualTo(0));
 
         Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "fail", "ok" }));
         Assert.That(codes, Is.EqualTo(new[] { 3, 0 }));
@@ -101,7 +101,7 @@ public class ReplStartOverloads
         using var output = new StringWriter();
         using var error = new StringWriter();
 
-        Assert.That(await repl.Start(new[] { "-c", "emit | sort" }, ConsoleWith(output, error)), Is.EqualTo(0));
+        Assert.That(await repl.Start(["-c", "emit | sort"], ConsoleWith(output, error)), Is.EqualTo(0));
 
         Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
         Assert.That(codes, Is.EqualTo(new[] { 0, 0 }));

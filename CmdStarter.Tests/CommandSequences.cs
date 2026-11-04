@@ -231,7 +231,7 @@ public class CommandSequences
         var starter = CreateStarter();
         starter.SequenceOption = "-c";
 
-        Assert.That(await starter.Start(new[] { "-c", "emit | sort" }, ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
+        Assert.That(await starter.Start(["-c", "emit | sort"], ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
         Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
     }
 
@@ -321,13 +321,13 @@ public class CommandSequences
         var starter = CreateStarter();
         starter.SequenceOption = "-c";
 
-        Assert.That(await starter.Start(new[] { "-c", "ok; other" }), Is.EqualTo(0));
+        Assert.That(await starter.Start(["-c", "ok; other"]), Is.EqualTo(0));
         Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok", "other" }));
 
         // Without the option, "-c" is an unknown option, as before.
         SequenceLog.Entries.Clear();
         var plainStarter = CreateStarter();
-        Assert.That(await plainStarter.Start(new[] { "-c", "ok" }, console), Is.Not.EqualTo(0));
+        Assert.That(await plainStarter.Start(["-c", "ok"], console), Is.Not.EqualTo(0));
         Assert.That(SequenceLog.Entries, Is.Empty);
     }
 

@@ -16,21 +16,21 @@ public sealed class MultiAlias : StarterCommand, IHasAliases
     private const string OPTION_ALIAS_2 = "op";
     private const string OPTION_ALIAS_3 = "opt";
 
-    public string[] ExpectedOptionAliases => new string[]
-    {
+    public string[] ExpectedOptionAliases =>
+    [
         OptionPrefix + OPTION_NAME,
         AliasAttribute.DefaultPrefix + OPTION_ALIAS_1,
         AliasAttribute.DefaultPrefix + OPTION_ALIAS_2,
         AliasAttribute.DefaultPrefix + OPTION_ALIAS_3
-    };
+    ];
 
-    public string[] ExpectedCommandAliases => new string[]
-    {
+    public string[] ExpectedCommandAliases =>
+    [
         COMMAND_NAME,
         COMMAND_ALIAS_1,
         COMMAND_ALIAS_2,
         COMMAND_ALIAS_3
-    };
+    ];
 
     [Alias(true, OPTION_ALIAS_1, OPTION_ALIAS_3)]
     [Alias(true, OPTION_ALIAS_2)]

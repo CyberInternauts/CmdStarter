@@ -6,8 +6,8 @@ public sealed class NoAlias : StarterCommand, IHasAliases
 {
     private const string COMMAND_NAME = "no-alias";
 
-    public string[] ExpectedOptionAliases => new string[] { OptionPrefix + OPTION_NAME };
-    public string[] ExpectedCommandAliases => new string[] { COMMAND_NAME };
+    public string[] ExpectedOptionAliases => [OptionPrefix + OPTION_NAME];
+    public string[] ExpectedCommandAliases => [COMMAND_NAME];
 
     public int Option { get; set; }
     public const string OPTION_NAME = "option";

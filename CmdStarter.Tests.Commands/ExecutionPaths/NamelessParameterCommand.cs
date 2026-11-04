@@ -10,7 +10,7 @@ public sealed class NamelessParameterCommand : StarterCommand
     {
         get
         {
-            var method = new DynamicMethod("Nameless", typeof(int), new[] { typeof(int), typeof(string) }, typeof(NamelessParameterCommand).Module);
+            var method = new DynamicMethod("Nameless", typeof(int), [typeof(int), typeof(string)], typeof(NamelessParameterCommand).Module);
             var il = method.GetILGenerator();
             var notNull = il.DefineLabel();
             il.Emit(OpCodes.Ldarg_0);

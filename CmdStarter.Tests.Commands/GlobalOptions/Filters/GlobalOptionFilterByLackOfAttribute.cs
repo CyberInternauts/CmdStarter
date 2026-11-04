@@ -4,7 +4,7 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions.Filters;
 
 public sealed class GlobalOptionFilterByLackOfAttribute : IGlobalOptionsContainer, IOptByAttribute
 {
-    public static string[] IncludedOptions => new string[] { INCLUDED_OPTION_1, INCLUDED_OPTION_2 };
+    public static string[] IncludedOptions => [INCLUDED_OPTION_1, INCLUDED_OPTION_2];
 
     public static string[] ExcludedOptions => Array.Empty<string>();
 

@@ -20,7 +20,7 @@ internal class Program
 
         starter.OnCommandExecuted += (sender, eventArgs) => Console.WriteLine();
 
-        args = new[] { "-h" };
+        args = ["-h"];
 
         await starter.Launch(args);
     }

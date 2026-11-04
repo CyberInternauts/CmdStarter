@@ -17,7 +17,7 @@ public sealed class Hosting
     {
         using var host = CreateBuilder().Build();
 
-        Assert.That(await host.RunCmdStarterAsync(new[] { "probe" }), Is.Zero);
+        Assert.That(await host.RunCmdStarterAsync(["probe"]), Is.Zero);
         Assert.That(host.Services.GetRequiredService<ProbeLog>().Ids, Has.Count.EqualTo(1));
     }
 
@@ -40,7 +40,7 @@ public sealed class Hosting
         using var host = builder.Build();
 
         // The REPL ends with the input and the exit code is zero, whatever the commands returned.
-        Assert.That(await host.RunCmdStarterAsync(new[] { "probe" }), Is.Zero);
+        Assert.That(await host.RunCmdStarterAsync(["probe"]), Is.Zero);
         var ids = host.Services.GetRequiredService<ProbeLog>().Ids;
         Assert.That(ids, Has.Count.EqualTo(2));
         Assert.That(ids[0], Is.Not.EqualTo(ids[1]));
@@ -54,7 +54,7 @@ public sealed class Hosting
         builder.Services.AddHostedService<RecordingHostedService>();
         using var host = builder.Build();
 
-        await host.RunCmdStarterAsync(new[] { "probe" });
+        await host.RunCmdStarterAsync(["probe"]);
 
         Assert.That(host.Services.GetRequiredService<LifecycleRecorder>().Events, Is.EqualTo(new[] { "started", "stopped" }));
     }
