@@ -42,7 +42,7 @@ A command that is unavailable in the current state is hidden ([ADR 0012](0012-co
 
 ## Redirected Input
 
-When `Console.IsInputRedirected` is true, or `LineEditing` is false, the provider writes the prompt and reads with `Console.In.ReadLineAsync`, exactly as before. Integration tests and pipes keep this behavior.
+Line editing needs a terminal on both sides. When `Console.IsInputRedirected` or `Console.IsOutputRedirected` is true, or `LineEditing` is false, the provider writes the prompt and reads with `Console.In.ReadLineAsync`, exactly as before. Integration tests and pipes keep this behavior. With only the output redirected (`app > log.txt` typed at a keyboard), editing would read keys without echo and write the redraws (`\r`, backspaces) into the file, so the console echoes the typing instead.
 
 ## Limits
 

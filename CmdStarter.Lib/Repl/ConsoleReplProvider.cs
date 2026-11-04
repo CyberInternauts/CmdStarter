@@ -15,7 +15,8 @@ public sealed class ConsoleReplProvider : IReplInputProvider
 
     /// <summary>
     /// Gets or initializes whether lines are edited with <see cref="ReplLineEditor"/> (history and completion).
-    /// Editing is skipped when the standard input is redirected: the line is then read as is.
+    /// Editing needs a terminal on both sides: it is skipped when the standard input or the standard output is redirected,
+    /// and the line is then read as is.
     /// </summary>
     public bool LineEditing { get; init; } = true;
 
@@ -40,7 +41,7 @@ public sealed class ConsoleReplProvider : IReplInputProvider
     /// <returns>The next input line, or <see langword="null"/> at end of input.</returns>
     public async ValueTask<string?> GetInputAsync(CancellationToken cancellationToken)
     {
-        if (LineEditing && !Console.IsInputRedirected)
+        if (LineEditing && !Console.IsInputRedirected && !Console.IsOutputRedirected)
         {
             cancellationToken.ThrowIfCancellationRequested();
             editor ??= new ReplLineEditor(() => Console.ReadKey(intercept: true), Console.Out) { HistorySize = HistorySize };
