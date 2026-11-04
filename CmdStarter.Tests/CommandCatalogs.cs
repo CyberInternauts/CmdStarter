@@ -1,6 +1,9 @@
 using System.Collections.Immutable;
+using System.Reflection;
+using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Catalog;
 using CyberInternauts.CmdStarter.Exceptions;
+using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Tests.Commands.Catalog;
 
 namespace CyberInternauts.CmdStarter.Tests;
@@ -105,5 +108,64 @@ public class CommandCatalogs
         Assert.That(exception!.Message, Is.EqualTo("no memory left"));
     }
 
+    [Test]
+    public void GeneratedCatalogMatchesTheScan()
+    {
+        // CmdStarter.Tests.Commands carries the catalog that the generator wrote. No other filter: the Erroneous namespaces are there, and nothing is instantiated.
+        var assembly = typeof(Commands.Remote.Hello).Assembly;
+        Assert.That(assembly.GetCustomAttribute<CommandCatalogAttribute>(), Is.Not.Null, "the assembly has a generated catalog");
+        var catalog = new Starter { Assemblies = ImmutableList.Create(assembly) };
+        var scan = new Starter { Assemblies = ImmutableList.Create(assembly), UseCommandCatalogs = false };
+
+        catalog.FindCommandsTypes();
+        scan.FindCommandsTypes();
+
+        Assert.That(catalog.CommandsTypes, Is.Not.Empty);
+        Assert.That(catalog.CommandsTypes, Is.EqualTo(scan.CommandsTypes));
+        Assert.That(catalog.MethodCommandsTypes, Is.Not.Empty);
+        Assert.That(catalog.MethodCommandsTypes, Is.EqualTo(scan.MethodCommandsTypes));
+    }
+
+    [Test]
+    public void GeneratedCatalogListsWhatTheScanFinds()
+    {
+        // The three lists, through the public API: the catalog is created from its attribute and described to a recorder. GlobalOptionsManager is not used,
+        // because it keeps what it found for the whole process.
+        var assembly = typeof(Commands.Remote.Hello).Assembly;
+        var recorder = new RecordingBuilder();
+        ((ICommandCatalog)Activator.CreateInstance(assembly.GetCustomAttribute<CommandCatalogAttribute>()!.CatalogType)!).Describe(recorder);
+
+        // The predicates of the scan, written again here.
+        var types = assembly.GetTypes();
+        var commands = types.Where(type => type.IsClass && !type.IsAbstract && type.IsAssignableTo(typeof(IStarterCommand)) && type.Namespace != null);
+        var methodClasses = types.Where(type => type.IsClass && type.Namespace != null && (Attribute.IsDefined(type, typeof(CommandAttribute))
+            || type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly)
+                .Any(method => Attribute.IsDefined(method, typeof(CommandAttribute)))));
+        var containers = types.Where(type => type.IsClass && type.IsAssignableTo(typeof(IGlobalOptionsContainer)));
+
+        Assert.That(recorder.Commands, Is.Not.Empty);
+        Assert.That(recorder.Commands, Is.EquivalentTo(commands));
+        Assert.That(recorder.MethodClasses, Is.Not.Empty);
+        Assert.That(recorder.MethodClasses, Is.EquivalentTo(methodClasses));
+        Assert.That(recorder.GlobalOptions, Is.Not.Empty);
+        Assert.That(recorder.GlobalOptions, Is.EquivalentTo(containers));
+    }
+
     private static Starter CreateStarter() => new() { Assemblies = ImmutableList.Create(typeof(Listed).Assembly) };
+
+    // Records what a catalog declares.
+    private sealed class RecordingBuilder : ICommandCatalogBuilder
+    {
+        internal List<Type> Commands { get; } = new();
+
+        internal List<Type> MethodClasses { get; } = new();
+
+        internal List<Type> GlobalOptions { get; } = new();
+
+        public void AddCommand<TCommand>() where TCommand : class, IStarterCommand => Commands.Add(typeof(TCommand));
+
+        public void AddMethodCommands(Type declaringType) => MethodClasses.Add(declaringType);
+
+        public void AddGlobalOptions<TContainer>() where TContainer : class, IGlobalOptionsContainer => GlobalOptions.Add(typeof(TContainer));
+    }
 }

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
+    <ProjectReference Include="..\..\CmdStarter.Analyzers\CmdStarter.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

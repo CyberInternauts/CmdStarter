@@ -4,12 +4,12 @@ namespace CyberInternauts.CmdStarter.Analyzers;
 
 internal static class Descriptors
 {
-    private static DiagnosticDescriptor Create(string id, string title, string message) => new(
+    private static DiagnosticDescriptor Create(string id, string title, string message, DiagnosticSeverity severity = DiagnosticSeverity.Warning) => new(
         id,
         title,
         message,
         "Usage",
-        DiagnosticSeverity.Warning,
+        severity,
         isEnabledByDefault: true);
 
     internal static readonly DiagnosticDescriptor ParentCycle = Create("CMDS0001", "Parent cycle", "Parent chain for '{0}' returns to itself");
@@ -25,4 +25,5 @@ internal static class Descriptors
     internal static readonly DiagnosticDescriptor EmptyGroup = Create("CMDS0011", "Empty command group", "Command group '{0}' must declare at least one command method");
     internal static readonly DiagnosticDescriptor HiddenGlobalOption = Create("CMDS0012", "Global option is hidden", "Option '{0}' hides an option with the same name or alias from a global options container");
     internal static readonly DiagnosticDescriptor EmptyGlobalOptions = Create("CMDS0013", "Empty global options container", "Global options container '{0}' declares no option properties");
+    internal static readonly DiagnosticDescriptor NotInCatalog = Create("CMDS0014", "Type is not in the command catalog", "'{0}' is not in the command catalog: {1}", DiagnosticSeverity.Info);
 }
