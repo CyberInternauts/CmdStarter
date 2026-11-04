@@ -107,6 +107,75 @@ public class FluentTree
         Assert.That(await app.RunAsync("status"), Is.EqualTo(33));
     }
 
+    [Test]
+    public async Task GroupWithoutClassCreatesPath()
+    {
+        var starter = CreateStarter();
+        starter.UseTree(tree => tree.Group("admin", admin => admin.Group("users", users => users.Add<ListUsers>())).Add<Status>());
+
+        Assert.That(await starter.Start("admin users list"), Is.EqualTo(31));
+        Assert.That(await starter.Start("admin"), Is.Not.EqualTo(0));
+    }
+
+    [Test]
+    public async Task GroupUnderClassCommand()
+    {
+        var starter = CreateStarter();
+        starter.UseTree(tree => tree.Add<Users>(users => users.Group("roles", roles => roles.Add<ListGroups>())));
+
+        Assert.That(await starter.Start("users roles list"), Is.EqualTo(32));
+    }
+
+    [Test]
+    public async Task GroupAliasesWork()
+    {
+        var starter = CreateStarter();
+        starter.UseTree(tree => tree.Group("admin", admin => admin.WithAliases("adm").Add<Status>()));
+
+        Assert.That(await starter.Start("adm status"), Is.EqualTo(33));
+    }
+
+    [Test]
+    public async Task WithNameRenamesCommand()
+    {
+        var starter = CreateStarter();
+        starter.UseTree(tree => tree.Add<Status>(status => status.WithName("state").WithAliases("st")).Add<Users>());
+
+        Assert.That(await starter.Start("state"), Is.EqualTo(33));
+        Assert.That(await starter.Start("st"), Is.EqualTo(33));
+        Assert.That(starter.FindCommand<Status>()!.Name, Is.EqualTo("state"));
+    }
+
+    [Test]
+    public async Task MethodCommandsJoinDefinedGroup()
+    {
+        var starter = CreateStarter();
+        starter.UseTree(tree => tree.Group("users", users => users.Add<Status>()));
+
+        Assert.That(await starter.Start("users export"), Is.EqualTo(35));
+        Assert.That(await starter.Start("users status"), Is.EqualTo(33));
+    }
+
+    [Test]
+    public void InvalidGroupDefinitionsThrow()
+    {
+        var starter = CreateStarter();
+        Assert.Throws<ArgumentException>(() => starter.UseTree(tree => tree.Group(" ", _ => { })));
+        Assert.Throws<ArgumentException>(() => starter.UseTree(tree => tree.Group("a b", _ => { })));
+        Assert.Throws<ArgumentException>(() => starter.UseTree(tree => tree.Group("empty", _ => { })));
+        Assert.Throws<InvalidOperationException>(() => starter.UseTree(tree => tree.WithName("x")));
+        Assert.Throws<InvalidOperationException>(() => starter.UseTree(tree => tree.Group("group", group => group.WithName("x"))));
+    }
+
+    [Test]
+    public async Task GroupedLonelyCommandIsNotRooted()
+    {
+        var starter = new Starter(new[] { NamespaceName, TestsCommon.EXCLUSION_SYMBOL + NamespaceName + ".Methods" });
+        starter.UseTree(tree => tree.Group("admin", admin => admin.Add<Status>()));
+
+        Assert.That(await starter.Start("admin status"), Is.EqualTo(33));
+    }
+
     private static Starter CreateStarter() => new(new[] { NamespaceName });
 
     private static void DefineCommonTree(CommandTreeDefinition tree)

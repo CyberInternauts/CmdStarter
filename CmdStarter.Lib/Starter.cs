@@ -58,6 +58,7 @@ public class Starter
     private readonly Dictionary<Command, CommandStateMetadata> commandStateMetadata = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<Command> implicitMethodGroups = new(ReferenceEqualityComparer.Instance);
     private TreeNode<Type>? definedTree;
+    private CommandTreeDefinition.TreeState? definedTreeState;
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
     private bool hasToInstantiate = true;
@@ -252,6 +253,7 @@ public class Starter
 
         root.SetImmutable();
         definedTree = root;
+        definedTreeState = definition.ExportState();
         ResetCommands();
         return this;
     }
@@ -469,7 +471,8 @@ public class Starter
             BuildTree();
 
             // Lonely command
-            if (IsRootingLonelyCommand && CommandsTypes.Count == 1 && MethodCommandsTypes.IsEmpty)
+            var lonelyCommandHasGroups = CommandsTypes.Count == 1 && HasGroupPath(CommandsTypes[0]);
+            if (IsRootingLonelyCommand && CommandsTypes.Count == 1 && MethodCommandsTypes.IsEmpty && !lonelyCommandHasGroups)
             {
                 var registration = CreateCommand(CommandsTypes[0], activations);
                 registration.CliCommand.Hidden = true;
@@ -541,11 +544,56 @@ public class Starter
 
     private void AddLevel(Command currentParent, TreeNode<Type> currentNode, List<CommandActivation> activations)
     {
-        foreach (var childNode in currentNode.Children)
+        var childrenWithoutGroups = currentNode.Children.Where(child => !HasGroupPath(child.Value!));
+        var childrenWithGroups = currentNode.Children.Where(child => HasGroupPath(child.Value!));
+        foreach (var childNode in childrenWithoutGroups)
         {
             var registration = CreateCommand(childNode.Value!, activations); // childNode.Value can't be null, because only the root has a null Value
             currentParent.Subcommands.Add(registration.CliCommand);
             AddLevel(registration.CliCommand, childNode, activations);
+        }
+
+        foreach (var childNode in childrenWithGroups)
+        {
+            var groups = definedTreeState!.GroupPaths[childNode.Value!];
+            var groupParent = ResolveDefinedGroupParent(currentParent, groups);
+            var registration = CreateCommand(childNode.Value!, activations);
+            groupParent.Subcommands.Add(registration.CliCommand);
+            AddLevel(registration.CliCommand, childNode, activations);
+        }
+    }
+
+    private bool HasGroupPath(Type commandType) => definedTreeState?.GroupPaths.TryGetValue(commandType, out var groups) == true && groups.Count > 0;
+
+    private Command ResolveDefinedGroupParent(Command start, IReadOnlyList<CommandTreeDefinition.GroupSegment> groups)
+    {
+        var parent = start;
+        foreach (var segment in groups)
+        {
+            var child = parent.Subcommands.FirstOrDefault(command => string.Equals(command.Name, segment.Name, StringComparison.Ordinal));
+            if (child is null)
+            {
+                child = new Command(segment.Name);
+                AddMissingAliases(child, segment.Aliases);
+                parent.Subcommands.Add(child);
+                implicitMethodGroups.Add(child);
+            }
+            else
+            {
+                AddMissingAliases(child, segment.Aliases);
+            }
+
+            parent = child;
+        }
+
+        return parent;
+    }
+
+    private static void AddMissingAliases(Command command, IEnumerable<string> aliases)
+    {
+        foreach (var alias in aliases)
+        {
+            if (!command.Aliases.Contains(alias, StringComparer.Ordinal)) command.Aliases.Add(alias);
         }
     }
 
@@ -556,9 +604,11 @@ public class Starter
         var instance = (IStarterCommand)activation.Instance!;
         instance.GlobalOptionsManager = GlobalOptionsManager;
 
-        var name = instance is StarterCommand starterCommand
-            ? starterCommand.Name
-            : commandType.Name.PascalToKebabCase();
+        var name = definedTreeState?.Names.TryGetValue(commandType, out var definedName) == true
+            ? definedName
+            : instance is StarterCommand starterCommand
+                ? starterCommand.Name
+                : commandType.Name.PascalToKebabCase();
         var cliCommand = new Command(name);
         var registration = new CommandRegistration
         {
@@ -603,6 +653,10 @@ public class Starter
             receptacle.Description = starterCommand.Description;
         }
         Reflection.Loader.LoadAliases(registration.DescriptionInstance.GetType(), receptacle.Aliases);
+        if (definedTreeState?.Aliases.TryGetValue(registration.CommandType, out var aliases) == true)
+        {
+            AddMissingAliases(receptacle, aliases);
+        }
         command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
     }
 
