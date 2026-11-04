@@ -31,6 +31,8 @@
     <ProjectReference Include="..\samples\CmdStarter.Samples.DependencyInjection\CmdStarter.Samples.DependencyInjection.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.ScopedServices\CmdStarter.Samples.ScopedServices.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.GlobalOptions\CmdStarter.Samples.GlobalOptions.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\samples\CmdStarter.Samples.Validation\CmdStarter.Samples.Validation.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\samples\CmdStarter.Samples.Configuration\CmdStarter.Samples.Configuration.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
