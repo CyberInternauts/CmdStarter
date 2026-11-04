@@ -278,6 +278,7 @@ public class Starter
     /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
     /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
     /// </summary>
+    [Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]
     public async Task<int> Start(IServiceManager serviceManager, string[] args)
     {
         UseServiceManager(serviceManager);
@@ -289,6 +290,7 @@ public class Starter
     /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
     /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
     /// </summary>
+    [Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]
     public async Task<int> Start(IServiceManager serviceManager, string args)
     {
         UseServiceManager(serviceManager);
@@ -849,6 +851,7 @@ public class Starter
         }
     }
 
+    [Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]
     private void UseServiceManager(IServiceManager serviceManager)
     {
         // Set factory

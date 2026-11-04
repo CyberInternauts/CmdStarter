@@ -86,6 +86,7 @@ public class CommandsResults
         await starter.Start(args);
     }
 
+#pragma warning disable CS0618
     [TestCase<Dependent1, DependentService1>]
     [TestCase<Dependent1, DependentService2>]
     public async Task UsesDependencyInjection<CommandType, DependentServiceType>()
@@ -100,6 +101,7 @@ public class CommandsResults
 
         Assert.That(dependentService.GetInt(), Is.EqualTo(actualReturn));
     }
+#pragma warning restore CS0618
 
     private static IEnumerable<string> SelectHandlerDataByFeature(IHandleTester command, HandlerData.CommandFeature feature)
     {

@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // Covers the obsolete IServiceManager path on purpose
 namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
 
 public class ServiceManager : IServiceManager

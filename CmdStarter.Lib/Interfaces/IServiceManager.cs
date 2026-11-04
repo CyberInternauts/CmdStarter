@@ -3,6 +3,7 @@ namespace CyberInternauts.CmdStarter.Interfaces;
 /// <summary>
 /// Interface to support dependency injection easily
 /// </summary>
+[Obsolete("IServiceManager is obsolete: set Starter.ServiceProvider or use CmdStarterBuilder (Microsoft.Extensions.DependencyInjection), or call Starter.SetFactory for another container.")]
 public interface IServiceManager : IServiceProvider
 {
     /// <summary>
