@@ -3,7 +3,7 @@
 /// <summary>
 /// Hide from help
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Method, AllowMultiple = false)]
 public sealed class HiddenAttribute : Attribute
 {
 }

@@ -60,6 +60,7 @@ public static class TestsCommon
         // Remove, by default, dependency injection namespace
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Dependent1).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Lifecycle.LifecycleLog).Namespace!);
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Methods.UserCommands).Namespace!);
     }
 
     public static void SetDefaultClasses(CmdStarter.Lib.Starter starter)

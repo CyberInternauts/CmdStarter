@@ -6,7 +6,7 @@
 /// Excludes all properties from forming into options except the ones with the <see cref="OptionAttribute"/>.
 /// </para>
 /// </summary>
-[AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]
 public sealed class OptionAttribute : Attribute
 {
 }

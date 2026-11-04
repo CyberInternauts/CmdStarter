@@ -53,6 +53,8 @@ public class Starter
     private ImmutableList<string> classes = ImmutableList<string>.Empty;
     private ImmutableList<Assembly> assemblies = ImmutableList<Assembly>.Empty;
     private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
+    private ImmutableList<Type> methodCommandsTypes = ImmutableList<Type>.Empty;
+    private readonly List<MethodCommandRegistration> methodRegistrations = new();
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
     private bool hasToInstantiate = true;
@@ -190,6 +192,9 @@ public class Starter
             commandsTypes = value ?? ImmutableList<Type>.Empty;
         }
     }
+
+    /// <summary>Gets the method-model command classes that pass the configured filters.</summary>
+    public ImmutableList<Type> MethodCommandsTypes { get => methodCommandsTypes; private set => methodCommandsTypes = value; }
 
     /// <summary>
     /// Commands types tree that will be used to create the real commands tree under <see cref="RootCommand"/>
@@ -332,7 +337,7 @@ public class Starter
         hasToFindCommands = false;
 
         var searchAssemblies = Assemblies.IsEmpty ? AppDomain.CurrentDomain.GetAssemblies() : Assemblies.Distinct();
-        var commandsTypes = searchAssemblies
+        var commandCandidates = searchAssemblies
                     .SelectMany(a => a.GetTypes()
                         .Where(t =>
                             t.IsClass &&
@@ -342,22 +347,27 @@ public class Starter
                         )
                     );
 
-        if (!Assemblies.IsEmpty && !commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
+        var libraryName = typeof(Starter).Assembly.GetName().Name;
+        var methodCandidates = searchAssemblies
+            .Where(assembly => assembly == typeof(Starter).Assembly || assembly.GetReferencedAssemblies().Any(reference => reference.Name == libraryName))
+            .SelectMany(assembly => assembly.GetTypes().Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(type)));
+
+        var classTypes = commandCandidates.ToArray();
+        var methodTypes = methodCandidates.ToArray();
+        if (!Assemblies.IsEmpty && classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
 
         // Filter by namespaces
-        commandsTypes = FilterTypesByNamespaces(commandsTypes, Namespaces.ToList());
-        if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Namespaces);
+        classTypes = FilterTypesByNamespaces(classTypes, Namespaces.ToList()).ToArray();
+        methodTypes = FilterTypesByNamespaces(methodTypes, Namespaces.ToList()).ToArray();
+        if (classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Namespaces);
 
         // Filter by classes
-        commandsTypes = FilterTypesByClasses(commandsTypes, Classes.ToList());
-        if (!commandsTypes.Any()) throw new NoCommandFoundException(NoCommandFoundException.Filter.Classes);
+        classTypes = FilterTypesByClasses(classTypes, Classes.ToList()).ToArray();
+        methodTypes = FilterTypesByClasses(methodTypes, Classes.ToList()).ToArray();
+        if (classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Classes);
 
-        this.commandsTypes = CommandsTypes.Clear();
-        if (commandsTypes != null)
-        {
-            var commandsToAdd = commandsTypes.ToArray();
-            this.commandsTypes = CommandsTypes.AddRange(commandsToAdd);
-        }
+        this.commandsTypes = CommandsTypes.Clear().AddRange(classTypes);
+        MethodCommandsTypes = ImmutableList<Type>.Empty.AddRange(methodTypes);
     }
 
     /// <summary>
@@ -388,7 +398,7 @@ public class Starter
             BuildTree();
 
             // Lonely command
-            if (IsRootingLonelyCommand && CommandsTypes.Count == 1)
+            if (IsRootingLonelyCommand && CommandsTypes.Count == 1 && MethodCommandsTypes.IsEmpty)
             {
                 var registration = CreateCommand(CommandsTypes[0], activations);
                 registration.CliCommand.Hidden = true;
@@ -409,6 +419,12 @@ public class Starter
                         InitializeRegistration(registration);
                     }
                 });
+            }
+
+            foreach (var type in MethodCommandsTypes)
+            {
+                MethodCommandsLoader.Validate(type);
+                AddMethodCommands(type);
             }
 
             // Global options
@@ -523,10 +539,108 @@ public class Starter
         return exitCode;
     }
 
+    private async Task<int> HandleMethodCommandAsync(MethodCommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
+    {
+        await using var activation = ActivateMethodCommand(registration.Method);
+        GlobalOptionsManager.BindGlobalOptions(parseResult);
+        var values = new object?[registration.Parameters.Count];
+        for (var index = 0; index < registration.Parameters.Count; index++)
+        {
+            var binding = registration.Parameters[index];
+            values[index] = binding.Kind switch
+            {
+                ParameterBindingKind.CancellationToken => cancellationToken,
+                ParameterBindingKind.GlobalOptions => GlobalOptionsManager.GetGlobalOptions(binding.Parameter.ParameterType),
+                ParameterBindingKind.Option => GetMethodOptionValue(parseResult, (Option)binding.Symbol!, binding.Parameter),
+                ParameterBindingKind.Argument => GetMethodArgumentValue(parseResult, (Argument)binding.Symbol!, binding.Parameter),
+                _ => null
+            };
+        }
+        var result = CommandBinder.Invoke(() => registration.Method.Invoke(activation.Instance, values));
+        var exitCode = await CommandBinder.ToExitCodeAsync(result);
+        CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, activation.Instance, exitCode));
+        return exitCode;
+    }
+
+    private static object? GetMethodOptionValue(ParseResult result, Option option, ParameterInfo parameter)
+    {
+        if (CommandBinder.TryGetOptionValue(result, option, out var value)) return value;
+        if (parameter.HasDefaultValue) return parameter.DefaultValue;
+        return parameter.ParameterType.IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null;
+    }
+
+    private static object? GetMethodArgumentValue(ParseResult result, Argument argument, ParameterInfo parameter) =>
+        result.GetResult(argument) is null && parameter.HasDefaultValue ? parameter.DefaultValue : CommandBinder.GetArgumentValue(result, argument);
+
+    private void AddMethodCommands(Type type)
+    {
+        var groupAttribute = type.GetCustomAttribute<CommandAttribute>();
+        Command? group = null;
+        if (groupAttribute is not null)
+        {
+            group = new Command((groupAttribute.Name ?? type.Name).ToCommandName());
+            Reflection.Loader.LoadDescription(type, group);
+            Reflection.Loader.LoadAliases(type, group.Aliases);
+            group.Hidden = Attribute.IsDefined(type, typeof(HiddenAttribute));
+            EnsureUniqueName(RootCommand, group, type, "<group>");
+            RootCommand.Subcommands.Add(group);
+        }
+        var parent = group ?? RootCommand;
+        foreach (var method in MethodCommandsLoader.GetCommandMethods(type))
+        {
+            var attribute = method.GetCustomAttribute<CommandAttribute>()!;
+            var inferredName = method.Name.EndsWith("Async", StringComparison.Ordinal) ? method.Name[..^5] : method.Name;
+            var name = attribute.Name ?? inferredName;
+            var command = new Command(name.ToCommandName());
+            Reflection.Loader.LoadDescription(method, command);
+            Reflection.Loader.LoadAliases(method, command.Aliases);
+            command.Hidden = Attribute.IsDefined(method, typeof(HiddenAttribute));
+            var parameters = new List<ParameterBinding>();
+            foreach (var parameter in method.GetParameters())
+            {
+                var parameterType = parameter.ParameterType;
+                if (parameterType == typeof(CancellationToken)) { parameters.Add(new(parameter, ParameterBindingKind.CancellationToken, null)); continue; }
+                if (typeof(IGlobalOptionsContainer).IsAssignableFrom(parameterType)) { parameters.Add(new(parameter, ParameterBindingKind.GlobalOptions, null)); continue; }
+                if (Attribute.IsDefined(parameter, typeof(FromServicesAttribute)))
+                {
+                    if (ServiceProvider is null) throw new InvalidAttributeException($"[FromServices] requires ServiceProvider. Type '{type.FullName}', method '{method.Name}'.");
+                    parameters.Add(new(parameter, ParameterBindingKind.Service, null)); continue;
+                }
+                if (Attribute.IsDefined(parameter, typeof(OptionAttribute)))
+                {
+                    var option = Reflection.Loader.CreateParameterOption(parameter);
+                    command.Options.Add(option);
+                    parameters.Add(new(parameter, ParameterBindingKind.Option, option)); continue;
+                }
+                var argument = Reflection.Loader.CreateArgument(parameter);
+                command.Arguments.Add(argument);
+                parameters.Add(new(parameter, ParameterBindingKind.Argument, argument));
+            }
+            EnsureUniqueName(parent, command, type, method.Name);
+            parent.Subcommands.Add(command);
+            var registration = new MethodCommandRegistration(method, command, parameters);
+            methodRegistrations.Add(registration);
+            command.SetAction((parseResult, token) => HandleMethodCommandAsync(registration, parseResult, token));
+        }
+    }
+
+    private static void EnsureUniqueName(Command parent, Command candidate, Type type, string methodName)
+    {
+        if (parent.Subcommands.Any(command => string.Equals(command.Name, candidate.Name, StringComparison.Ordinal)))
+            throw new InvalidAttributeException($"Duplicate command name '{candidate.Name}' under '{parent.Name}'. Type '{type.FullName}', method '{methodName}'.");
+    }
+
+    private CommandActivation ActivateMethodCommand(MethodInfo method)
+    {
+        if (method.IsStatic) return new CommandActivation(null, ownsInstance: false);
+        return new CommandActivation(Activator.CreateInstance(method.DeclaringType!)!, ownsInstance: true);
+    }
+
     private void ResetCommands()
     {
         hasToFindCommands = true;
         this.commandsTypes = commandsTypes.Clear();
+        MethodCommandsTypes = ImmutableList<Type>.Empty;
         ResetTrees();
     }
 
@@ -537,6 +651,7 @@ public class Starter
         this.CommandsTypesTree = new TreeNode<Type>(null);
         registrationsByCommand.Clear();
         registrationsByType.Clear();
+        methodRegistrations.Clear();
         rootCommand = new();
     }
 

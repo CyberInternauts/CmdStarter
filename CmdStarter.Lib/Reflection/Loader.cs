@@ -81,6 +81,26 @@ internal static class Loader
         return argument;
     }
 
+    internal static Option CreateParameterOption(ParameterInfo parameter)
+    {
+        var optionType = typeof(Option<>).MakeGenericType(parameter.ParameterType);
+        var constructor = optionType.GetConstructor(new[] { typeof(string), typeof(string[]) });
+        var option = (Option)constructor!.Invoke(new object[] { StarterCommand.OPTION_PREFIX + parameter.Name!.PascalToKebabCase(), Array.Empty<string>() });
+        option.Required = Attribute.IsDefined(parameter, typeof(RequiredAttribute));
+        option.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
+        option.AllowMultipleArgumentsPerToken = parameter.ParameterType.GetInterfaces()
+            .Any(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IList<>));
+        LoadDescription(parameter, option);
+        LoadAliases(parameter, option.Aliases);
+        LoadAutoCompletes(parameter, completion => option.CompletionSources.Add(completion));
+        if (parameter.HasDefaultValue && parameter.DefaultValue is not DBNull)
+        {
+            typeof(Loader).GetMethod(nameof(SetDefaultOptionValue), BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { option, parameter.DefaultValue });
+        }
+        return option;
+    }
+
     internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)
     {
         var descriptions = provider.GetCustomAttributes(false)
@@ -120,6 +140,9 @@ internal static class Loader
 
     private static void SetDefaultValue<T>(Argument<T> argument, object? value) =>
         argument.DefaultValueFactory = _ => (T)value!;
+
+    private static void SetDefaultOptionValue<T>(Option<T> option, object? value) =>
+        option.DefaultValueFactory = _ => (T)value!;
 
     private static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
     {
