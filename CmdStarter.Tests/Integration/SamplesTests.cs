@@ -75,6 +75,30 @@ public sealed class SamplesTests
     }
 
     [Test]
+    public async Task FluentTreeSampleListsUsers()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.FluentTree", "users", "ls");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("ann, bob"));
+    }
+
+    [Test]
+    public async Task FluentTreeSampleListsGroups()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.FluentTree", "groups", "list");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("admins, devs"));
+    }
+
+    [Test]
+    public async Task FluentTreeSampleRunsGroupedCommand()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.FluentTree", "admin", "reset");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("reset done"));
+    }
+
+    [Test]
     public async Task DependencyInjectionInjectsClassCommand()
     {
         var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.DependencyInjection", "greet", "--to", "Ann");

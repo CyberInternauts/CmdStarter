@@ -7,6 +7,7 @@ These examples are small, runnable programs that show common ways to build comma
 | [HelloWorld](CmdStarter.Samples.HelloWorld) | A single rooted command with a property option | `dotnet run --project samples/CmdStarter.Samples.HelloWorld -- --to Bob` |
 | [TwoCommands](CmdStarter.Samples.TwoCommands) | Two top-level commands with positional arguments | `dotnet run --project samples/CmdStarter.Samples.TwoCommands -- add 2 3` |
 | [NestedCommands](CmdStarter.Samples.NestedCommands) | Namespace and attribute based command nesting | `dotnet run --project samples/CmdStarter.Samples.NestedCommands -- remote add origin https://example.com/repo.git` |
+| [FluentTree](CmdStarter.Samples.FluentTree) | Explicit command tree defined with `Starter.UseTree` | `dotnet run --project samples/CmdStarter.Samples.FluentTree -- users ls` |
 | [DependencyInjection](CmdStarter.Samples.DependencyInjection) | Injecting a service into class and method commands | `dotnet run --project samples/CmdStarter.Samples.DependencyInjection -- greet --to Ann` |
 | [ScopedServices](CmdStarter.Samples.ScopedServices) | Sharing scoped services and disposing them after execution | `dotnet run --project samples/CmdStarter.Samples.ScopedServices -- run` |
 | [GlobalOptions](CmdStarter.Samples.GlobalOptions) | Reading a global option from class and method commands | `dotnet run --project samples/CmdStarter.Samples.GlobalOptions -- status --verbose` |

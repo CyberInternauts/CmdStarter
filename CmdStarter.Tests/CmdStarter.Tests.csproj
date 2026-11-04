@@ -31,6 +31,7 @@
     <ProjectReference Include="..\samples\CmdStarter.Samples.HelloWorld\CmdStarter.Samples.HelloWorld.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.TwoCommands\CmdStarter.Samples.TwoCommands.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.NestedCommands\CmdStarter.Samples.NestedCommands.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\samples\CmdStarter.Samples.FluentTree\CmdStarter.Samples.FluentTree.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.DependencyInjection\CmdStarter.Samples.DependencyInjection.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.ScopedServices\CmdStarter.Samples.ScopedServices.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.GlobalOptions\CmdStarter.Samples.GlobalOptions.csproj" ReferenceOutputAssembly="false" />
