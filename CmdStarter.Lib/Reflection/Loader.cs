@@ -30,6 +30,7 @@ internal static class Loader
             var optionName = StarterCommand.OptionPrefix + property.Name.PascalToKebabCase();
             var option = (Option)constructor!.Invoke(new object[] { optionName, Array.Empty<string>() });
             option.Required = Attribute.IsDefined(property, typeof(RequiredAttribute));
+            AddValidationAttributes(property, option, optionName.TrimStart('-'));
             option.Hidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
             option.AllowMultipleArgumentsPerToken = isList;
             LoadDescription(property, option);
@@ -72,6 +73,7 @@ internal static class Loader
         var constructor = argumentType.GetConstructor(new[] { typeof(string) });
         var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name! });
         argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
+        AddValidationAttributes(parameter, argument, parameter.Name!);
         if (parameter.DefaultValue is not System.DBNull)
         {
             typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
@@ -88,6 +90,7 @@ internal static class Loader
         var constructor = optionType.GetConstructor(new[] { typeof(string), typeof(string[]) });
         var option = (Option)constructor!.Invoke(new object[] { StarterCommand.OptionPrefix + parameter.Name!.PascalToKebabCase(), Array.Empty<string>() });
         option.Required = Attribute.IsDefined(parameter, typeof(RequiredAttribute));
+        AddValidationAttributes(parameter, option, parameter.Name!.PascalToKebabCase());
         option.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
         option.AllowMultipleArgumentsPerToken = parameter.ParameterType.GetInterfaces()
             .Any(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IList<>));
@@ -151,4 +154,61 @@ internal static class Loader
             .Where(attribute => attribute is AutoCompleteAttribute)
             .Cast<AutoCompleteAttribute>();
     }
+
+    private static void AddValidationAttributes(ICustomAttributeProvider provider, Option option, string displayName)
+    {
+        foreach (var attribute in GetValidationAttributes(provider))
+        {
+            option.Validators.Add(result =>
+            {
+                var optionResult = result.GetResult(option);
+                if (optionResult is null || optionResult.Implicit)
+                {
+                    return;
+                }
+
+                var value = optionResult.GetValueOrDefault<object?>();
+                var context = new ValidationContext(new object())
+                {
+                    DisplayName = displayName,
+                    MemberName = displayName
+                };
+                var validationResult = attribute.GetValidationResult(value, context);
+                if (validationResult != ValidationResult.Success)
+                {
+                    result.AddError(validationResult!.ErrorMessage!);
+                }
+            });
+        }
+    }
+
+    private static void AddValidationAttributes(ICustomAttributeProvider provider, Argument argument, string displayName)
+    {
+        foreach (var attribute in GetValidationAttributes(provider))
+        {
+            argument.Validators.Add(result =>
+            {
+                var argumentResult = result.GetResult(argument);
+                if (argumentResult is null || argumentResult.Implicit)
+                {
+                    return;
+                }
+
+                var value = argumentResult.GetValueOrDefault<object?>();
+                var context = new ValidationContext(new object())
+                {
+                    DisplayName = displayName,
+                    MemberName = displayName
+                };
+                var validationResult = attribute.GetValidationResult(value, context);
+                if (validationResult != ValidationResult.Success)
+                {
+                    result.AddError(validationResult!.ErrorMessage!);
+                }
+            });
+        }
+    }
+
+    private static IEnumerable<ValidationAttribute> GetValidationAttributes(ICustomAttributeProvider provider) =>
+        provider.GetCustomAttributes(false).OfType<ValidationAttribute>();
 }

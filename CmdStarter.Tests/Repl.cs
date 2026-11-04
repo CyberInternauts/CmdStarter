@@ -43,6 +43,7 @@ public class Repl
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Cancellation.CancellableCommand).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.ReplApp.ReplAppCommands).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.States.Enter).Namespace!);
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Validation.LevelCommand).Namespace!);
     }
 
     [TestCase<PreCommand, CommandOne, CommandTwo, CommandThree>()]
