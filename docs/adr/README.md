@@ -26,3 +26,4 @@
 | 0022 | [Command Sequences](0022-command-sequences.md) | Accepted |
 | 0023 | [Text Pipes](0023-text-pipes.md) | Accepted |
 | 0024 | [Remote REPL over a Named Pipe](0024-remote-repl.md) | Accepted |
+| 0025 | [Trimming and Native AOT](0025-trimming-and-native-aot.md) | Accepted |

@@ -48,6 +48,8 @@ Start with [Getting started](getting-started.md).
 - [Analyzers](advanced/analyzers.md): the compile-time rules and their severity.
 - [System.CommandLine](advanced/system-command-line.md): what is delegated and how to reach the underlying objects.
 - [Performance](advanced/performance.md): startup and execution measurements.
+- [Trimming](advanced/trimming.md): where the library stands with trimmed publication.
+- [Native AOT](advanced/native-aot.md): where the library stands with Native AOT publication.
 
 ## Reference
 
