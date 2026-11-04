@@ -7,12 +7,17 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
 /// </summary>
 public sealed class ConsoleReplProvider : IReplInputProvider
 {
+    /// <summary>Gets or sets the prompt written before each input line.</summary>
+    public string Prompt { get; init; } = "> ";
+
     /// <summary>
-    /// Returns an input from the default console.
+    /// Writes the prompt and returns an input from the default console.
     /// </summary>
-    /// <returns>A <see cref="string"/> with <see cref="Console.ReadLine"/>.</returns>
-    public string GetInput()
+    /// <param name="cancellationToken">Token used to cancel the input operation.</param>
+    /// <returns>The next input line, or <see langword="null"/> at end of input.</returns>
+    public async ValueTask<string?> GetInputAsync(CancellationToken cancellationToken)
     {
-        return Console.ReadLine() ?? string.Empty;
+        Console.Out.Write(Prompt);
+        return await Console.In.ReadLineAsync(cancellationToken);
     }
 }

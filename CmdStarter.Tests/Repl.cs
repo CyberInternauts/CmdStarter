@@ -169,4 +169,123 @@ public class Repl
 
         await starter.Launch();
     }
+
+    [Test]
+    public async Task EndsLoopAtEndOfInput()
+    {
+        var codes = new List<int>();
+        var repl = CreateScriptedStarter(codes, "command-one");
+
+        await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(codes, Is.EqualTo(new[] { CommandOne.EXPECTED_RETURN }));
+    }
+
+    [Test]
+    public async Task SkipsEmptyLines()
+    {
+        var codes = new List<int>();
+        var repl = CreateScriptedStarter(codes, "", "   ", "command-one");
+
+        await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(codes, Is.EqualTo(new[] { CommandOne.EXPECTED_RETURN }));
+    }
+
+    [TestCase("exit")]
+    [TestCase("QUIT")]
+    public async Task ExitCommandEndsLoop(string exitCommand)
+    {
+        var codes = new List<int>();
+        var repl = CreateScriptedStarter(codes, "command-one", exitCommand, "command-two");
+
+        await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(codes, Is.EqualTo(new[] { CommandOne.EXPECTED_RETURN }));
+    }
+
+    [Test]
+    public async Task ExitCommandsCanBeDisabled()
+    {
+        var codes = new List<int>();
+        var repl = CreateScriptedStarter(codes, "exit");
+        repl.ExitCommands = System.Collections.Immutable.ImmutableList<string>.Empty;
+
+        await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(codes, Has.Count.EqualTo(1));
+        Assert.That(codes[0], Is.Not.EqualTo(0));
+    }
+
+    [TestCase("help")]
+    [TestCase("help command-one")]
+    public async Task HelpCommandShowsHelp(string line)
+    {
+        var codes = new List<int>();
+        var repl = CreateScriptedStarter(codes, line);
+
+        await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(codes, Is.EqualTo(new[] { 0 }));
+    }
+
+    [Test]
+    public async Task HelpCommandsCanBeDisabled()
+    {
+        var codes = new List<int>();
+        var repl = CreateScriptedStarter(codes, "help");
+        repl.HelpCommands = System.Collections.Immutable.ImmutableList<string>.Empty;
+
+        await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(codes, Has.Count.EqualTo(1));
+        Assert.That(codes[0], Is.Not.EqualTo(0));
+    }
+
+    [Test]
+    public async Task LaunchEndsWhenCancelled()
+    {
+        using var cts = new CancellationTokenSource();
+        var repl = new ReplStarter(new BlockingInputProvider());
+        var run = repl.Launch(cts.Token);
+        cts.Cancel();
+
+        Assert.DoesNotThrowAsync(async () => await run.WaitAsync(TimeSpan.FromSeconds(10)));
+    }
+
+    [Test]
+    public async Task CancelCurrentCommandCancelsRunningCommand()
+    {
+        var codes = new List<int>();
+        var repl = new ReplStarter(new ScriptedInputProvider("wait-for-cancel"));
+        repl.Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Commands.Cancellation.CancellableMethods).Namespace!);
+        repl.Classes = System.Collections.Immutable.ImmutableList.Create(typeof(Commands.Cancellation.CancellableMethods).FullName!);
+        repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
+        Commands.Cancellation.CancellableMethods.Reset();
+
+        var run = repl.Launch();
+        await Commands.Cancellation.CancellableMethods.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(repl.CancelCurrentCommand(), Is.True);
+        await run.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.That(codes, Is.EqualTo(new[] { 130 }));
+        Assert.That(repl.CancelCurrentCommand(), Is.False);
+    }
+
+    [Test]
+    public void CancelCurrentCommandReturnsFalseWhenIdle()
+    {
+        var repl = new ReplStarter(new ScriptedInputProvider());
+
+        Assert.That(repl.CancelCurrentCommand(), Is.False);
+    }
+
+    private static ReplStarter CreateScriptedStarter(List<int> codes, params string?[] lines)
+    {
+        var repl = new ReplStarter(new ScriptedInputProvider(lines));
+        SetDefaultNamespaces(repl);
+        repl.Namespaces = repl.Namespaces.Add(typeof(CommandOne).Namespace!);
+        repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
+        return repl;
+    }
 }

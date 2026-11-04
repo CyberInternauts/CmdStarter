@@ -6,7 +6,9 @@
 public interface IReplInputProvider
 {
     /// <summary>
-    /// Returns an input that can be parsed by the command.
+    /// Returns the next input line, or <see langword="null"/> when input has ended.
     /// </summary>
-    public string GetInput();
+    /// <param name="cancellationToken">Token used to cancel the input operation.</param>
+    /// <returns>The next input line, or <see langword="null"/> at end of input.</returns>
+    public ValueTask<string?> GetInputAsync(CancellationToken cancellationToken);
 }
