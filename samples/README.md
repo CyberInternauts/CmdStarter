@@ -19,6 +19,7 @@ These examples are small, runnable programs that show common ways to build comma
 | [CommandStates](CmdStarter.Samples.CommandStates) | Commands and help that follow the application's current session state | `dotnet run --project samples/CmdStarter.Samples.CommandStates` then enter `login ann`, `whoami`, `logout` |
 | [Filters](CmdStarter.Samples.Filters) | Logging and confirmation filters around command execution | `dotnet run --project samples/CmdStarter.Samples.Filters -- deploy --yes` |
 | [Hosting](CmdStarter.Samples.Hosting) | Generic Host, appsettings.json, environment variables, options and logging | `dotnet run --project samples/CmdStarter.Samples.Hosting -- greet Ann` |
+| [ReplServer](CmdStarter.Samples.ReplServer) | An administration console served over a named pipe, one session at a time | `dotnet run --project samples/CmdStarter.Samples.ReplServer -- demo` |
 
 Run the in-process tests for the Testing example with `dotnet test CmdStarter.sln --filter "FullyQualifiedName~CmdStarter.Samples.Testing.Tests"`.
 

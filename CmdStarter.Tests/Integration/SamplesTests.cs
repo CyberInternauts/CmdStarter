@@ -321,6 +321,15 @@ public sealed class SamplesTests
     }
 
     [Test]
+    public async Task ReplServerSampleDemo()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.ReplServer", "demo");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("running"));
+        Assert.That(result.StdOut, Does.Contain("hi"));
+    }
+
+    [Test]
     public async Task CommandStatesSampleFollowsSession()
     {
         var result = await AppRunner.RunWithInputAsync(
