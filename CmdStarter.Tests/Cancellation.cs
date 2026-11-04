@@ -17,8 +17,8 @@ public class Cancellation
         using var cts = new CancellationTokenSource();
         var starter = new Starter
         {
-            Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(CancellableCommand).Namespace!),
-            Classes = System.Collections.Immutable.ImmutableList.Create(typeof(CancellableCommand).FullName!)
+            Namespaces = [typeof(CancellableCommand).Namespace!],
+            Classes = [typeof(CancellableCommand).FullName!]
         };
         CancellableCommand.Reset();
 
@@ -35,8 +35,8 @@ public class Cancellation
         using var cts = new CancellationTokenSource();
         var starter = new Starter
         {
-            Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(CancellableCommand).Namespace!),
-            Classes = System.Collections.Immutable.ImmutableList.Create(typeof(CancellableMethods).FullName!)
+            Namespaces = [typeof(CancellableCommand).Namespace!],
+            Classes = [typeof(CancellableMethods).FullName!]
         };
         CancellableMethods.Reset();
 
@@ -76,8 +76,8 @@ public class Cancellation
     {
         var starter = new Starter
         {
-            Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(CancellableCommand).Namespace!),
-            Classes = System.Collections.Immutable.ImmutableList.Create(typeof(CancellableCommand).FullName!)
+            Namespaces = [typeof(CancellableCommand).Namespace!],
+            Classes = [typeof(CancellableCommand).FullName!]
         };
 
         starter.InstantiateCommands();
@@ -90,7 +90,7 @@ public class Cancellation
     {
         var starter = new Starter
         {
-            Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).Namespace!),
+            Namespaces = [typeof(Probe).Namespace!],
             IsRootingLonelyCommand = false,
             StateProvider = new TestStateProvider { CurrentState = "open" }
         };

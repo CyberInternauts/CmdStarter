@@ -7,7 +7,7 @@ namespace CyberInternauts.CmdStarter.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class OptionsAnalyzer : DiagnosticAnalyzer
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptors.HiddenGlobalOption, Descriptors.EmptyGlobalOptions);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptors.HiddenGlobalOption, Descriptors.EmptyGlobalOptions];
 
     public override void Initialize(AnalysisContext context)
     {

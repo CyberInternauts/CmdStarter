@@ -56,7 +56,7 @@ public class CommandConsoles
     {
         await using var app = new CmdStarterBuilder()
             .AddCommandsFromAssembly(typeof(Write).Assembly)
-            .ConfigureStarter(starter => starter.Namespaces = ImmutableList.Create(typeof(Write).Namespace!))
+            .ConfigureStarter(starter => starter.Namespaces = [typeof(Write).Namespace!])
             .Build();
 
         // RunAsync has no console parameter: the console goes through the app's Starter.
@@ -149,7 +149,7 @@ public class CommandConsoles
         var executed = 0;
         var repl = new ReplStarter(new ScriptedInputProvider("write"))
         {
-            Namespaces = ImmutableList.Create(typeof(Write).Namespace!),
+            Namespaces = [typeof(Write).Namespace!],
             DefaultConsole = CreateConsole()
         };
         repl.OnCommandExecuted += (_, _) => executed++;
@@ -208,7 +208,7 @@ public class CommandConsoles
 
     private static Starter CreateStarter() => new()
     {
-        Namespaces = ImmutableList.Create(typeof(Write).Namespace!)
+        Namespaces = [typeof(Write).Namespace!]
     };
 
     private CommandConsole CreateConsole() => new(new StringReader(string.Empty), output, error);

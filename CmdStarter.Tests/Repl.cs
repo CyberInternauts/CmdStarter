@@ -290,8 +290,8 @@ public class Repl
     {
         var codes = new List<int>();
         var repl = new ReplStarter(new ScriptedInputProvider("wait-for-cancel"));
-        repl.Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Commands.Cancellation.CancellableMethods).Namespace!);
-        repl.Classes = System.Collections.Immutable.ImmutableList.Create(typeof(Commands.Cancellation.CancellableMethods).FullName!);
+        repl.Namespaces = [typeof(Commands.Cancellation.CancellableMethods).Namespace!];
+        repl.Classes = [typeof(Commands.Cancellation.CancellableMethods).FullName!];
         repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
         Commands.Cancellation.CancellableMethods.Reset();
 

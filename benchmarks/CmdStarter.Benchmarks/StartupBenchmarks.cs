@@ -22,7 +22,7 @@ public class StartupBenchmarks
 
         var builder = new CmdStarterBuilder()
             .AddCommandsFromAssembly(typeof(StartupBenchmarks).Assembly)
-            .ConfigureStarter(starter => starter.Namespaces = ImmutableList.Create(BenchmarkSetup.CommandsNamespace));
+            .ConfigureStarter(starter => starter.Namespaces = [BenchmarkSetup.CommandsNamespace]);
         builder.Services.AddTransient<IBenchmarkService, BenchmarkService>();
         dependencyInjectionApp = builder.Build();
     }
@@ -50,7 +50,7 @@ public class StartupBenchmarks
     public int DiscoverOneAssembly()
     {
         var starter = BenchmarkSetup.CreateStarter();
-        starter.Assemblies = ImmutableList.Create(typeof(StartupBenchmarks).Assembly);
+        starter.Assemblies = [typeof(StartupBenchmarks).Assembly];
         starter.InstantiateCommands();
         return starter.RootCommand.Subcommands.Count;
     }
@@ -77,7 +77,7 @@ public class StartupBenchmarks
     {
         var starter = BenchmarkSetup.CreateStarter();
         starter.UseCommandCatalogs = false;
-        starter.Assemblies = ImmutableList.Create(typeof(StartupBenchmarks).Assembly);
+        starter.Assemblies = [typeof(StartupBenchmarks).Assembly];
         starter.InstantiateCommands();
         return starter.RootCommand.Subcommands.Count;
     }

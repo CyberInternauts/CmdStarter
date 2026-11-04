@@ -27,7 +27,7 @@ return 2;
 static ReplStarter CreateSession() =>
     new(new ConsoleReplProvider()) // The server never reads this provider, but a ReplStarter needs one.
     {
-        Namespaces = ImmutableList.Create(typeof(AdminCommands).Namespace!)
+        Namespaces = [typeof(AdminCommands).Namespace!]
     };
 
 static async Task<int> ServeAsync(string pipeName)

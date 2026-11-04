@@ -22,7 +22,7 @@ public class DynamicCodeSupport
     {
         // This assembly carries a catalog but does not reference the library: its attributes are not read, and it is scanned. Its references are asked once.
         var unrelated = new CatalogAssembly("Unrelated", typeof(CatalogWithContainer)) { References = [new AssemblyName("Elsewhere")], Types = [typeof(Unlisted), typeof(SecondaryGlobalOptions)] };
-        var starter = new Starter { Assemblies = ImmutableList.Create<Assembly>(unrelated) };
+        var starter = new Starter { Assemblies = [unrelated] };
 
         starter.FindCommandsTypes();
 
@@ -33,7 +33,7 @@ public class DynamicCodeSupport
 
         // The same assembly with the library among its references: the catalog is read, and the references are asked once.
         var related = new CatalogAssembly("Related", typeof(CatalogWithContainer)) { Types = [typeof(Unlisted), typeof(SecondaryGlobalOptions)] };
-        var other = new Starter { Assemblies = ImmutableList.Create<Assembly>(related) };
+        var other = new Starter { Assemblies = [related] };
 
         other.FindCommandsTypes();
 
@@ -65,7 +65,7 @@ public class DynamicCodeSupport
     {
         // Nothing can be found: the search says so, as it does when no assembly has a command.
         var plain = new CatalogAssembly("Plain", catalogType: null) { Types = [typeof(Unlisted)] };
-        var starter = new Starter { DynamicCodeSupported = false, Assemblies = ImmutableList.Create<Assembly>(plain) };
+        var starter = new Starter { DynamicCodeSupported = false, Assemblies = [plain] };
 
         var exception = Assert.Throws<NoCommandFoundException>(() => starter.FindCommandsTypes());
 
@@ -77,7 +77,7 @@ public class DynamicCodeSupport
     public void CatalogsOffWithoutDynamicCodeIsAConfigurationError()
     {
         // Nothing could be read and nothing could be scanned: the error says why, instead of a NoCommandFoundException that blames a filter.
-        var starter = new Starter { DynamicCodeSupported = false, UseCommandCatalogs = false, Assemblies = ImmutableList.Create<Assembly>(new CatalogAssembly("WithCatalog", typeof(CatalogWithContainer))) };
+        var starter = new Starter { DynamicCodeSupported = false, UseCommandCatalogs = false, Assemblies = [new CatalogAssembly("WithCatalog", typeof(CatalogWithContainer))] };
 
         var exception = Assert.Throws<CmdStarterException>(() => starter.FindCommandsTypes());
 
@@ -136,7 +136,7 @@ public class DynamicCodeSupport
     {
         // Only the failures to load are tolerated: any other exception is a bug to report.
         var broken = new CatalogAssembly("Broken", typeof(CatalogWithContainer)) { AttributesFailure = new InvalidOperationException("another failure") };
-        var starter = new Starter { Assemblies = ImmutableList.Create<Assembly>(broken) };
+        var starter = new Starter { Assemblies = [broken] };
 
         var exception = Assert.Throws<InvalidOperationException>(() => starter.FindCommandsTypes());
 

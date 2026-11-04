@@ -60,7 +60,7 @@ public class SymbolFactoryTests
     {
         // ExecOptionTypes has a DateTime option. CmdStarter.Tests.Commands has a catalog that the generator wrote, and reading it registers the types of its options.
         var assembly = typeof(Commands.Execution.ExecOptionTypes).Assembly;
-        new Starter { Assemblies = ImmutableList.Create(assembly) }.FindCommandsTypes();
+        new Starter { Assemblies = [assembly] }.FindCommandsTypes();
 
         Assert.That(SymbolFactories.IsGenerated(typeof(DateTime)), Is.True);
         Assert.That(SymbolFactories.For(typeof(DateTime)), Is.TypeOf<SymbolFactory<DateTime>>());
@@ -113,7 +113,7 @@ public class SymbolFactoryTests
     public void CatalogRegistersItsSymbolTypes()
     {
         // A catalog read by a Starter registers its symbol types, through the builder.
-        var starter = new Starter { Assemblies = ImmutableList.Create<System.Reflection.Assembly>(new CatalogAssembly("SymbolCatalogAssembly", typeof(SymbolTypeCatalog))) };
+        var starter = new Starter { Assemblies = [new CatalogAssembly("SymbolCatalogAssembly", typeof(SymbolTypeCatalog))] };
 
         starter.FindCommandsTypes();
 

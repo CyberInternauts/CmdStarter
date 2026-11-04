@@ -74,7 +74,7 @@ public class GlobalOptions
         // This namespace is excluded from the default discoveries: only this starter asks for it.
         var broken = new Starter
         {
-            Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Commands.BrokenGlobalOptions.HealthyCommand).Namespace!)
+            Namespaces = [typeof(Commands.BrokenGlobalOptions.HealthyCommand).Namespace!]
         };
 
         var exception = Assert.Throws<InvalidAttributeException>(() => broken.InstantiateCommands());

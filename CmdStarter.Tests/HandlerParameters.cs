@@ -14,7 +14,7 @@ public class HandlerParameters
     public async Task HandlerParametersWithoutNameAreNotArgumentsAndReceiveTheDefaultOfTheirType()
     {
         var starter = TestsCommon.CreateCmdStarter();
-        starter.CommandsTypes = ImmutableList.Create(typeof(NamelessParameterCommand));
+        starter.CommandsTypes = [typeof(NamelessParameterCommand)];
         using var error = new StringWriter();
         var console = new CommandConsole(new StringReader(string.Empty), new StringWriter(), error);
 

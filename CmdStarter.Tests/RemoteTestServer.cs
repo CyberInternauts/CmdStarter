@@ -15,7 +15,7 @@ internal static class RemoteTesting
     internal static ReplStarter CreateSession(params string?[] lines) => new(new ScriptedInputProvider(lines))
     {
         // Namespaces and the service provider are set before the session is used: method parameters are classified when the tree is built.
-        Namespaces = ImmutableList.Create(typeof(Hello).Namespace!),
+        Namespaces = [typeof(Hello).Namespace!],
         ServiceProvider = new ServiceCollection().AddSingleton<SessionUser>().BuildServiceProvider()
     };
 }

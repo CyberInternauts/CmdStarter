@@ -208,7 +208,7 @@ public class ReplRemote
         // The local REPL is running: serving it would let a remote exit stop it and would take over its console.
         using var localCancellation = new CancellationTokenSource();
         var input = new WaitingInputProvider();
-        var local = new ReplStarter(input) { Namespaces = ImmutableList.Create(typeof(Hello).Namespace!) };
+        var local = new ReplStarter(input) { Namespaces = [typeof(Hello).Namespace!] };
         var localLoop = local.Launch(localCancellation.Token);
         await input.Waiting.WaitAsync(Limit);
 

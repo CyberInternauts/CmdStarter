@@ -203,7 +203,7 @@ public class ReplStartOverloads
     {
         using var output = new StringWriter();
         using var plainError = new StringWriter();
-        var plainCode = await new Starter { Namespaces = ImmutableList.Create(SequencesNamespace) }.Start("; ;", ConsoleWith(output, plainError));
+        var plainCode = await new Starter { Namespaces = [SequencesNamespace] }.Start("; ;", ConsoleWith(output, plainError));
         var codes = new List<int>();
         using var replError = new StringWriter();
         var repl = CreateRepl(" ; ; ");
@@ -227,6 +227,6 @@ public class ReplStartOverloads
 
     private static ReplStarter CreateRepl(params string?[] lines) => new(new ScriptedInputProvider(lines))
     {
-        Namespaces = ImmutableList.Create(SequencesNamespace)
+        Namespaces = [SequencesNamespace]
     };
 }

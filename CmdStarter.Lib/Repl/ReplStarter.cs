@@ -23,7 +23,7 @@ public sealed class ReplStarter : Starter
     public ImmutableList<string> ExitCommands { get; set; } = ImmutableList.Create("exit", "quit");
 
     /// <summary>Gets or sets the case-insensitive commands that show help; an empty list disables them.</summary>
-    public ImmutableList<string> HelpCommands { get; set; } = ImmutableList.Create("help");
+    public ImmutableList<string> HelpCommands { get; set; } = ["help"];
 
     /// <summary>Constructor without namespace filters.</summary>
     /// <param name="inputProvider">Provides input for command parsing.</param>

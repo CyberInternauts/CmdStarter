@@ -54,7 +54,7 @@ public class CommandCatalogs
     {
         // The catalog is read, then the filter of the namespaces leaves nothing.
         var starter = CreateStarter();
-        starter.Namespaces = ImmutableList.Create(typeof(Listed).Namespace + ".Empty");
+        starter.Namespaces = [typeof(Listed).Namespace + ".Empty"];
 
         var exception = Assert.Throws<NoCommandFoundException>(() => starter.FindCommandsTypes());
 
@@ -84,7 +84,7 @@ public class CommandCatalogs
     [TestCase(typeof(NullTypeCatalog), "declaringType")]
     public void CatalogThatFailsIsAConfigurationError(Type catalogType, string reason)
     {
-        var starter = new Starter { Assemblies = ImmutableList.Create<System.Reflection.Assembly>(new CatalogAssembly("TestCatalogAssembly", catalogType)) };
+        var starter = new Starter { Assemblies = [new CatalogAssembly("TestCatalogAssembly", catalogType)] };
 
         var exception = Assert.Throws<InvalidAttributeException>(() => starter.FindCommandsTypes());
 
@@ -99,7 +99,7 @@ public class CommandCatalogs
     [Test]
     public void OutOfMemoryOfACatalogIsNotWrapped()
     {
-        var starter = new Starter { Assemblies = ImmutableList.Create<System.Reflection.Assembly>(new CatalogAssembly("TestCatalogAssembly", typeof(OutOfMemoryCatalog))) };
+        var starter = new Starter { Assemblies = [new CatalogAssembly("TestCatalogAssembly", typeof(OutOfMemoryCatalog))] };
 
         var exception = Assert.Throws<OutOfMemoryException>(() => starter.FindCommandsTypes());
 
@@ -112,8 +112,8 @@ public class CommandCatalogs
         // CmdStarter.Tests.Commands carries the catalog that the generator wrote. No other filter: the Erroneous namespaces are there, and nothing is instantiated.
         var assembly = typeof(Commands.Remote.Hello).Assembly;
         Assert.That(assembly.GetCustomAttribute<CommandCatalogAttribute>(), Is.Not.Null, "the assembly has a generated catalog");
-        var catalog = new Starter { Assemblies = ImmutableList.Create(assembly) };
-        var scan = new Starter { Assemblies = ImmutableList.Create(assembly), UseCommandCatalogs = false };
+        var catalog = new Starter { Assemblies = [assembly] };
+        var scan = new Starter { Assemblies = [assembly], UseCommandCatalogs = false };
 
         catalog.FindCommandsTypes();
         scan.FindCommandsTypes();
@@ -149,7 +149,7 @@ public class CommandCatalogs
         Assert.That(recorder.GlobalOptions, Is.EquivalentTo(containers));
     }
 
-    private static Starter CreateStarter() => new() { Assemblies = ImmutableList.Create(typeof(Listed).Assembly) };
+    private static Starter CreateStarter() => new() { Assemblies = [typeof(Listed).Assembly] };
 
     // Records what a catalog declares.
     private sealed class RecordingBuilder : ICommandCatalogBuilder

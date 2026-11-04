@@ -16,7 +16,7 @@ internal static class BenchmarkSetup
     /// <summary>Creates a starter that only sees the measured commands.</summary>
     public static Starter CreateStarter() => new()
     {
-        Namespaces = ImmutableList.Create(CommandsNamespace)
+        Namespaces = [CommandsNamespace]
     };
 
     /// <summary>Defines the twelve class commands at the same places as the discovery does.</summary>

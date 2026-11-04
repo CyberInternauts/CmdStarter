@@ -7,7 +7,7 @@ namespace CyberInternauts.CmdStarter.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ParentAttributeAnalyzer : DiagnosticAnalyzer
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptors.ParentCycle, Descriptors.MultipleParents);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptors.ParentCycle, Descriptors.MultipleParents];
 
     public override void Initialize(AnalysisContext context)
     {

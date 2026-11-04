@@ -99,9 +99,9 @@ public class CommandsTypesSetter
     public void FiltersSetAfterTheListResumeTheDiscovery()
     {
         var starter = TestsCommon.CreateCmdStarter();
-        starter.CommandsTypes = ImmutableList.Create(typeof(Ok));
+        starter.CommandsTypes = [typeof(Ok)];
 
-        starter.Namespaces = ImmutableList.Create(SequencesNamespace);
+        starter.Namespaces = [SequencesNamespace];
         starter.InstantiateCommands();
 
         Assert.That(starter.RootCommand.Subcommands.Select(command => command.Name), Does.Contain("other").And.Contain("fail"));
@@ -110,8 +110,8 @@ public class CommandsTypesSetter
     [Test]
     public void EmptyListGoesBackToTheDiscovery()
     {
-        var starter = new Starter { Namespaces = ImmutableList.Create(SequencesNamespace) };
-        starter.CommandsTypes = ImmutableList.Create(typeof(Ok));
+        var starter = new Starter { Namespaces = [SequencesNamespace] };
+        starter.CommandsTypes = [typeof(Ok)];
 
         starter.CommandsTypes = ImmutableList<Type>.Empty;
         starter.InstantiateCommands();
@@ -124,13 +124,13 @@ public class CommandsTypesSetter
     {
         var starter = new Starter
         {
-            Namespaces = ImmutableList.Create(typeof(Status).Namespace!),
+            Namespaces = [typeof(Status).Namespace!],
             Classes = ImmutableList.Create(typeof(Status).FullName!, typeof(About).FullName!, typeof(Commands.NamespaceGroups.Methods.NamespaceGroupMethods).FullName!)
         };
         starter.FindCommandsTypes();
         Assert.That(starter.MethodCommandsTypes, Is.Not.Empty);
 
-        starter.CommandsTypes = ImmutableList.Create(typeof(Status));
+        starter.CommandsTypes = [typeof(Status)];
 
         Assert.That(await starter.Start("users export"), Is.EqualTo(48));
         Assert.That(starter.RootCommand.Subcommands.Select(command => command.Name), Is.EquivalentTo(new[] { "status", "users" }));
@@ -138,7 +138,7 @@ public class CommandsTypesSetter
 
     private static Starter CreateDiscoveredStarter()
     {
-        var starter = new Starter { Namespaces = ImmutableList.Create(SequencesNamespace) };
+        var starter = new Starter { Namespaces = [SequencesNamespace] };
         starter.FindCommandsTypes();
         return starter;
     }

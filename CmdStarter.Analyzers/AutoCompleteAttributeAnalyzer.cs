@@ -7,7 +7,7 @@ namespace CyberInternauts.CmdStarter.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class AutoCompleteAttributeAnalyzer : DiagnosticAnalyzer
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptors.EmptyCompletion, Descriptors.UnsupportedCompletion);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptors.EmptyCompletion, Descriptors.UnsupportedCompletion];
 
     public override void Initialize(AnalysisContext context)
     {

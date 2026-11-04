@@ -43,7 +43,7 @@ public class TreeBuilding
     private static Starter CreateStarter(params string[] namespaces)
     {
         var starter = TestsCommon.CreateCmdStarter();
-        starter.Namespaces = ImmutableList.CreateRange(namespaces);
+        starter.Namespaces = [.. namespaces];
         return starter;
     }
 }

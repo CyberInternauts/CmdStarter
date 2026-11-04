@@ -514,12 +514,12 @@ public class CommandSequences
 
     private static Starter CreateStarter() => new()
     {
-        Namespaces = ImmutableList.Create(typeof(Ok).Namespace!)
+        Namespaces = [typeof(Ok).Namespace!]
     };
 
     private static ReplStarter CreateRepl(params string?[] lines) => new(new ScriptedInputProvider(lines))
     {
-        Namespaces = ImmutableList.Create(typeof(Ok).Namespace!)
+        Namespaces = [typeof(Ok).Namespace!]
     };
 
     private static IReadOnlyList<CommandSequenceStep> Parse(string line)

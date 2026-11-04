@@ -145,7 +145,7 @@ public class ReplLineEditing
         var provider = new TestStateProvider { CurrentState = TestState.Anonymous };
         var starter = new ReplStarter(new TestInputProvider())
         {
-            Namespaces = ImmutableList.Create(typeof(Enter).Namespace!),
+            Namespaces = [typeof(Enter).Namespace!],
             StateProvider = provider
         };
 
@@ -164,7 +164,7 @@ public class ReplLineEditing
     {
         var starter = new ReplStarter(new TestInputProvider())
         {
-            Classes = ImmutableList.Create(typeof(SingleSingleAutoComplete).FullName!)
+            Classes = [typeof(SingleSingleAutoComplete).FullName!]
         };
         var line = $"{StarterCommand.OptionPrefix}{SingleSingleAutoComplete.OPTION_NAME} ";
 

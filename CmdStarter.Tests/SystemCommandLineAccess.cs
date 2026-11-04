@@ -40,7 +40,7 @@ public class SystemCommandLineAccess
         root.Subcommands.Add(manual);
         Assert.That(await starter.Start("manual"), Is.EqualTo(42));
 
-        starter.Namespaces = ImmutableList.Create(typeof(Ok).Namespace!);
+        starter.Namespaces = [typeof(Ok).Namespace!];
 
         Assert.That(starter.RootCommand, Is.Not.SameAs(root));
         Assert.That(await starter.Start("manual"), Is.Not.EqualTo(0).And.Not.EqualTo(42));
@@ -50,7 +50,7 @@ public class SystemCommandLineAccess
     [Test]
     public async Task InvocationConfigurationIsNewForEachExecution()
     {
-        var starter = new ConfigurationStarter { Namespaces = ImmutableList.Create(typeof(Ok).Namespace!) };
+        var starter = new ConfigurationStarter { Namespaces = [typeof(Ok).Namespace!] };
         using var firstOutput = new StringWriter();
         using var secondOutput = new StringWriter();
         var first = new CommandConsole(new StringReader(string.Empty), firstOutput, new StringWriter());
@@ -67,7 +67,7 @@ public class SystemCommandLineAccess
 
     private static Starter CreateStarter() => new()
     {
-        Namespaces = ImmutableList.Create(typeof(Ok).Namespace!)
+        Namespaces = [typeof(Ok).Namespace!]
     };
 
     // A subclass that customizes System.CommandLine's invocation: it keeps what it creates, one new configuration per call.

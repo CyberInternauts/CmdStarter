@@ -20,7 +20,7 @@ public class FailedConstruction
     {
         var starter = new Starter
         {
-            Namespaces = ImmutableList.Create("com2.cyberint"),
+            Namespaces = ["com2.cyberint"],
             StateProvider = new TestStateProvider { CurrentState = TestState.Anonymous }
         };
 
@@ -28,14 +28,14 @@ public class FailedConstruction
         var second = Assert.ThrowsAsync<NoCommandFoundException>(() => starter.Start("always"));
 
         Assert.That(second!.LastFilterApplied, Is.EqualTo(first!.LastFilterApplied));
-        starter.Namespaces = ImmutableList.Create(typeof(Enter).Namespace!);
+        starter.Namespaces = [typeof(Enter).Namespace!];
         Assert.That(await starter.Start("always"), Is.EqualTo(30));
     }
 
     [Test]
     public async Task FailedInstantiationThrowsAgainOnNextStart()
     {
-        var starter = new Starter { Namespaces = ImmutableList.Create(typeof(Enter).Namespace!) };
+        var starter = new Starter { Namespaces = [typeof(Enter).Namespace!] };
 
         var first = Assert.ThrowsAsync<InvalidAttributeException>(() => starter.Start("always"));
         var second = Assert.ThrowsAsync<InvalidAttributeException>(() => starter.Start("always"));
@@ -48,7 +48,7 @@ public class FailedConstruction
     [Test]
     public void FailedSynchronousInstantiationThrowsAgainOnNextCall()
     {
-        var starter = new Starter { Namespaces = ImmutableList.Create(typeof(Enter).Namespace!) };
+        var starter = new Starter { Namespaces = [typeof(Enter).Namespace!] };
 
         var first = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
         var second = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());

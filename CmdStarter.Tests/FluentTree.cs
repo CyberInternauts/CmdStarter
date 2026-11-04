@@ -124,7 +124,7 @@ public class FluentTree
     public async Task BuilderUseTreeConfiguresStarter()
     {
         await using var app = new CmdStarterBuilder()
-            .ConfigureStarter(starter => starter.Namespaces = ImmutableList.Create(NamespaceName))
+            .ConfigureStarter(starter => starter.Namespaces = [NamespaceName])
             .UseTree(DefineCommonTree)
             .Build();
 

@@ -77,7 +77,7 @@ public sealed class Hosting
         builder.AddCmdStarter(options =>
         {
             options.AddCommandsFromAssembly(typeof(ReplAppCommands).Assembly)
-                .ConfigureStarter(starter => starter.Namespaces = ImmutableList.Create(typeof(ReplAppCommands).Namespace!));
+                .ConfigureStarter(starter => starter.Namespaces = [typeof(ReplAppCommands).Namespace!]);
             configure?.Invoke(options);
         });
         return builder;

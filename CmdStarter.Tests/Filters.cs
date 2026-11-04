@@ -160,7 +160,7 @@ public sealed class Filters
             .AddFilter<ScopedFilter>()
             .ConfigureStarter(starter =>
             {
-                starter.Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).Namespace!);
+                starter.Namespaces = [typeof(Probe).Namespace!];
                 starter.IsRootingLonelyCommand = false;
             });
         builder.Services.AddScoped<FilterScopedService>();
@@ -181,7 +181,7 @@ public sealed class Filters
         services.AddCmdStarter(options => options
             .ConfigureStarter(starter =>
             {
-                starter.Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).Namespace!);
+                starter.Namespaces = [typeof(Probe).Namespace!];
                 starter.IsRootingLonelyCommand = false;
             })
             .AddFilter<ScopedFilter>());
@@ -272,7 +272,7 @@ public sealed class Filters
         var scopes = new CountingScopes(provider, providerHasNoScopeFactory);
         var starter = new Starter
         {
-            Classes = System.Collections.Immutable.ImmutableList.Create(typeof(FailingGetInstanceCommand).FullName!),
+            Classes = [typeof(FailingGetInstanceCommand).FullName!],
             ServiceProvider = scopes
         };
 
@@ -287,7 +287,7 @@ public sealed class Filters
     {
         var starter = new Starter
         {
-            Classes = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).FullName!)
+            Classes = [typeof(Probe).FullName!]
         };
         starter.SetFactory(type => (IStarterCommand)Activator.CreateInstance(type)!);
         starter.AddFilter<ServicesProbeFilter>();
@@ -301,7 +301,7 @@ public sealed class Filters
     }
     private static Starter CreateGetInstanceStarter(IServiceProvider? provider) => new()
     {
-        Classes = System.Collections.Immutable.ImmutableList.Create(typeof(MadeCommand).FullName!),
+        Classes = [typeof(MadeCommand).FullName!],
         ServiceProvider = provider
     };
 
@@ -312,7 +312,7 @@ public sealed class Filters
     }
     private static Starter CreateStarter() => new()
     {
-        Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Probe).Namespace!),
+        Namespaces = [typeof(Probe).Namespace!],
         IsRootingLonelyCommand = false,
         StateProvider = new TestStateProvider { CurrentState = "open" }
     };

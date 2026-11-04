@@ -102,7 +102,7 @@ public class States
         var provider = new TestStateProvider { CurrentState = TestState.Member };
         var builder = new CmdStarterBuilder()
             .AddCommandsFromAssembly(typeof(Enter).Assembly)
-            .ConfigureStarter(starter => starter.Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Enter).Namespace!));
+            .ConfigureStarter(starter => starter.Namespaces = [typeof(Enter).Namespace!]);
         builder.Services.AddSingleton<ICommandStateProvider>(provider);
         await using var app = builder.Build();
 
@@ -114,7 +114,7 @@ public class States
     {
         var provider = new TestStateProvider { CurrentState = TestState.Member };
         var starter = CreateStarter(provider);
-        starter.Classes = System.Collections.Immutable.ImmutableList.Create(typeof(Enter).FullName!);
+        starter.Classes = [typeof(Enter).FullName!];
 
         Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(1));
         Assert.That(starter.FindCommand<Enter>()!.Hidden, Is.True);
@@ -149,7 +149,7 @@ public class States
     {
         var starter = new Starter
         {
-            Namespaces = System.Collections.Immutable.ImmutableList.Create(typeof(Enter).Namespace!),
+            Namespaces = [typeof(Enter).Namespace!],
             StateProvider = provider
         };
         return starter;
