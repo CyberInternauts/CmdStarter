@@ -177,6 +177,113 @@ public class CommandSequences
     }
 
     [Test]
+    public async Task InvalidSequenceWritesToTheDefaultConsoleWhenNoConsoleIsGiven()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        starter.DefaultConsole = ConsoleWith(string.Empty, output, error);
+
+        Assert.That(await starter.StartSequence("ok &&"), Is.EqualTo(1));
+        Assert.That(error.ToString(), Does.Contain("&&"));
+        Assert.That(SequenceLog.Entries, Is.Empty);
+    }
+
+    [Test]
+    public async Task InvalidSequenceWritesToTheProcessErrorWithoutAnyConsole()
+    {
+        var previousError = Console.Error;
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        try
+        {
+            Console.SetError(error);
+
+            Assert.That(await starter.StartSequence("ok &&"), Is.EqualTo(1));
+        }
+        finally
+        {
+            Console.SetError(previousError);
+        }
+
+        Assert.That(error.ToString(), Does.Contain("&&"));
+    }
+
+    [Test]
+    public async Task BlankLineRunsLikeAPlainStart()
+    {
+        var starter = CreateStarter();
+        using var plainError = new StringWriter();
+        using var sequenceError = new StringWriter();
+
+        var plainCode = await starter.Start("   ", ConsoleWith(plainError));
+        var sequenceCode = await starter.StartSequence("   ", ConsoleWith(sequenceError));
+
+        Assert.That(sequenceCode, Is.EqualTo(plainCode));
+        Assert.That(sequenceError.ToString(), Is.EqualTo(plainError.ToString()));
+        Assert.That(SequenceLog.Entries, Is.Empty);
+    }
+
+    [Test]
+    public async Task SequenceOptionWithConsoleRunsThePipelineOnThatConsole()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        starter.SequenceOption = "-c";
+
+        Assert.That(await starter.Start(new[] { "-c", "emit | sort" }, ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task PipelineWithoutConsoleUsesTheDefaultConsole()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        starter.DefaultConsole = ConsoleWith(string.Empty, output, error);
+
+        Assert.That(await starter.StartSequence("emit | sort"), Is.EqualTo(0));
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task PipelineWithoutAnyConsoleUsesTheProcessStreams()
+    {
+        var previousOutput = Console.Out;
+        var previousInput = Console.In;
+        using var output = new StringWriter();
+        using var input = new StringReader(string.Empty);
+        var starter = CreateStarter();
+        try
+        {
+            Console.SetOut(output);
+            Console.SetIn(input);
+
+            Assert.That(await starter.StartSequence("emit | sort"), Is.EqualTo(0));
+        }
+        finally
+        {
+            Console.SetOut(previousOutput);
+            Console.SetIn(previousInput);
+        }
+
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task CancelledCommandStopsThePipeline()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("cancelled | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(130));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "cancelled" }));
+    }
+
+    [Test]
     public async Task UnclosedQuoteWithoutOperatorRunsAsBefore()
     {
         var starter = CreateStarter();

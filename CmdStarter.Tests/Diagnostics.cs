@@ -45,4 +45,21 @@ public class Diagnostics
             Assert.That(exception.Message, Does.Contain("Run"));
         });
     }
+
+    [Test]
+    public void BlankMethodCommandNameMessageNamesTypeAndMethod()
+    {
+        var starter = new CmdStarter.Starter();
+        starter.Namespaces = starter.Namespaces.Clear();
+        starter.Classes = starter.Classes.Clear().Add(typeof(BlankNameCommands).FullName!);
+
+        var exception = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception!.Message, Does.Contain("cannot be empty"));
+            Assert.That(exception.Message, Does.Contain(typeof(BlankNameCommands).FullName!));
+            Assert.That(exception.Message, Does.Contain("Run"));
+        });
+    }
 }

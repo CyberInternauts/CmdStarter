@@ -38,6 +38,14 @@ public sealed class Always : StarterCommand
     public override Delegate HandlingMethod => () => 30;
 }
 
+// Hidden in every state, even when the state makes it available.
+[Hidden]
+[AvailableInState(TestState.Anonymous)]
+public sealed class Secret : StarterCommand
+{
+    public override Delegate HandlingMethod => () => 80;
+}
+
 [AvailableInState(TestState.Member)]
 public sealed class Account : StarterCommand
 {

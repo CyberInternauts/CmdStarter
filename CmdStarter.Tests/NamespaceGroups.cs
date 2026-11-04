@@ -57,6 +57,31 @@ public class NamespaceGroups
     }
 
     [Test]
+    public async Task CommandWithParentAttributeGetsNoGroupEvenWhenTheModeIgnoresTheAttribute()
+    {
+        // In OnlyNamespaces mode [Parent] does not place Attached, which stays at the root: it still gets no group from its namespace.
+        var starter = CreateStarter();
+        starter.GroupsByNamespace = true;
+        starter.ClassesBuildingMode = ClassesBuildingMode.OnlyNamespaces;
+        starter.Classes = starter.Classes.AddRange(new[] { typeof(Commands.NamespaceGroups.Deep.Attached).FullName!, typeof(Status).FullName!, typeof(About).FullName! });
+
+        Assert.That(await starter.Start("attached"), Is.EqualTo(47));
+        Assert.That(await starter.Start("status"), Is.EqualTo(41));
+        Assert.That(starter.RootCommand.Subcommands.Any(command => string.Equals(command.Name, "deep", StringComparison.Ordinal)), Is.False);
+    }
+
+    [Test]
+    public async Task MethodCommandsAloneRunWithGroupsByNamespace()
+    {
+        var starter = CreateStarter();
+        starter.GroupsByNamespace = true;
+        starter.Classes = starter.Classes.Add(typeof(Commands.NamespaceGroups.Methods.NamespaceGroupMethods).FullName!);
+
+        Assert.That(await starter.Start("users export"), Is.EqualTo(48));
+        Assert.That(starter.CommandsTypes, Is.Empty);
+    }
+
+    [Test]
     public async Task MethodCommandsJoinNamespaceGroups()
     {
         var starter = CreateStarter();

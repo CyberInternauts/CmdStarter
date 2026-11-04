@@ -101,6 +101,20 @@ public class CommandsResults
 
         Assert.That(dependentService.GetInt(), Is.EqualTo(actualReturn));
     }
+
+    [TestCase<Dependent1, DependentService1>]
+    public async Task UsesDependencyInjectionWithConcatenatedArguments<CommandType, DependentServiceType>()
+        where CommandType : IStarterCommand
+        where DependentServiceType : IDependentService
+    {
+        var dependentService = (IDependentService)Activator.CreateInstance(typeof(DependentServiceType))!;
+        var serviceManager = new ServiceManager(dependentService);
+
+        starter.Namespaces = starter.Namespaces.Clear().Add(typeof(CommandType).Namespace!);
+        var actualReturn = await starter.Start(serviceManager, string.Empty);
+
+        Assert.That(dependentService.GetInt(), Is.EqualTo(actualReturn));
+    }
 #pragma warning restore CS0618
 
     private static IEnumerable<string> SelectHandlerDataByFeature(IHandleTester command, HandlerData.CommandFeature feature)

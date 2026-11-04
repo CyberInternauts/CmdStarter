@@ -27,6 +27,16 @@ public class States
     }
 
     [Test]
+    public async Task HiddenCommandStaysHiddenWhenItsStateIsCurrent()
+    {
+        var provider = new TestStateProvider { CurrentState = TestState.Anonymous };
+        var starter = CreateStarter(provider);
+
+        Assert.That(await starter.Start("secret"), Is.EqualTo(80));
+        Assert.That(starter.FindCommand<Secret>()!.Hidden, Is.True);
+    }
+
+    [Test]
     public async Task UnavailableCommandIsRefused()
     {
         var starter = CreateStarter(new TestStateProvider { CurrentState = TestState.Anonymous });

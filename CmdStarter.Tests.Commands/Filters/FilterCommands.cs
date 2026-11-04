@@ -72,6 +72,19 @@ public sealed class DisposableFilter : ICommandFilter, IDisposable
     public void Dispose() => Disposals++;
 }
 
+public sealed class AsyncDisposableFilter : ICommandFilter, IAsyncDisposable
+{
+    public static int AsyncDisposals { get; set; }
+
+    public Task<int> InvokeAsync(CommandContext context, Func<Task<int>> next) => next();
+
+    public ValueTask DisposeAsync()
+    {
+        AsyncDisposals++;
+        return ValueTask.CompletedTask;
+    }
+}
+
 public sealed class FilterScopedService
 {
 }

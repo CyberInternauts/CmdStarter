@@ -84,6 +84,21 @@ public class DependencyInjection
     }
 
     [Test]
+    public async Task DisposesScopeWhenCommandConstructorThrows()
+    {
+        var created = new List<ScopedService>();
+        var builder = CreateBuilder<ThrowingConstructorCommand>();
+        builder.Services.AddScoped(_ => { var service = new ScopedService(); created.Add(service); return service; });
+        await using var app = builder.Build();
+
+        var exception = Assert.CatchAsync<Exception>(() => app.RunAsync(Array.Empty<string>()));
+
+        Assert.That(exception!.ToString(), Does.Contain(ThrowingConstructorCommand.FailureMessage));
+        Assert.That(created, Is.Not.Empty);
+        Assert.That(created, Is.All.Matches<ScopedService>(service => service.IsDisposed));
+    }
+
+    [Test]
     public void RejectsScopedServiceCapturedBySingleton()
     {
         var builder = CreateBuilder<ServicesCommand>();

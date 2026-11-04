@@ -22,6 +22,7 @@ using CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
 using CyberInternauts.CmdStarter.Tests.Commands.Loader.ByInterface;
 using static CyberInternauts.CmdStarter.Tests.TestsCommon;
 using CyberInternauts.CmdStarter.Loader;
+using CyberInternauts.CmdStarter.Tests.Commands.Execution;
 
 namespace CyberInternauts.CmdStarter.Tests;
 
@@ -168,6 +169,46 @@ public class CommandsBasics
         var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
         Assert.That(command?.Name, Is.EqualTo(expectedName));
+    }
+
+    [Test]
+    public void LookupsOfUnknownCommandsFindNothing()
+    {
+        starter.Classes = starter.Classes.Add(typeof(ExecSum).FullName!);
+        starter.InstantiateCommands();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(starter.FindCommand<ExecArgumentTypes>(), Is.Null);
+            Assert.That(starter.GetFullCommandString<ExecArgumentTypes>(), Is.Null);
+            Assert.That(starter.FindCommandInstance<ExecArgumentTypes>(), Is.Null);
+            Assert.That(starter.FindCommandInstance(new Command("unknown")), Is.Null);
+        });
+    }
+
+    [Test]
+    public void VisitingNoCommandVisitsNothing()
+    {
+        var visited = 0;
+
+        Starter.VisitCommands(null!, _ => visited++);
+
+        Assert.That(visited, Is.Zero);
+    }
+
+    [Test]
+    public void NullFilterListsMeanNoFilter()
+    {
+        starter.Assemblies = null!;
+        starter.Classes = null!;
+        starter.CommandsTypes = null!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(starter.Assemblies, Is.Empty);
+            Assert.That(starter.Classes, Is.Empty);
+            Assert.That(starter.CommandsTypes, Is.Empty);
+        });
     }
 
     [Test]

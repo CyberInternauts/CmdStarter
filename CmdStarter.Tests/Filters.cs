@@ -115,6 +115,28 @@ public sealed class Filters
     }
 
     [Test]
+    public async Task CreatedAsyncDisposableFilterIsDisposedAsynchronously()
+    {
+        AsyncDisposableFilter.AsyncDisposals = 0;
+        var starter = CreateStarter().AddFilter<AsyncDisposableFilter>();
+
+        await starter.Start("probe");
+        await starter.Start("probe");
+
+        Assert.That(AsyncDisposableFilter.AsyncDisposals, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task FilterTypeUnknownToTheContainerIsCreatedWithItsConstructor()
+    {
+        await using var provider = new ServiceCollection().BuildServiceProvider();
+        var starter = CreateStarter().AddFilter<IncrementFilter>();
+        starter.ServiceProvider = provider;
+
+        Assert.That(await starter.Start("probe --value 5"), Is.EqualTo(6));
+    }
+
+    [Test]
     public async Task FilterTypeIsResolvedInExecutionScope()
     {
         var builder = new CmdStarterBuilder()
