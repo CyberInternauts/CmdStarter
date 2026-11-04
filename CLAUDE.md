@@ -50,7 +50,7 @@ Command model:
 - Global options are classes implementing `IGlobalOptionsContainer`. `GlobalOptionsManager` finds them (static cache over all assemblies, filled at the first `FilterTypes`, never in the `Starter` constructor, with that first `Starter`'s `UseCommandCatalogs`) and adds them as recursive options on the root. It rebuilds them at each parse; commands read them with `GetGlobalOptions<T>()`. The containers pass the `Assemblies`/`Namespaces`/`Classes` filters too, and `GlobalOptionsManager.FilterTypes()` runs before the method commands are added: a method parameter that asks for a container the filters exclude throws `InvalidAttributeException` when the tree is built.
 
 Instantiation (`docs/adr/0006`): `Starter.Activate` creates every instance. Its priority order is:
-1. a static `GetInstance<T>()` declared by the command type;
+1. a static `GetInstance<T>()` declared by the command type (since the ADR 0006 amendment of lot 033, when `ServiceProvider` is set its execution still gets the execution scope through `ActivateFromGetInstance`/`OpenExecutionScope`, so filters registered by type get their services and `CommandContext.Services` is not null; `Filters.cs` tests, scope counter `CountingScopes`);
 2. `Starter.ServiceProvider` (Microsoft DI, one `AsyncServiceScope` per execution);
 3. the per-`Starter` factory (`SetFactory`, the way to plug in another container, as `CmdStarter.Demo.SimpleInjector` does; `IServiceManager` and `Start(IServiceManager, …)` are `[Obsolete]`, and only `ServiceManager.cs` and one `CommandsResults` test silence CS0618);
 4. the parameterless constructor.
