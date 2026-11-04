@@ -1,8 +1,6 @@
 # CmdStarter
 
-This library is a layer over [System.CommandLine](https://github.com/dotnet/command-line-api) to ease integration 
-into existing projects. Currently, this dependency is still in beta version, hence this library's version will stay 
-in beta too.
+CmdStarter turns plain C# code into a command-line interface built on System.CommandLine 2.0.14, the stable release of that library. Classes become commands and their public properties become options, or methods marked `[Command]` become commands. The library targets .NET 10 only, and supports Microsoft dependency injection in both models.
 
 ## Links
 
@@ -11,81 +9,51 @@ in beta too.
 - Jira: https://cyberinternauts.atlassian.net/browse/CMD
 
 ## Features
-- Implement commands using an abstract class or an interface
-- Filter classes to use in current execution by namespaces or by full class names
-- Classes using dependency injection are supported
-- Mark classes as global options container
-- Easy access to the global options inside the executing method
-- Lonely command can be rooted
-- Autowiring properties to System.CommandLine command options
-- Autowiring executing method parameters to System.CommandLine command arguments
-- Alias, Hidden, Description and AutoComplete attributes are offered to set command options/arguments properties
-- Automatic commands tree loading via namespaces or Parent|Children attributes
 
-## Usage
+- Two command models: classes (inheriting `StarterCommand` or implementing `IStarterCommand`) and `[Command]` methods. See [Commands](docs/concepts/commands.md).
+- Discovery by namespaces and class filters, or a command tree described in code with `Starter.UseTree`. See [Discovery](docs/concepts/discovery.md) and [Fluent command tree](docs/guides/fluent-tree.md).
+- Options and arguments deduced from the code. See [Binding](docs/concepts/binding.md).
+- A Roslyn analyzer that reports definition errors at compile time. See [Analyzers](docs/advanced/analyzers.md).
+- Global options. See [Global options](docs/guides/global-options.md).
+- Validation attributes. See [Validation](docs/guides/validation.md).
+- Command filters. See [Filters](docs/guides/filters.md).
+- Microsoft dependency injection, with one scope per execution. See [Dependency injection](docs/concepts/dependency-injection.md).
+- A REPL with history and completion. See [REPL](docs/guides/repl.md).
+- Command sequences and text pipes. See [Sequences and pipes](docs/guides/sequences-and-pipes.md).
+- A remote REPL over a named pipe. See [Remote REPL](docs/guides/remote-repl.md).
+- Command states. See [Command states](docs/guides/command-states.md).
+- Generic Host integration. See [Hosting](docs/guides/hosting.md).
+- Readable error messages and consistent exit codes. See [Errors and exit codes](docs/guides/errors-and-exit-codes.md).
 
-- Import the [nuget package **cints.CmdStarter**](https://www.nuget.org/packages/cints.CmdStarter). 
-  > Ensure to check *Prerelease* checkbox
-- Command integration (Choose one):
-  - Create a new class inheriting from `StarterCommand`.
-  - Add `IStarterCommand` interface to an existing class having a constructor without parameter.
-     > For dependency injection, see below.
-- Create the Program class below.
+## Getting started
 
-```text
+Install the package. It is a pre-release, so `--prerelease` is needed:
+
+```powershell
+dotnet add package cints.CmdStarter --prerelease
+```
+
+The project must target `net10.0`. A command is a class that derives from `StarterCommand`. Its public read/write property `To` becomes the option `--to`, and `HandlingMethod` is the handler:
+
+<!-- snippet: samples/CmdStarter.Samples.HelloWorld/Commands/Hello.cs -->
+```csharp
 using CyberInternauts.CmdStarter;
 
-internal class Program
+public sealed class Hello : StarterCommand
 {
-    public static async Task Main(string[] args)
-    {
-        var starter = new Starter();
-        await starter.Start(args);
-    }
+    public string To { get; set; } = "World";
+
+    public override Delegate HandlingMethod => (Action)(() => Console.Out.WriteLine($"Hello, {To}!"));
 }
 ```
 
-### Dependency injection
+The program's entry point only passes its arguments to `new Starter().Start(args)` and returns its exit code. Run the sample with `dotnet run --project samples/CmdStarter.Samples.HelloWorld -- --to Bob`, which prints `Hello, Bob!`.
 
-Commands are created in this priority order: a command type's own `GetInstance<T>()`, `Starter.ServiceProvider`, `Starter.SetFactory`, then a parameterless constructor. The `IServiceManager` overload remains available for other containers. Microsoft DI users can get one scope per execution with `CmdStarterBuilder`:
-
-```text
-await using var app = new CmdStarterBuilder()
-    .AddCommandsFromAssembly(typeof(MyCommand).Assembly)
-    .ConfigureStarter(starter => starter.Namespaces = starter.Namespaces.Add("MyApp.Commands"))
-    .Build();
-int exitCode = await app.RunAsync(args);
-```
-
-See the [1.x to 2.0 migration guide](docs/migration/1.x-to-2.0.md) for instance lifetime, disposal, and assembly filtering details.
-
-### Method-based commands
-
-Use `[Command]` on a class to create a command group and on its methods to expose subcommands.
-An unmarked class can expose its methods directly at the root.
-Method parameters become positional arguments unless an attribute or dependency injection identifies them otherwise.
-Services registered with the builder can be inferred from their parameter types.
-Use `[Option]` to expose a parameter as an option.
-
-```text
-[Command("users")]
-public sealed class UserCommands
-{
-    [Command("create")]
-    public Task Create(string name, [Option] int age, IUserService service) => service.Create(name, age);
-
-    [Command]
-    public Task DeleteAsync(int id, IUserService service) => service.Delete(id);
-}
-
-// The create command is: users create <name> --age <age>
-```
-
-Register `IUserService` in `CmdStarterBuilder.Services`; each method execution resolves it from that run's service scope.
-The declaring class can receive injected constructor dependencies as well.
-An instance is created for each instance method, while static command methods need none.
-Return `Task<int>` or `ValueTask<int>` to set the process exit code; other supported results return zero.
-See [ADR 0009: Method-Based Command Model](docs/adr/0009-method-based-command-model.md) for discovery, binding, lifecycle, and validation rules.
+Next steps:
+- [Documentation index](docs/index.md)
+- [Getting started](docs/getting-started.md)
+- [Samples](samples/README.md)
+- [Migration from 1.x to 2.0](docs/migration/1.x-to-2.0.md)
 
 ## Participation | Submit issues, ideas
 
