@@ -16,12 +16,20 @@ namespace CyberInternauts.CmdStarter.Repl.Remote;
 /// </remarks>
 public sealed class ReplPipeServer
 {
+    private const string SharedSessionMessage = "The session factory must create a new ReplStarter for each session.";
+
     private readonly string pipeName;
     private readonly Func<ReplStarter> createSession;
+    private WeakReference<ReplStarter>? previousSession;
 
     /// <summary>Creates a server for a pipe name and a factory of sessions.</summary>
     /// <param name="pipeName">The name of the pipe.</param>
-    /// <param name="createSession">Creates the <see cref="ReplStarter"/> of each session, with its own state. The server does not dispose what the factory creates.</param>
+    /// <param name="createSession">
+    /// Creates a new <see cref="ReplStarter"/> for each session, with its own state; the server does not dispose what the factory creates.
+    /// Under dependency injection, build the session for each call: do not resolve a singleton <see cref="ReplStarter"/>, which would share a login
+    /// between sessions and let a remote <c>exit</c> stop the local REPL. Returning the instance of the previous session, or a <see cref="ReplStarter"/>
+    /// whose <see cref="ReplStarter.Launch(CancellationToken)"/> loop is running, makes <see cref="RunAsync"/> throw <see cref="InvalidOperationException"/>.
+    /// </param>
     /// <exception cref="ArgumentException"><paramref name="pipeName"/> is null, empty or blank.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="createSession"/> is null.</exception>
     public ReplPipeServer(string pipeName, Func<ReplStarter> createSession)
@@ -38,6 +46,7 @@ public sealed class ReplPipeServer
     /// </summary>
     /// <param name="cancellationToken">Token that stops the server.</param>
     /// <returns>A task that completes when the server has stopped.</returns>
+    /// <exception cref="InvalidOperationException">The session factory returned the instance of the previous session, or a <see cref="ReplStarter"/> whose local loop is running.</exception>
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         try
@@ -87,6 +96,13 @@ public sealed class ReplPipeServer
 
         // The session writes to the pipe only: it reads nothing from the console and never touches System.Console.
         var session = createSession();
+        // A shared starter would carry the state of one session into the next, or stop and take over a local REPL: it is a configuration error.
+        if (session.IsLaunched || (previousSession is not null && previousSession.TryGetTarget(out var previous) && ReferenceEquals(previous, session)))
+        {
+            throw new InvalidOperationException(SharedSessionMessage);
+        }
+
+        previousSession = new WeakReference<ReplStarter>(session);
         session.DefaultConsole = new CommandConsole(TextReader.Null, output, error);
 
         while (await reader.ReadLineAsync(cancellationToken) is { } line)

@@ -13,7 +13,7 @@ Add `ReplPipeServer(pipeName, createSession)` and `ReplPipeClient(pipeName)` in 
 
 The transport is a .NET named pipe (`System.IO.Pipes`) with `PipeOptions.CurrentUserOnly`, so only the user who started the server can connect.
 
-One session runs at a time, on a single pipe instance. Each session has its own `ReplStarter`, created by the application's factory, and therefore its own state: a `login` is valid only for that session. The server disposes nothing that the factory creates.
+One session runs at a time, on a single pipe instance. Each session has its own `ReplStarter`, created by the application's factory, and therefore its own state: a `login` is valid only for that session. The server disposes nothing that the factory creates. The factory must create a new `ReplStarter` for each session: under dependency injection, it builds one per call and does not resolve a singleton `ReplStarter`, which would share a login between sessions and let a remote `exit` stop the local REPL. A factory that returns the instance of the previous session, or a `ReplStarter` whose local `Launch` loop is running, makes `RunAsync` throw `InvalidOperationException`, as a configuration error.
 
 Each line received is a REPL line: built-in words, sequences and pipes included ([ADR 0011](0011-repl-mode.md), [ADR 0022](0022-command-sequences.md), [ADR 0023](0023-text-pipes.md)). The server runs it through the same method as the loop of `ReplStarter.Launch`. The session receives a `DefaultConsole` whose input is empty and whose output and error output go to the pipe ([ADR 0021](0021-command-console.md)).
 

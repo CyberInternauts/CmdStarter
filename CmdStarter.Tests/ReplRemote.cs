@@ -137,6 +137,46 @@ public class ReplRemote
         Assert.That((await ExecuteAsync(client, "hello")).Output, Is.EqualTo("hello\n"));
     }
 
+    [Test]
+    public async Task FactoryMustCreateNewSession()
+    {
+        // A factory that hands out the same starter (a singleton resolved from a container, for instance) would share one session's state with the next.
+        var shared = CreateSession();
+        var server = new RunningServer(() => shared);
+        await using (var first = await server.ConnectAsync())
+        {
+            Assert.That((await ExecuteAsync(first, "hello")).Code, Is.EqualTo(0));
+        }
+
+        await using var second = await server.ConnectAsync();
+        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(second, "hello"));
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await server.Run.WaitAsync(Limit));
+        Assert.That(exception!.Message, Does.Contain("new ReplStarter for each session"));
+        await server.DisposeAsync();
+    }
+
+    [Test]
+    public async Task FactoryMustNotReturnRunningLocalRepl()
+    {
+        // The local REPL is running: serving it would let a remote exit stop it and would take over its console.
+        using var localCancellation = new CancellationTokenSource();
+        var input = new WaitingInputProvider();
+        var local = new ReplStarter(input) { Namespaces = ImmutableList.Create(typeof(Hello).Namespace!) };
+        var localLoop = local.Launch(localCancellation.Token);
+        await input.Waiting.WaitAsync(Limit);
+
+        var server = new RunningServer(() => local);
+        await using var client = await server.ConnectAsync();
+        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(client, "hello"));
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await server.Run.WaitAsync(Limit));
+        Assert.That(exception!.Message, Does.Contain("new ReplStarter for each session"));
+        await server.DisposeAsync();
+
+        Assert.That(localLoop.IsCompleted, Is.False);
+        await localCancellation.CancelAsync();
+        await localLoop.WaitAsync(Limit);
+    }
+
     private static ReplStarter CreateSession(params string?[] lines) => new(new ScriptedInputProvider(lines))
     {
         // Namespaces and the service provider are set before the session is used: method parameters are classified when the tree is built.
@@ -158,13 +198,15 @@ public class ReplRemote
         private readonly CancellationTokenSource cancellation = new();
         private readonly Task run;
 
-        internal RunningServer()
+        internal RunningServer(Func<ReplStarter>? createSession = null)
         {
             PipeName = "cmdstarter-test-" + Guid.NewGuid().ToString("N");
-            run = new ReplPipeServer(PipeName, () => CreateSession()).RunAsync(cancellation.Token);
+            run = new ReplPipeServer(PipeName, createSession ?? (() => CreateSession())).RunAsync(cancellation.Token);
         }
 
         internal string PipeName { get; }
+
+        internal Task Run => run;
 
         internal async Task<ReplPipeClient> ConnectAsync()
         {
@@ -181,8 +223,28 @@ public class ReplRemote
 
         public async ValueTask DisposeAsync()
         {
-            await StopAsync();
+            // A server that already failed (a test that expects it) has nothing left to stop.
+            if (!run.IsFaulted)
+            {
+                await StopAsync();
+            }
+
             cancellation.Dispose();
+        }
+    }
+
+    // An input that never comes: the local REPL waits in its loop until it is cancelled.
+    private sealed class WaitingInputProvider : IReplInputProvider
+    {
+        private readonly TaskCompletionSource waiting = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        internal Task Waiting => waiting.Task;
+
+        public async ValueTask<string?> GetInputAsync(CancellationToken cancellationToken)
+        {
+            waiting.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return null;
         }
     }
 }

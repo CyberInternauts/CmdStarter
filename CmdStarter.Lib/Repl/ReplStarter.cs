@@ -14,6 +14,7 @@ public sealed class ReplStarter : Starter
     private readonly object commandLock = new();
     private CancellationTokenSource? currentCommand;
     private bool allowReplLoop = true;
+    private volatile bool isLaunched;
 
     /// <summary>Gets invoked after the execution of a command.</summary>
     public event EventHandler<ReplCommandEventArgs>? OnCommandExecuted;
@@ -66,6 +67,9 @@ public sealed class ReplStarter : Starter
     /// <param name="cancellationToken">Token used to stop the loop and cancel commands.</param>
     public Task Launch(CancellationToken cancellationToken = default) => LaunchCoreAsync(null, cancellationToken);
 
+    // True while a Launch loop runs: a remote server refuses such a starter as a session (it would stop the local loop and take its console).
+    internal bool IsLaunched => isLaunched;
+
     private async Task LaunchCoreAsync(Func<Task>? initialCommand, CancellationToken cancellationToken)
     {
         allowReplLoop = true;
@@ -77,6 +81,7 @@ public sealed class ReplStarter : Starter
             }
         };
         Console.CancelKeyPress += cancelHandler;
+        isLaunched = true;
         try
         {
             if (initialCommand is not null)
@@ -106,6 +111,7 @@ public sealed class ReplStarter : Starter
         }
         finally
         {
+            isLaunched = false;
             Console.CancelKeyPress -= cancelHandler;
         }
     }
