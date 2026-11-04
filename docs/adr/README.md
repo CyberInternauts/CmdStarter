@@ -16,3 +16,4 @@
 | 0012 | [Command States](0012-command-states.md) | Accepted |
 | 0013 | [Public API Names](0013-public-api-names.md) | Accepted |
 | 0014 | [Validation Attributes](0014-validation-attributes.md) | Accepted |
+| 0015 | [Generic Host Integration](0015-generic-host-integration.md) | Accepted |

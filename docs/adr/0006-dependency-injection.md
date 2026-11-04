@@ -23,6 +23,7 @@ A single `Starter` is not intended to execute concurrent `Start` calls because p
 
 Applications can use Microsoft DI directly or provide a factory for another container. Existing `IServiceManager` implementations can migrate to `SetFactory` before the API is removed in 3.0.
 Applications should register scoped dependencies when a command needs state isolated to one execution.
+For Generic Host integration, see [ADR 0015](0015-generic-host-integration.md), including the `IServiceCollection.AddCmdStarter` registration API.
 Services resolved by a scope follow Microsoft DI disposal rules, including asynchronous-only services.
 Custom factories must dispose instances they own.
 Concurrent command runs require separate `Starter` instances.
