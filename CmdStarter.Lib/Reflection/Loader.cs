@@ -57,6 +57,7 @@ internal static class Loader
         for (var i = 0; i < parameters.Length; i++)
         {
             var parameter = parameters[i];
+            if (parameter.ParameterType == typeof(CancellationToken)) continue;
             if (parameter.Name == null) continue; // Skipping param without name
             var argument = CreateArgument(parameter);
             receptacle.Arguments.Add(argument);

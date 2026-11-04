@@ -227,9 +227,19 @@ public class Starter
     /// </summary>
     public async Task<int> Start(string[] args)
     {
+        return await Start(args, CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Find matching commands, build the tree, and execute the requested command with an invocation cancellation token.
+    /// </summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    public async Task<int> Start(string[] args, CancellationToken cancellationToken)
+    {
         InstantiateCommands();
 
-        return await RootCommand.Parse(args).InvokeAsync();
+        return await RootCommand.Parse(args).InvokeAsync(CreateInvocationConfiguration(), cancellationToken);
     }
 
     /// <summary>
@@ -238,10 +248,24 @@ public class Starter
     /// </summary>
     public async Task<int> Start(string args)
     {
+        return await Start(args, CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Find matching commands, build the tree, and execute the requested command with an invocation cancellation token.
+    /// </summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    public async Task<int> Start(string args, CancellationToken cancellationToken)
+    {
         InstantiateCommands();
 
-        return await RootCommand.Parse(args).InvokeAsync();
+        return await RootCommand.Parse(args).InvokeAsync(CreateInvocationConfiguration(), cancellationToken);
     }
+
+    /// <summary>Creates the System.CommandLine invocation configuration.</summary>
+    /// <returns>The configuration, or <see langword="null"/> to keep System.CommandLine defaults.</returns>
+    protected virtual InvocationConfiguration? CreateInvocationConfiguration() => null;
 
     /// <summary>
     /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
@@ -406,7 +430,7 @@ public class Starter
                 InitializeRegistration(registration, RootCommand);
                 registration.CliCommand.Hidden = true;
                 RootCommand.Add(registration.CliCommand);
-                RootCommand.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult));
+                RootCommand.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult, cancellationToken));
             }
             else
             {
@@ -508,7 +532,7 @@ public class Starter
         if (command.Subcommands.Count == 0)
         {
             registration.HandlerArguments = Reflection.Loader.LoadArguments(registration.DescriptionInstance.HandlingMethod.Method, receptacle);
-            command.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult));
+            command.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult, cancellationToken));
         }
 
         registration.OptionBindings = Reflection.Loader.LoadOptions(registration.DescriptionInstance.GetType(), receptacle);
@@ -527,7 +551,7 @@ public class Starter
         command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
     }
 
-    private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult)
+    private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
         await using var activation = Activate(registration.CommandType);
         var instance = (IStarterCommand)activation.Instance!;
@@ -535,7 +559,15 @@ public class Starter
         if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         CommandBinder.BindOptions(parseResult, instance, registration.OptionBindings);
-        var exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments);
+        int exitCode;
+        try
+        {
+            exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            exitCode = 130;
+        }
         CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, instance, exitCode));
         return exitCode;
     }
@@ -558,8 +590,16 @@ public class Starter
                 _ => null
             };
         }
-        var result = CommandBinder.Invoke(() => registration.Method.Invoke(activation.Instance, values));
-        var exitCode = await CommandBinder.ToExitCodeAsync(result);
+        int exitCode;
+        try
+        {
+            var result = CommandBinder.Invoke(() => registration.Method.Invoke(activation.Instance, values));
+            exitCode = await CommandBinder.ToExitCodeAsync(result);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            exitCode = 130;
+        }
         CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, activation.Instance, exitCode));
         return exitCode;
     }

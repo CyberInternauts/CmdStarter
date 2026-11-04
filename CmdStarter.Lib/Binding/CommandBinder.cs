@@ -60,7 +60,7 @@ internal static class CommandBinder
         return instance;
     }
 
-    internal static async Task<int> InvokeHandlerAsync(ParseResult parseResult, Delegate handler, Argument?[] arguments)
+    internal static async Task<int> InvokeHandlerAsync(ParseResult parseResult, Delegate handler, Argument?[] arguments, CancellationToken cancellationToken)
     {
         var parameters = handler.Method.GetParameters();
         var values = new object?[parameters.Length];
@@ -70,6 +70,10 @@ internal static class CommandBinder
             if (argument is not null)
             {
                 values[i] = GetArgumentValue(parseResult, argument);
+            }
+            else if (parameters[i].ParameterType == typeof(CancellationToken))
+            {
+                values[i] = cancellationToken;
             }
             else if (parameters[i].HasDefaultValue)
             {
