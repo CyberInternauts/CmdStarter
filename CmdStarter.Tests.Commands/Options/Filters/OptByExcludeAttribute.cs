@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Options.Filters;
 
 public sealed class OptByExcludeAttribute : StarterCommand, IOptByAttribute
 {

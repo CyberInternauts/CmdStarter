@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+namespace CyberInternauts.CmdStarter.Exceptions;
 
 /// <summary>
 /// Attribute is not valid exception

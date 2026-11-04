@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.App.Options;
-using com.cyberinternauts.csharp.CmdStarter.Tests.App.Services;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Tests.App.Options;
+using CyberInternauts.CmdStarter.Tests.App.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.App.Methods;
+namespace CyberInternauts.CmdStarter.Tests.App.Methods;
 
 [Command("users")]
 public sealed class UserCommands

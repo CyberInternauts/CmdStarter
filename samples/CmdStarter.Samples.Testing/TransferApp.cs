@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Services;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Samples.Testing.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Testing;
+namespace CyberInternauts.CmdStarter.Samples.Testing;
 
 public static class TransferApp
 {

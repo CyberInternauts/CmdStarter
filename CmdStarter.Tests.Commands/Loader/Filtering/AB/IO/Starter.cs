@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Filtering.AB.IO;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Filtering.AB.IO;
 
 public sealed class Starter : StarterCommand
 {

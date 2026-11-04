@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.CommandStates.Services;
+namespace CyberInternauts.CmdStarter.Samples.CommandStates.Services;
 
 public sealed class Session : ICommandStateProvider
 {

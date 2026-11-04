@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Integration;
+namespace CyberInternauts.CmdStarter.Tests.Integration;
 
 [Category("* All *")]
 [Category("Integration")]

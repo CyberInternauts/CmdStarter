@@ -1,7 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+namespace CyberInternauts.CmdStarter.Loader;
 
 /// <summary>
 /// Building mode (Order is important. Ending when ClassC is assigned)

@@ -1,9 +1,9 @@
-using com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Services;
+using CyberInternauts.CmdStarter.Samples.Testing.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NUnit.Framework;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Tests;
+namespace CyberInternauts.CmdStarter.Samples.Testing.Tests;
 
 public sealed class TransferTests
 {

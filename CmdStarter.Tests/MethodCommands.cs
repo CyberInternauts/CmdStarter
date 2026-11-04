@@ -1,15 +1,15 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods.Erroneous;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Lifecycle;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Exceptions;
+using CyberInternauts.CmdStarter.Tests.Commands.Methods;
+using CyberInternauts.CmdStarter.Tests.Commands.Methods.Erroneous;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
+using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]

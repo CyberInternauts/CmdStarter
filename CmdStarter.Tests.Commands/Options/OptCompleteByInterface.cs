@@ -1,7 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Options;
 
 
 public class OptCompleteByInterface : IStarterCommand

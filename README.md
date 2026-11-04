@@ -32,12 +32,14 @@ in beta too.
      > For dependency injection, see below.
 - Create the Program class below.
 
-```
+```csharp
+using CyberInternauts.CmdStarter;
+
 internal class Program
 {
     public static async Task Main(string[] args)
     {
-        var starter = new CmdStarter.Lib.Starter();
+        var starter = new Starter();
         await starter.Start(args);
     }
 }

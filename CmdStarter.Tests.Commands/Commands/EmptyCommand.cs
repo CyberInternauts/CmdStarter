@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Commands;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Commands;
 
 public sealed class EmptyCommand : StarterCommand
 {

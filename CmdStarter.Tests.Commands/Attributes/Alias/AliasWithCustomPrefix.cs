@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Alias;
 
 public sealed class AliasWithCustomPrefix : StarterCommand, IHasAliases
 {

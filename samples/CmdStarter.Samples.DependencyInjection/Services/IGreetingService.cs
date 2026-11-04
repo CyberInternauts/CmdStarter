@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.DependencyInjection.Services;
+namespace CyberInternauts.CmdStarter.Samples.DependencyInjection.Services;
 
 public interface IGreetingService
 {

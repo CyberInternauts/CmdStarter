@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Services;
+namespace CyberInternauts.CmdStarter.Samples.DevOpsTool.Services;
 
 public sealed class ConsoleDeploymentClient : IDeploymentClient
 {

@@ -1,10 +1,10 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter.Tests.Commands.Repl;
+using CyberInternauts.CmdStarter.Repl;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]
@@ -29,7 +29,7 @@ public class Repl
         SetDefaultNamespaces(starter);
     }
 
-    public static void SetDefaultNamespaces(CmdStarter.Lib.Starter starter)
+    public static void SetDefaultNamespaces(CmdStarter.Starter starter)
     {
         starter.Namespaces = starter.Namespaces.Clear();
         if (TestsCommon.ERRONEOUS_NAMESPACE != string.Empty) // Remove, by default, erroneous namespace

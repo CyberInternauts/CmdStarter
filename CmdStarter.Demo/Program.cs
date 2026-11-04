@@ -1,7 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo;
+using CyberInternauts.CmdStarter.Tests.Commands.Demo;
 using System.ComponentModel.Composition.Hosting;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tester;
+namespace CyberInternauts.CmdStarter.Tester;
 
 internal class Program
 {
@@ -9,7 +9,7 @@ internal class Program
     {
         _ = new DirectoryCatalog("."); // This is needed to ensure Tests.Commands assembly is loaded even if no class referenced
 
-        var starter = new CmdStarter.Lib.Starter(
+        var starter = new CmdStarter.Starter(
             new string[] {
                 typeof(List).Namespace!, // Only accepts Demo commands
                 typeof(Tests.Commands.GlobalOptions.MainGlobalOptions).Namespace!,

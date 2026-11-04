@@ -1,11 +1,11 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Queries;
+namespace CyberInternauts.CmdStarter.Demo.Repl.Commands.Queries;
 
 [Description("Adds a book from the database.\nCan only be used when logged in.")]
-[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedIn)]
+[CyberInternauts.CmdStarter.Attributes.AvailableInState(DemoState.LoggedIn)]
 public sealed class Add : StarterCommand
 {
 

@@ -1,20 +1,20 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using static CyberInternauts.CmdStarter.Reflection.Helper;
+using CyberInternauts.CmdStarter.Exceptions;
+using CyberInternauts.CmdStarter.Interfaces;
 using System.Data;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using CyberInternauts.CmdStarter.Loader;
 using System.Diagnostics.CodeAnalysis;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using CyberInternauts.CmdStarter.Binding;
+using CyberInternauts.CmdStarter.Reflection;
+using CyberInternauts.CmdStarter.Extensions;
+using CyberInternauts.CmdStarter.Attributes;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib;
+namespace CyberInternauts.CmdStarter;
 
 /// <summary>
 /// Main class executing the command using the command line arguments

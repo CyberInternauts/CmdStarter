@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions.Options;
+namespace CyberInternauts.CmdStarter.Samples.GlobalOptions.Options;
 
 public sealed class OutputOptions : IGlobalOptionsContainer
 {

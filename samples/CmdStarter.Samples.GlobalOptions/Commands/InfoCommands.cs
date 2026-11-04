@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions.Options;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Samples.GlobalOptions.Options;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions.Commands;
+namespace CyberInternauts.CmdStarter.Samples.GlobalOptions.Commands;
 
 public sealed class InfoCommands
 {

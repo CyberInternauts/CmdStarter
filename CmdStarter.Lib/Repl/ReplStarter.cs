@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
+namespace CyberInternauts.CmdStarter.Repl;
 
 /// <summary>
 /// Main class executing the command using the command line arguments in REPL mode.

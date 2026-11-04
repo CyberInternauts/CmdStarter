@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Samples.DependencyInjection.Services;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Samples.DependencyInjection.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.DependencyInjection.Commands;
+namespace CyberInternauts.CmdStarter.Samples.DependencyInjection.Commands;
 
 public sealed class WelcomeCommands
 {

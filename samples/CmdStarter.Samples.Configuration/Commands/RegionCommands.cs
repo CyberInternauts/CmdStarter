@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using CyberInternauts.CmdStarter.Attributes;
 using Microsoft.Extensions.Configuration;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Configuration.Commands;
+namespace CyberInternauts.CmdStarter.Samples.Configuration.Commands;
 
 public sealed class RegionCommands
 {

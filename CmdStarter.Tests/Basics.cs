@@ -1,11 +1,11 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingByInterface;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingByInterface.Children;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter.Loader;
+using CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.ChildingByInterface;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.ChildingByInterface.Children;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.Text.RegularExpressions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 /// <summary>
 /// Class for tests that doesn't verify the commands responses.
@@ -14,7 +14,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests;
 [Category("CmdStarter")]
 public class Basics
 {
-    private CmdStarter.Lib.Starter starter;
+    private CmdStarter.Starter starter;
 
     [OneTimeSetUp]
     public void GlobalSetup()

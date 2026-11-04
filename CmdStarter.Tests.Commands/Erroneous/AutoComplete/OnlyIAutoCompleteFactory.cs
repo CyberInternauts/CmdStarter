@@ -1,7 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
 
 public class OnlyIAutoCompleteFactory : IErrorRunner, IGetInstance<OnlyIAutoCompleteFactory>, IAutoCompleteFactory
 {

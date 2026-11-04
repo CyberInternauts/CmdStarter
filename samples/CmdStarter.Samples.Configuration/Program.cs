@@ -1,11 +1,11 @@
 // Sample: configuration from environment variables, injected and overridden by an option.
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Samples.Configuration.Commands;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Samples.Configuration.Commands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Configuration;
+namespace CyberInternauts.CmdStarter.Samples.Configuration;
 
 public static class Program
 {

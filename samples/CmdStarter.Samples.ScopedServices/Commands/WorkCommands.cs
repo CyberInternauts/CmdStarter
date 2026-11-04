@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Samples.ScopedServices.Services;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Samples.ScopedServices.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.ScopedServices.Commands;
+namespace CyberInternauts.CmdStarter.Samples.ScopedServices.Commands;
 
 public sealed class WorkCommands
 {

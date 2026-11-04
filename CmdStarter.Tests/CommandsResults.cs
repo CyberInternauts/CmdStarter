@@ -1,12 +1,13 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter.Loader;
+using CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
+using CyberInternauts.CmdStarter.Tests.Commands.Execution;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+using CyberInternauts.CmdStarter.Tests.Common;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 /// <summary>
 /// Class for tests that include commands responses
@@ -79,7 +80,7 @@ public class CommandsResults
     [TestCase("list files PATH_TO_LIST " + "--" + Files.FILES_PATTERN_NAME + " \"abc def\"")]
     public async Task EnsuresStartUsingConcatenatedString(string args)
     {
-        starter.ClassesBuildingMode = Lib.Loader.ClassesBuildingMode.Both;
+        starter.ClassesBuildingMode = ClassesBuildingMode.Both;
         starter.InstantiateCommands();
 
         await starter.Start(args);

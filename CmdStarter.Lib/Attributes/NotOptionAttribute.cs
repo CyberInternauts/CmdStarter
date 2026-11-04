@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>
 /// Stops a property from becoming an option.

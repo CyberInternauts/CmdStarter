@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.CommandStates;
+namespace CyberInternauts.CmdStarter.Samples.CommandStates;
 
 public enum SessionState
 {

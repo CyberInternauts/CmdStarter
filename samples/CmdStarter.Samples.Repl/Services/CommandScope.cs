@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Repl.Services;
+namespace CyberInternauts.CmdStarter.Samples.Repl.Services;
 
 public sealed class CommandScope
 {

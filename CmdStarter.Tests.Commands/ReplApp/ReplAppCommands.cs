@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using CyberInternauts.CmdStarter.Attributes;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.ReplApp;
+namespace CyberInternauts.CmdStarter.Tests.Commands.ReplApp;
 
 public sealed class ReplAppCommands
 {

@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods.Erroneous;
+using CyberInternauts.CmdStarter.Exceptions;
+using CyberInternauts.CmdStarter.Tests.Commands.Methods.Erroneous;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]
@@ -33,7 +33,7 @@ public class Diagnostics
     [Test]
     public void InvalidMethodCommandMessageNamesTypeAndMethod()
     {
-        var starter = new CmdStarter.Lib.Starter();
+        var starter = new CmdStarter.Starter();
         starter.Namespaces = starter.Namespaces.Clear();
         starter.Classes = starter.Classes.Clear().Add(typeof(GenericMethodCommands).FullName!);
 

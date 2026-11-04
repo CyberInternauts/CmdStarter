@@ -1,8 +1,8 @@
 // Sample: two top-level commands whose handler parameters become positional arguments.
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.TwoCommands;
+namespace CyberInternauts.CmdStarter.Samples.TwoCommands;
 
 public static class Program
 {

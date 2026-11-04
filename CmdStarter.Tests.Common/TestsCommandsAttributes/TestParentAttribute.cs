@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using CyberInternauts.CmdStarter.Loader;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+namespace CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class TestParentAttribute : Attribute

@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Lifecycle;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
 
 [Command("svc")]
 public sealed class ServiceMethodCommands(SingletonService singleton)

@@ -1,8 +1,8 @@
 // Sample: the smallest CmdStarter app. One class command, rooted because it is the only one.
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.HelloWorld;
+namespace CyberInternauts.CmdStarter.Samples.HelloWorld;
 
 public static class Program
 {

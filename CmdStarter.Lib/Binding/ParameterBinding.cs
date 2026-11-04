@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.CommandLine;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+namespace CyberInternauts.CmdStarter.Binding;
 
 internal sealed class ParameterBinding
 {

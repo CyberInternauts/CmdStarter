@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+namespace CyberInternauts.CmdStarter.Binding;
 
 internal sealed class CommandActivation : IDisposable, IAsyncDisposable
 {

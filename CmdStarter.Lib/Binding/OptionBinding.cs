@@ -1,7 +1,7 @@
 using System.CommandLine;
 using System.Reflection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+namespace CyberInternauts.CmdStarter.Binding;
 
 internal sealed class OptionBinding(PropertyInfo property, Option option)
 {

@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Alias;
 
 [Alias(COMMAND_ALIAS)]
 public sealed class OneAlias : StarterCommand, IHasAliases

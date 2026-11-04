@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+namespace CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
 public interface IHasAliases
 {

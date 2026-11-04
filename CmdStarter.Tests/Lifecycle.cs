@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Lifecycle;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]

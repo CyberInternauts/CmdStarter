@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl;
+namespace CyberInternauts.CmdStarter.Demo.Repl;
 
 public static class DemoDb
 {

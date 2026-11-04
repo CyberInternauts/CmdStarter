@@ -1,8 +1,8 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Account;
+namespace CyberInternauts.CmdStarter.Demo.Repl.Commands.Account;
 
-[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedIn)]
+[CyberInternauts.CmdStarter.Attributes.AvailableInState(DemoState.LoggedIn)]
 public sealed class Logout : StarterCommand
 {
     public override Delegate HandlingMethod => Execute;

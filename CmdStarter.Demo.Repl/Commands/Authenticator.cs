@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands;
+namespace CyberInternauts.CmdStarter.Demo.Repl.Commands;
 
 public enum DemoState
 {
@@ -6,7 +6,7 @@ public enum DemoState
     LoggedIn
 }
 
-public sealed class AuthenticatorStateProvider : com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces.ICommandStateProvider
+public sealed class AuthenticatorStateProvider : CyberInternauts.CmdStarter.Interfaces.ICommandStateProvider
 {
     public object CurrentState => Authenticator.IsCurrentlyLoggedIn ? DemoState.LoggedIn : DemoState.LoggedOut;
 }

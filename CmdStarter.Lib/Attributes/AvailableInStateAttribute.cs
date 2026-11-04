@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>
 /// Restricts a command to the listed application states. A command without this attribute is always available.

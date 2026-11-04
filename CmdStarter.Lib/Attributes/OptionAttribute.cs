@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>
 /// Defines a property as an option.

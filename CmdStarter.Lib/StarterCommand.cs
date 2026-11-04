@@ -1,9 +1,9 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using CyberInternauts.CmdStarter.Extensions;
+using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Attributes;
+using static CyberInternauts.CmdStarter.Reflection.Helper;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib;
+namespace CyberInternauts.CmdStarter;
 
 /// <summary>
 /// Base class for commands handled by CmdStarter.

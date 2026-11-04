@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>Marks a method parameter for resolution from dependency injection.</summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]

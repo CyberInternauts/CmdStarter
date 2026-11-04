@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion;
 
 public sealed class OptAllPropertiesExcludedWithInheritance : OptAllExcludedInheritor, IOptByAttribute
 {

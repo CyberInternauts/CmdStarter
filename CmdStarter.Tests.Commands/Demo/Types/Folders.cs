@@ -1,7 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+using CyberInternauts.CmdStarter.Loader;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
 
 [TestParent(ClassesBuildingMode.Both, typeof(List))]
 [TestParent(ClassesBuildingMode.OnlyAttributes, typeof(List))]

@@ -1,9 +1,9 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Exceptions;
 using System.Collections.Immutable;
 using System.Data;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+namespace CyberInternauts.CmdStarter.Loader;
 
 internal sealed class CommandsTreeBuilder
 {

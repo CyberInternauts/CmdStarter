@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Description;
 
 [Description(DESC)]
 public class SingleDescByInterface : IStarterCommand

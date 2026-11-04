@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>
 /// Set the type that will be used as parent

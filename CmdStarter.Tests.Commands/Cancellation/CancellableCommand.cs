@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Cancellation;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Cancellation;
 
 public sealed class CancellableCommand : StarterCommand
 {

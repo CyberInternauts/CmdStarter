@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using CyberInternauts.CmdStarter.Attributes;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.States;
+namespace CyberInternauts.CmdStarter.Tests.Commands.States;
 
 public enum TestState
 {

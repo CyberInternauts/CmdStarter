@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>
 /// Set children to a class using a namespace
@@ -23,7 +23,7 @@ public class ChildrenAttribute : Attribute
     /// <summary>
     /// Possible usage:<br/>
     /// - [Children($"{nameof(com)}.{nameof(cyberinternauts)}")]<br/>
-    /// - [Children("com.cyberinternauts")]
+    /// - [Children("CyberInternauts")]
     /// </summary>
     /// <param name="namespaceForChildren"></param>
     public ChildrenAttribute(string namespaceForChildren)

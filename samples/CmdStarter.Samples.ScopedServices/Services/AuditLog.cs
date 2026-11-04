@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.ScopedServices.Services;
+namespace CyberInternauts.CmdStarter.Samples.ScopedServices.Services;
 
 public sealed class AuditLog(RequestContext context)
 {

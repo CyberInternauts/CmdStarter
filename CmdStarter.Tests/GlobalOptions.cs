@@ -1,10 +1,11 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Commands;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions.Filters;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Tests.Commands.Commands;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions.Filters;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]
@@ -13,7 +14,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests;
 [Category("GlobalOptions")]
 public class GlobalOptions
 {
-    private Lib.Starter starter;
+    private Starter starter;
 
     [OneTimeSetUp]
     public void GlobalSetup()

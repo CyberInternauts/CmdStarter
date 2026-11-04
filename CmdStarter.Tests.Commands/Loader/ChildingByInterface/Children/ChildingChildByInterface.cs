@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingByInterface.Children;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.ChildingByInterface.Children;
 
 [Parent<ChildingParentByInterface>]
 public class ChildingChildByInterface : IStarterCommand

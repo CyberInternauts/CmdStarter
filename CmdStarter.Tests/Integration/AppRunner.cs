@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using NUnit.Framework;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Integration;
+namespace CyberInternauts.CmdStarter.Tests.Integration;
 
 internal sealed record AppResult(int ExitCode, string StdOut, string StdErr)
 {

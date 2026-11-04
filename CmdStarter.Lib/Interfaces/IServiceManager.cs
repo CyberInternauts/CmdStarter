@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+namespace CyberInternauts.CmdStarter.Interfaces;
 
 /// <summary>
 /// Interface to support dependency injection easily

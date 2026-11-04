@@ -1,6 +1,6 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
+namespace CyberInternauts.CmdStarter.Repl;
 
 /// <summary>
 /// Event arguments for a REPL command execution event.

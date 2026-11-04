@@ -1,9 +1,9 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 using NUnit.Framework.Internal.Builders;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+namespace CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
 /// <summary>
 /// Attribute to enable generic test cases

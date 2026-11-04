@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.ChildChild;
+using CyberInternauts.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.ChildChild;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.Child;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.Child;
 
 [Parent<LoopChildChild>]
 public class LoopChild : StarterCommand

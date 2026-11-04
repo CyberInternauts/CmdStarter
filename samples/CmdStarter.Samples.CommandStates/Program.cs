@@ -1,12 +1,12 @@
 // Sample: commands available only in some application states; help follows the current state.
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
-using com.cyberinternauts.csharp.CmdStarter.Samples.CommandStates.Services;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Repl;
+using CyberInternauts.CmdStarter.Samples.CommandStates.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.CommandStates;
+namespace CyberInternauts.CmdStarter.Samples.CommandStates;
 
 public static class Program
 {

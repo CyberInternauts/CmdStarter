@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous;
 
 public class Boggus : StarterCommand
 {

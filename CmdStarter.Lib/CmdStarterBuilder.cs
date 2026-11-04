@@ -1,10 +1,10 @@
 using System.Reflection;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib;
+namespace CyberInternauts.CmdStarter;
 
 /// <summary>Configures and builds a CmdStarter application backed by Microsoft.Extensions.DependencyInjection.</summary>
 public sealed class CmdStarterBuilder

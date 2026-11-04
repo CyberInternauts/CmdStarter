@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Tests.App.Services;
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter.Tests.App.Services;
+using CyberInternauts.CmdStarter;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.App;
+namespace CyberInternauts.CmdStarter.Tests.App;
 
 public static class Program
 {

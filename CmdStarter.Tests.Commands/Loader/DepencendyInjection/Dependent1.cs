@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
 
 public class Dependent1 : IStarterCommand
 {

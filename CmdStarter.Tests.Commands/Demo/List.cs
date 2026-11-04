@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using CyberInternauts.CmdStarter.Loader;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Demo;
 
 [TestParent(ClassesBuildingMode.Both, null)]
 [TestParent(ClassesBuildingMode.OnlyAttributes, null)]

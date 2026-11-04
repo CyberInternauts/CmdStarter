@@ -2,6 +2,7 @@
 	<Import Project="..\ProjectsCommon.props" />
 	
   <PropertyGroup>
+    <RootNamespace>CyberInternauts.CmdStarter</RootNamespace>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>$(BasePackageName).CmdStarter</PackageId>

@@ -1,11 +1,12 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Extensions;
+using CyberInternauts.CmdStarter.Tests.Commands.Options;
+using CyberInternauts.CmdStarter.Tests.Commands.Options.Filters;
+using CyberInternauts.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]
@@ -13,7 +14,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests;
 [Category("Options")]
 public class Options
 {
-    private Lib.Starter starter;
+    private Starter starter;
 
     [OneTimeSetUp]
     public void GlobalSetup()

@@ -1,13 +1,13 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+using CyberInternauts.CmdStarter.Extensions;
+using CyberInternauts.CmdStarter.Reflection;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.DepencendyInjection;
+using CyberInternauts.CmdStarter.Tests.Commands.Options;
 using System.Collections;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.ComponentModel.Composition.Hosting;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 public static class TestsCommon
 {
@@ -15,11 +15,11 @@ public static class TestsCommon
         command.Options.FirstOrDefault(option => option.Name.TrimStart('-') == nameWithoutPrefix);
 
     public const int NUMBER_OF_COMMANDS_IN_DEMO = 3; // Using a hardcoded value otherwise the test would be about the same code as the tested one.
-    public const string ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL;
-    public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Lib.Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS;
-    public const string MULTI_ANY_CHAR_SYMBOL = CmdStarter.Lib.Starter.MULTI_ANY_CHAR_SYMBOL;
-    public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Lib.Starter.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS;
-    public const string EXCLUSION_SYMBOL = CmdStarter.Lib.Starter.EXCLUSION_SYMBOL;
+    public const string ANY_CHAR_SYMBOL = CmdStarter.Starter.ANY_CHAR_SYMBOL;
+    public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS;
+    public const string MULTI_ANY_CHAR_SYMBOL = CmdStarter.Starter.MULTI_ANY_CHAR_SYMBOL;
+    public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Starter.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS;
+    public const string EXCLUSION_SYMBOL = CmdStarter.Starter.EXCLUSION_SYMBOL;
     public readonly static string ERRONEOUS_NAMESPACE = typeof(Commands.Erroneous.Boggus).Namespace ?? string.Empty;
 
     public readonly static IList<Type> CLASS_FILTERING_TYPES = new List<Type>
@@ -43,14 +43,14 @@ public static class TestsCommon
         _ = new DirectoryCatalog("."); // This is needed to ensure Tests.Commands assembly is loaded even if no class referenced
     }
 
-    public static CmdStarter.Lib.Starter CreateCmdStarter()
+    public static CmdStarter.Starter CreateCmdStarter()
     {
-        var starter = new CmdStarter.Lib.Starter(); // Reset object to a new one, not to interfer between tests
+        var starter = new CmdStarter.Starter(); // Reset object to a new one, not to interfer between tests
         SetDefaultNamespaces(starter);
         return starter;
     }
 
-    public static void SetDefaultNamespaces(CmdStarter.Lib.Starter starter)
+    public static void SetDefaultNamespaces(CmdStarter.Starter starter)
     {
         starter.Namespaces = starter.Namespaces.Clear();
         if (TestsCommon.ERRONEOUS_NAMESPACE != string.Empty) // Remove, by default, erroneous namespace
@@ -66,12 +66,12 @@ public static class TestsCommon
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.States.Enter).Namespace!);
     }
 
-    public static void SetDefaultClasses(CmdStarter.Lib.Starter starter)
+    public static void SetDefaultClasses(CmdStarter.Starter starter)
     {
         starter.Classes = starter.Classes.Clear();
     }
 
-    public static void AssertCommandsAreEmpty(CmdStarter.Lib.Starter starter, bool includeTypes = true)
+    public static void AssertCommandsAreEmpty(CmdStarter.Starter starter, bool includeTypes = true)
     {
         Assert.Multiple(() =>
         {
@@ -84,7 +84,7 @@ public static class TestsCommon
         });
     }
 
-    public static void AssertCommandsExists(CmdStarter.Lib.Starter starter, bool onlyTypes = false)
+    public static void AssertCommandsExists(CmdStarter.Starter starter, bool onlyTypes = false)
     {
         Assert.Multiple(() =>
         {

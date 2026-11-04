@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.ReplApp;
+namespace CyberInternauts.CmdStarter.Tests.Commands.ReplApp;
 
 public sealed class ScopeProbe
 {

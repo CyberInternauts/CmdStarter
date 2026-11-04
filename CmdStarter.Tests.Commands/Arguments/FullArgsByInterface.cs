@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.Alias;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Arguments;
 
 public class FullArgsByInterface : IStarterCommand
 {

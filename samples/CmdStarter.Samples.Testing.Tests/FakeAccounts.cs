@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Services;
+using CyberInternauts.CmdStarter.Samples.Testing.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Tests;
+namespace CyberInternauts.CmdStarter.Samples.Testing.Tests;
 
 public sealed class FakeAccounts(bool accept) : IAccounts
 {

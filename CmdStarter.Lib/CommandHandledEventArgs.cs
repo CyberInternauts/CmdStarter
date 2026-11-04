@@ -1,7 +1,7 @@
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib;
+namespace CyberInternauts.CmdStarter;
 
 /// <summary>Provides details about a command handler that completed successfully.</summary>
 public sealed class CommandHandledEventArgs : EventArgs

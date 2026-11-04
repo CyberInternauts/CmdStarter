@@ -1,12 +1,12 @@
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.Alias;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.Hidden;
+using CyberInternauts.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]

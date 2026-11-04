@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.Childing.Children;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Childing;
 
 [Children<Child1>]
 public class ChildingParent : StarterCommand

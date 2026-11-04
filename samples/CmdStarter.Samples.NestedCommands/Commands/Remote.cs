@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.NestedCommands.Commands;
+namespace CyberInternauts.CmdStarter.Samples.NestedCommands.Commands;
 
 public sealed class Remote : StarterCommand
 {

@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
 
 public static class ToolCommands
 {

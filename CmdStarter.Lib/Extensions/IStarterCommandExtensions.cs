@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+namespace CyberInternauts.CmdStarter.Extensions;
 
 /// <summary>
 /// <see cref="IStarterCommand"/> extensions

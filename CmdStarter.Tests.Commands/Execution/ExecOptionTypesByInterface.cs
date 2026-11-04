@@ -1,7 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Execution;
 
 public class ExecOptionTypesByInterface : IStarterCommand, IHandleTester
 {

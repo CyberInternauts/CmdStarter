@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.ReplApp;
+using CyberInternauts.CmdStarter.Repl;
+using CyberInternauts.CmdStarter.Tests.Commands.Repl;
+using CyberInternauts.CmdStarter.Tests.Commands.ReplApp;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("REPL")]

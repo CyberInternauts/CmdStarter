@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.App.Options;
+namespace CyberInternauts.CmdStarter.Tests.App.Options;
 
 public sealed class AppGlobalOptions : IGlobalOptionsContainer
 {

@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.HelloWorld.Commands;
+namespace CyberInternauts.CmdStarter.Samples.HelloWorld.Commands;
 
 public sealed class Hello : StarterCommand
 {

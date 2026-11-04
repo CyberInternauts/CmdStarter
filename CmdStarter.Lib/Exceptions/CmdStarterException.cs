@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+namespace CyberInternauts.CmdStarter.Exceptions;
 
 /// <summary>
 /// Base type for CmdStarter configuration errors. These exceptions are thrown while the command tree is built and are not converted to exit codes.

@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Options;
-using com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Services;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Samples.DevOpsTool.Options;
+using CyberInternauts.CmdStarter.Samples.DevOpsTool.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Commands;
+namespace CyberInternauts.CmdStarter.Samples.DevOpsTool.Commands;
 
 public sealed class Status(IDeploymentClient client) : StarterCommand
 {

@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Filtering.EastNS;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Filtering.EastNS;
 
 public sealed class Starter : StarterCommand
 {

@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
 
 public class GoodForEase : StarterCommand
 {

@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+namespace CyberInternauts.CmdStarter.Interfaces;
 
 /// <summary>Provides the application's current command state.</summary>
 public interface ICommandStateProvider

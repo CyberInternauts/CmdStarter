@@ -1,7 +1,7 @@
-global using com.cyberinternauts.csharp.CmdStarter.Lib;
-global using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-global using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-global using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
-global using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+global using CyberInternauts.CmdStarter;
+global using CyberInternauts.CmdStarter.Interfaces;
+global using CyberInternauts.CmdStarter.Attributes;
+global using CyberInternauts.CmdStarter.Loader;
+global using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 global using System.ComponentModel;
 

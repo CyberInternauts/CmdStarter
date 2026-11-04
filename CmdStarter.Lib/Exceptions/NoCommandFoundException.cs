@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+namespace CyberInternauts.CmdStarter.Exceptions;
 
 /// <summary>
 /// No command found exception after applying a <see cref="Filter"/>

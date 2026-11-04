@@ -1,6 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common;
+namespace CyberInternauts.CmdStarter.Tests.Common;
 
 public class HandlerData
 {

@@ -1,8 +1,8 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
+using CyberInternauts.CmdStarter.Tests.Common;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Execution;
 
 public class ExecSum : StarterCommand, IHandleTester
 {

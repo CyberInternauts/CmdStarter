@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib;
+namespace CyberInternauts.CmdStarter;
 
 /// <summary>A built CmdStarter application and its Microsoft DI service provider.</summary>
 public sealed class CmdStarterApp : IDisposable, IAsyncDisposable
@@ -28,7 +28,7 @@ public sealed class CmdStarterApp : IDisposable, IAsyncDisposable
     /// <summary>Runs the application REPL loop.</summary>
     /// <param name="cancellationToken">Token used to stop the loop and cancel commands.</param>
     /// <returns>A task representing the REPL loop.</returns>
-    /// <exception cref="InvalidOperationException">The builder was not configured with <see cref="CmdStarterBuilder.UseRepl(com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces.IReplInputProvider)"/>.</exception>
+    /// <exception cref="InvalidOperationException">The builder was not configured with <see cref="CmdStarterBuilder.UseRepl(CyberInternauts.CmdStarter.Interfaces.IReplInputProvider)"/>.</exception>
     public Task RunReplAsync(CancellationToken cancellationToken = default)
     {
         if (Starter is not Repl.ReplStarter replStarter)
@@ -43,7 +43,7 @@ public sealed class CmdStarterApp : IDisposable, IAsyncDisposable
     /// <param name="args">Arguments for the initial command.</param>
     /// <param name="cancellationToken">Token used to stop the loop and cancel commands.</param>
     /// <returns>A task representing the REPL loop.</returns>
-    /// <exception cref="InvalidOperationException">The builder was not configured with <see cref="CmdStarterBuilder.UseRepl(com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces.IReplInputProvider)"/>.</exception>
+    /// <exception cref="InvalidOperationException">The builder was not configured with <see cref="CmdStarterBuilder.UseRepl(CyberInternauts.CmdStarter.Interfaces.IReplInputProvider)"/>.</exception>
     public Task RunReplAsync(string[] args, CancellationToken cancellationToken = default)
     {
         if (Starter is not Repl.ReplStarter replStarter)

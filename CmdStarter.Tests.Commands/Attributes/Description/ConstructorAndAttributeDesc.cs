@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 using System.ComponentModel;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Description;
 
 [Description(ATTRIBUTE_DESC)]
 public sealed class ConstructorAndAttributeDesc : StarterCommand

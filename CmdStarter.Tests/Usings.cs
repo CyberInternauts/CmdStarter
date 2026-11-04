@@ -1,4 +1,4 @@
-global using com.cyberinternauts.csharp.CmdStarter.Lib;
-global using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-global using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+global using CyberInternauts.CmdStarter;
+global using CyberInternauts.CmdStarter.Interfaces;
+global using CyberInternauts.CmdStarter.Exceptions;
 global using NUnit.Framework;

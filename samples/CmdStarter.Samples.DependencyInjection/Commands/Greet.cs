@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Samples.DependencyInjection.Services;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Samples.DependencyInjection.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.DependencyInjection.Commands;
+namespace CyberInternauts.CmdStarter.Samples.DependencyInjection.Commands;
 
 public sealed class Greet : StarterCommand
 {

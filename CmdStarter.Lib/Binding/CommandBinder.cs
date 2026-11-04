@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Collections.Concurrent;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+namespace CyberInternauts.CmdStarter.Binding;
 
 internal static class CommandBinder
 {

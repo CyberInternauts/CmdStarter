@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using CyberInternauts.CmdStarter.Attributes;
 using System.ComponentModel;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
 
 [Command("users")]
 public sealed class UserCommands : IDisposable

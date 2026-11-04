@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Lifecycle;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
 public sealed class AsyncDisposableCommand : StarterCommand, IAsyncDisposable
 {

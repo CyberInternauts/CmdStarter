@@ -1,10 +1,10 @@
-using CmdStarter.Demo.SimpleInjector.Commands;
-using CmdStarter.Demo.SimpleInjector.Services;
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Demo.SimpleInjector.Commands;
+using CyberInternauts.CmdStarter.Demo.SimpleInjector.Services;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Interfaces;
 using SimpleInjector;
 
-namespace CmdStarter.Demo.SimpleInjector;
+namespace CyberInternauts.CmdStarter.Demo.SimpleInjector;
 
 internal class Program : IServiceManager
 {

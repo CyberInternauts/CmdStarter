@@ -1,9 +1,10 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
-using static com.cyberinternauts.csharp.CmdStarter.Tests.TestsCommon;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Tests.Commands.Arguments.Child;
+using CyberInternauts.CmdStarter.Tests.Commands.Arguments;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using static CyberInternauts.CmdStarter.Tests.TestsCommon;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]
@@ -11,7 +12,7 @@ namespace com.cyberinternauts.csharp.CmdStarter.Tests;
 [Category("Arguments")]
 public class Arguments
 {
-    private Lib.Starter starter;
+    private Starter starter;
 
     [OneTimeSetUp]
     public void GlobalSetup()

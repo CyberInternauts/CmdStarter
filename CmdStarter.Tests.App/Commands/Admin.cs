@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.App.Commands;
+namespace CyberInternauts.CmdStarter.Tests.App.Commands;
 
 public sealed class Admin : StarterCommand
 {

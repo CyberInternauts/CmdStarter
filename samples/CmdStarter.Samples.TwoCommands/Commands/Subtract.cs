@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.TwoCommands.Commands;
+namespace CyberInternauts.CmdStarter.Samples.TwoCommands.Commands;
 
 public sealed class Subtract : StarterCommand
 {

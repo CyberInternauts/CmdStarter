@@ -1,10 +1,10 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Interfaces;
 using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+namespace CyberInternauts.CmdStarter.Reflection;
 
 /// <summary>
 /// Reflection helper class specific to <see cref="IStarterCommand"/>

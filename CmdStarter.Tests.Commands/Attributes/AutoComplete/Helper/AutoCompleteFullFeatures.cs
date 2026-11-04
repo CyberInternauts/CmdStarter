@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
 
 internal class AutoCompleteOptionFullFeatures : IAutoCompleteFactory, IAutoCompleteProvider
 {

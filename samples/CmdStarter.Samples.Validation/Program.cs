@@ -1,8 +1,8 @@
 // Sample: parse errors handled by System.CommandLine, plus a custom validator on a built option.
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Validation;
+namespace CyberInternauts.CmdStarter.Samples.Validation;
 
 public static class Program
 {

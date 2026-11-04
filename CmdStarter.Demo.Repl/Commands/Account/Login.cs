@@ -1,9 +1,9 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 using System.ComponentModel.DataAnnotations;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Account;
+namespace CyberInternauts.CmdStarter.Demo.Repl.Commands.Account;
 
-[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedOut)]
+[CyberInternauts.CmdStarter.Attributes.AvailableInState(DemoState.LoggedOut)]
 public sealed class Login : StarterCommand
 {
     public override Delegate HandlingMethod => Execute;

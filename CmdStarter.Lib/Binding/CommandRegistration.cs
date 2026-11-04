@@ -1,7 +1,7 @@
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+namespace CyberInternauts.CmdStarter.Binding;
 
 internal sealed class CommandRegistration
 {

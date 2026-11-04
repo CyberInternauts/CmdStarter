@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Options.Filters.ClassExclusion;
 
 [AllOptionsExcluded]
 public class OptAllExcludedInheritor : StarterCommand

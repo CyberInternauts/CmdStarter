@@ -1,10 +1,10 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 using System.ComponentModel;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Queries;
+namespace CyberInternauts.CmdStarter.Demo.Repl.Commands.Queries;
 
 [Description("Lists all the books in the database.")]
-[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedIn)]
+[CyberInternauts.CmdStarter.Attributes.AvailableInState(DemoState.LoggedIn)]
 public sealed class List : StarterCommand
 {
 

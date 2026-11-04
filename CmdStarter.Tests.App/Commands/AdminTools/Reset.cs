@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.App.Commands.AdminTools;
+namespace CyberInternauts.CmdStarter.Tests.App.Commands.AdminTools;
 
 public sealed class Reset : StarterCommand
 {

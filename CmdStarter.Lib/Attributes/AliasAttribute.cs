@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Text;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>
 /// Defines aliases for a command or an option.

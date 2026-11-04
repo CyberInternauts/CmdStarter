@@ -1,8 +1,8 @@
 // Sample: nested commands, from the namespace hierarchy (remote) and from [Parent<T>] (config).
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.NestedCommands;
+namespace CyberInternauts.CmdStarter.Samples.NestedCommands;
 
 public static class Program
 {

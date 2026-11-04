@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Hidden;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Hidden;
 
 public sealed class PartlyHiddenCommandC : StarterCommand
 {

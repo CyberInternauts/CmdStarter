@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+namespace CyberInternauts.CmdStarter.Interfaces;
 
 /// <summary>
 /// Provides an input for the REPL mode to parse.

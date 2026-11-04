@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
+using CyberInternauts.CmdStarter.Attributes;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods.Erroneous;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Methods.Erroneous;
 
 public sealed class UnresolvableMethodCommands(IComparable notRegistered)
 {

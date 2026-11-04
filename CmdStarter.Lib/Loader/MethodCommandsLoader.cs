@@ -1,9 +1,9 @@
 using System.Reflection;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Exceptions;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+namespace CyberInternauts.CmdStarter.Loader;
 
 internal static class MethodCommandsLoader
 {

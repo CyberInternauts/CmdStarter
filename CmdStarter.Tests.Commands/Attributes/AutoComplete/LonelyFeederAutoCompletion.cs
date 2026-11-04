@@ -1,9 +1,9 @@
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
 using System.CommandLine.Completions;
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 
 public sealed class LonelyFeederAutoCompletion : StarterCommand, IHasAutoComplete
 {

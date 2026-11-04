@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Cancellation;
+using CyberInternauts.CmdStarter.Tests.Commands.Cancellation;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("Cancellation")]

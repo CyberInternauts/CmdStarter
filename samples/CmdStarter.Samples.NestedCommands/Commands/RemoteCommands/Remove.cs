@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.NestedCommands.Commands.RemoteCommands;
+namespace CyberInternauts.CmdStarter.Samples.NestedCommands.Commands.RemoteCommands;
 
 public sealed class Remove : StarterCommand
 {

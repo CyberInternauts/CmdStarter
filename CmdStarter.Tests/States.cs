@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.States;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Tests.Commands.States;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("States")]

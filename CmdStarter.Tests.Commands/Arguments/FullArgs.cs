@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Arguments;
 
 public class FullArgs : StarterCommand
 {

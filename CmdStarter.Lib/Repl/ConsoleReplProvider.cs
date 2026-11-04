@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
+namespace CyberInternauts.CmdStarter.Repl;
 
 /// <summary>
 /// Provides command inputs from the default console.

@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Options;
+namespace CyberInternauts.CmdStarter.Samples.DevOpsTool.Options;
 
 public sealed class DeployOptions : IGlobalOptionsContainer
 {

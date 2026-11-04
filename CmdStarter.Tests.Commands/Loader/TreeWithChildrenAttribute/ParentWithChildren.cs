@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute.ChildrenOfParent;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute.ChildrenOfParent;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute;
 
 [Parent(null)]
 [Children<ChildNoParent>]

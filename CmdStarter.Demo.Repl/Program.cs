@@ -1,10 +1,10 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Account;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
-using com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands;
+using CyberInternauts.CmdStarter.Demo.Repl.Commands.Account;
+using CyberInternauts.CmdStarter.Repl;
+using CyberInternauts.CmdStarter.Demo.Repl.Commands;
 using System.ComponentModel.Composition.Hosting;
 using System.Threading.Channels;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl;
+namespace CyberInternauts.CmdStarter.Demo.Repl;
 
 internal class Program
 {

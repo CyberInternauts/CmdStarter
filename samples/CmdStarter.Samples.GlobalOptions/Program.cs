@@ -1,8 +1,8 @@
 // Sample: a global option read by a class command and by a method command.
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions;
+namespace CyberInternauts.CmdStarter.Samples.GlobalOptions;
 
 public static class Program
 {

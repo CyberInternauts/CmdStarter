@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+namespace CyberInternauts.CmdStarter.Extensions;
 
 /// <summary>
 /// Strings extensions

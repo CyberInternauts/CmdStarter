@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Methods;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
 
 public static class MethodsLog
 {

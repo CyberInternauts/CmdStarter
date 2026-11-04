@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Arguments.Child;
 
 [Parent<ArgParent>]
 public class ArgChild : StarterCommand

@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Repl;
 
 public sealed class BlockingInputProvider : IReplInputProvider
 {

@@ -1,6 +1,6 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
+using CyberInternauts.CmdStarter;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions.Commands;
+namespace CyberInternauts.CmdStarter.Samples.GlobalOptions.Commands;
 
 public sealed class Status : StarterCommand
 {

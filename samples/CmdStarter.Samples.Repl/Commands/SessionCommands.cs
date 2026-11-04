@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Samples.Repl.Services;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Samples.Repl.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Repl.Commands;
+namespace CyberInternauts.CmdStarter.Samples.Repl.Commands;
 
 public sealed class SessionCommands
 {

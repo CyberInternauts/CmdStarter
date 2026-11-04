@@ -1,8 +1,8 @@
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete;
 
 public sealed class SingleMultiAutoComplete : StarterCommand, IHasAutoComplete
 {

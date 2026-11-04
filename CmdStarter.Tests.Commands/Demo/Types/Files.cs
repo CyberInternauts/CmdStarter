@@ -1,8 +1,8 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo;
+using CyberInternauts.CmdStarter.Loader;
+using CyberInternauts.CmdStarter.Tests.Commands.Demo;
 using System.ComponentModel;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
 
 [Description("List only the files of a folder")]
 [TestParent(ClassesBuildingMode.Both, typeof(List))]

@@ -1,29 +1,29 @@
-using Erroneous = com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous;
+using Erroneous = CyberInternauts.CmdStarter.Tests.Commands.Erroneous;
 using System.Data;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
+using CyberInternauts.CmdStarter.Tests.Commands.Arguments;
+using CyberInternauts.CmdStarter.Tests.Commands.Arguments.Child;
+using CyberInternauts.CmdStarter.Tests.Commands.Options;
+using CyberInternauts.CmdStarter.Extensions;
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Description;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute.ChildrenOfParent;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children.SubChildren;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ByInterface;
-using static com.cyberinternauts.csharp.CmdStarter.Tests.TestsCommon;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using CyberInternauts.CmdStarter.Reflection;
+using CyberInternauts.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes;
+using CyberInternauts.CmdStarter.Tests.Commands;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.Children.DuplicatedChildren;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.Description;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.Naming;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute.ChildrenOfParent;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.Childing.Children.SubChildren;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.Childing.Children;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.Childing;
+using CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
+using CyberInternauts.CmdStarter.Tests.Commands.Loader.ByInterface;
+using static CyberInternauts.CmdStarter.Tests.TestsCommon;
+using CyberInternauts.CmdStarter.Loader;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]
@@ -48,7 +48,7 @@ public class CommandsBasics
     public void HasCommands()
     {
         // All methods have to ensure commands where found
-        starter = new CmdStarter.Lib.Starter();
+        starter = new CmdStarter.Starter();
         starter.FindCommandsTypes();
         Assert.That(starter.CommandsTypes, Is.Not.Empty, "FIX THIS FIRST!!!!!");
     }

@@ -1,7 +1,7 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Services;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Samples.Testing.Services;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Commands;
+namespace CyberInternauts.CmdStarter.Samples.Testing.Commands;
 
 public sealed class TransferCommands
 {

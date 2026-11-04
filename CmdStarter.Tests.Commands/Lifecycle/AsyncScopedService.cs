@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Lifecycle;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
 public sealed class AsyncScopedService : IAsyncDisposable
 {

@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions.Filters;
+namespace CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions.Filters;
 
 [AllOptionsExcluded]
 public sealed class GlobalOptionFilterExcludeAll : IGlobalOptionsContainer, IOptByAttribute

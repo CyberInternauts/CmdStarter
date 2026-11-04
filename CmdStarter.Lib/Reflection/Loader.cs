@@ -1,16 +1,16 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Extensions;
+using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
-using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+using static CyberInternauts.CmdStarter.Reflection.Helper;
+using CyberInternauts.CmdStarter.Binding;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+namespace CyberInternauts.CmdStarter.Reflection;
 
 internal static class Loader
 {

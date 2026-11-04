@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.App.Services;
+namespace CyberInternauts.CmdStarter.Tests.App.Services;
 
 public sealed class RequestContext
 {

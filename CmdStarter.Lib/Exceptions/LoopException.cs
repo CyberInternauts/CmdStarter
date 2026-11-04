@@ -1,6 +1,6 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
+namespace CyberInternauts.CmdStarter.Exceptions;
 
 /// <summary>
 /// Loop detected exception

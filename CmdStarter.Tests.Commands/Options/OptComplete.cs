@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Options;
 
 
 public class OptComplete : StarterCommand

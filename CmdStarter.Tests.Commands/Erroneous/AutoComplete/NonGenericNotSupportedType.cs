@@ -1,7 +1,7 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 using NUnit.Framework;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
 
 public class NonGenericNotSupportedType : IErrorRunner, IGetInstance<NonGenericNotSupportedType>
 {

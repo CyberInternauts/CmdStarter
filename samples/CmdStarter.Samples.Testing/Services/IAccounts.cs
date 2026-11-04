@@ -1,4 +1,4 @@
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Services;
+namespace CyberInternauts.CmdStarter.Samples.Testing.Services;
 
 public interface IAccounts
 {

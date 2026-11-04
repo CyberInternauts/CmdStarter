@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Repl;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Repl;
 
 public sealed class CommandThree : StarterCommand, IHasExpectedValue<int>
 {

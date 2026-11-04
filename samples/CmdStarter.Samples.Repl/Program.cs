@@ -1,11 +1,11 @@
 // Sample: an interactive REPL with dependency injection; each command runs in its own scope.
 
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
-using com.cyberinternauts.csharp.CmdStarter.Samples.Repl.Services;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Repl;
+using CyberInternauts.CmdStarter.Samples.Repl.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Samples.Repl;
+namespace CyberInternauts.CmdStarter.Samples.Repl;
 
 public static class Program
 {

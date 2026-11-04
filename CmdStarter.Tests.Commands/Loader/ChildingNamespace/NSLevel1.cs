@@ -1,6 +1,6 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
+using CyberInternauts.CmdStarter.Loader;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingNamespace;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.ChildingNamespace;
 
 [TestParent(ClassesBuildingMode.OnlyNamespaces, typeof(Main))]
 public class NSLevel1 : StarterCommand

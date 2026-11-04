@@ -1,10 +1,10 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+using static CyberInternauts.CmdStarter.Reflection.Helper;
+using CyberInternauts.CmdStarter.Binding;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib;
+namespace CyberInternauts.CmdStarter;
 
 /// <summary>
 /// Manager for all global options classes found

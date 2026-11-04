@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+namespace CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
 /// <summary>
 /// New version of <see cref="NUnit.Framework.TestCaseAttribute"/> that supports a generic parameter

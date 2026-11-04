@@ -1,10 +1,10 @@
-using com.cyberinternauts.csharp.CmdStarter.Lib;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
-using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Lifecycle;
+using CyberInternauts.CmdStarter;
+using CyberInternauts.CmdStarter.Exceptions;
+using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests;
+namespace CyberInternauts.CmdStarter.Tests;
 
 [Category("* All *")]
 [Category("CmdStarter")]

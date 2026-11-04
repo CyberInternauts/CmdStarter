@@ -1,4 +1,4 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options;
+namespace CyberInternauts.CmdStarter.Tests.Commands.Options;
 
 public class OptCompleteDerived : OptComplete
 {
