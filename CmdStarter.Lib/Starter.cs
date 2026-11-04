@@ -243,6 +243,32 @@ public class Starter
     }
 
     /// <summary>
+    /// Find the command instance used to handle executions.
+    /// </summary>
+    /// <typeparam name="CommandType">Command type to find.</typeparam>
+    /// <returns>The command instance, or <see langword="null"/> when no matching command exists.</returns>
+    public CommandType? FindCommandInstance<CommandType>() where CommandType : class, IStarterCommand
+    {
+        var command = FindCommand<CommandType>();
+        if (command is GenericStarterCommand<CommandType> genericCommand)
+        {
+            return genericCommand.UnderlyingCommand as CommandType;
+        }
+
+        return command is CommandType instance ? instance : null;
+    }
+
+    /// <summary>
+    /// Find the command instance associated with a node in the command tree.
+    /// </summary>
+    /// <param name="command">The System.CommandLine command node.</param>
+    /// <returns>The associated command instance, or <see langword="null"/> when the node is not a CmdStarter command.</returns>
+    public IStarterCommand? FindCommandInstance(Command command)
+    {
+        return (command as StarterCommand)?.UnderlyingCommand;
+    }
+
+    /// <summary>
     /// Find all <see cref="IStarterCommand "/>s that correspond to filters
     /// </summary>
     /// <exception cref="Exceptions.NoCommandFoundException"></exception>

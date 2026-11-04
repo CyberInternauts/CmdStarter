@@ -178,10 +178,18 @@ public class CommandsBasics
         starter.InstantiateCommands();
         starter.VisitCommands(command =>
         {
-            var starterCommand = command as StarterCommand;
-            if (starterCommand == null) return;
+            var commandInstance = starter.FindCommandInstance(command);
+            if (commandInstance is not StarterCommand) return;
 
-            var cmdString = starterCommand.GetFullCommandString();
+            var commandNames = new List<string> { command.Name };
+            var parentCommand = command.Parents.FirstOrDefault();
+            while (parentCommand != null)
+            {
+                commandNames.Add(parentCommand.Name);
+                parentCommand = parentCommand.Parents.FirstOrDefault();
+            }
+            commandNames.Reverse();
+            var cmdString = string.Join(" ", commandNames.Skip(1));
             Assert.DoesNotThrowAsync(
                 async () =>
                 {
@@ -201,7 +209,7 @@ public class CommandsBasics
                         }
                         if (!isMissingArgumentException)
                         {
-                            throw new Exception("Command: " + starterCommand.GetType().FullName, ex);
+                            throw new Exception("Command: " + commandInstance.GetType().FullName, ex);
                         }
                     }
                 }
@@ -320,10 +328,12 @@ public class CommandsBasics
 
         Assert.That(starter.RootCommand.Subcommands, Has.Count.EqualTo(1));
 
-        var command = starter.FindCommand<FullArgs>() as FullArgs;
+        var command = starter.FindCommandInstance<FullArgs>();
         Assert.That(command, Is.Not.Null);
 
-        var receptable = isRootingLonelyCommand ? (Command)starter.RootCommand : command!; // Null test was already applied
+        var commandNode = starter.FindCommand<FullArgs>()!;
+
+        var receptable = isRootingLonelyCommand ? (Command)starter.RootCommand : commandNode; // Null test was already applied
 
         // Ensure arguments
         AssertArguments(command, receptable);
@@ -352,7 +362,7 @@ public class CommandsBasics
     {
         starter.InstantiateCommands();
 
-        var command = starter.FindCommand<DescClass>() as StarterCommand;
+        var command = starter.FindCommand<DescClass>();
         Assert.That(command, Is.Not.Null);
         Assert.That(command.Description, Is.EqualTo(description));
     }

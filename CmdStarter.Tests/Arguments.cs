@@ -36,7 +36,7 @@ public class Arguments
         starter.Namespaces = starter.Namespaces.Clear().Add(typeof(NoArgs).Namespace!);
         starter.InstantiateCommands();
 
-        var command = starter.FindCommand<CommandType>() as StarterCommand;
+        var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
 
         if (command.Subcommands.Count > 0) // Not a leaf, arguments can't be used
@@ -45,6 +45,6 @@ public class Arguments
             return;
         }
 
-        AssertArguments(command.UnderlyingCommand, command);
+        AssertArguments(starter.FindCommandInstance(command)!, command);
     }
 }

@@ -237,9 +237,17 @@ public class Basics
         starter.Namespaces = starter.Namespaces.Add(typeof(NamespaceFilterType).Namespace!);
         starter.InstantiateCommands();
 
-        var command = starter.FindCommand<CommandType>() as StarterCommand;
+        var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
-        Assert.That(command.GetFullCommandString(), Is.EqualTo(expected));
+        var commandNames = new List<string> { command.Name };
+        var parentCommand = command.Parents.FirstOrDefault();
+        while (parentCommand != null)
+        {
+            commandNames.Add(parentCommand.Name);
+            parentCommand = parentCommand.Parents.FirstOrDefault();
+        }
+        commandNames.Reverse();
+        Assert.That(string.Join(" ", commandNames.Skip(1)), Is.EqualTo(expected));
     }
 
     private static IEnumerable<TestCaseData> ClassesFilterRegexSource

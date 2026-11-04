@@ -44,9 +44,9 @@ public class CommandsResults
         starter.Classes = starter.Classes.Add(typeof(CommandType).FullName!);
         starter.InstantiateCommands();
 
-        var command = starter.FindCommand<CommandType>() as StarterCommand;
+        var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
-        var handleTester = (IHandleTester)command.UnderlyingCommand;
+        var handleTester = (IHandleTester)starter.FindCommandInstance(command)!;
 
         var mainArgs = new List<string>();
 

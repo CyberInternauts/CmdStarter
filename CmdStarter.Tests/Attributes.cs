@@ -39,9 +39,9 @@ public class Attributes
         starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
         starter.InstantiateCommands();
 
-        var command = starter.FindCommand<CommandType>() as StarterCommand;
+        var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
-        var expectation = (IHasAliases)command.UnderlyingCommand;
+        var expectation = starter.FindCommandInstance<CommandType>()!;
         TestsCommon.AssertIEnumerablesHaveSameElements(new[] { command.Name }.Concat(command.Aliases), expectation.ExpectedCommandAliases);
 
         var option = TestsCommon.FindOption(command, optionName);
@@ -61,7 +61,7 @@ public class Attributes
         starter.InstantiateCommands();
 
         //Test command
-        var command = starter.FindCommand<CommandType>() as StarterCommand;
+        var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
         Assert.That(command.Hidden, Is.EqualTo(commandHidden));
 
@@ -93,9 +93,9 @@ public class Attributes
         starter.Namespaces = starter.Namespaces.Add(typeof(CommandType).Namespace!);
         starter.InstantiateCommands();
 
-        var command = starter.FindCommand<CommandType>() as StarterCommand;
+        var command = starter.FindCommand<CommandType>();
         Assert.That(command, Is.Not.Null);
-        var autoCompleteCommand = (IHasAutoComplete)command.UnderlyingCommand;
+        var autoCompleteCommand = (IHasAutoComplete)starter.FindCommandInstance(command)!;
 
         var option = TestsCommon.FindOption(command, optionName);
         Assert.That(option, Is.Not.Null);
