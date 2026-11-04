@@ -5,6 +5,8 @@
   <PropertyGroup>
     <RootNamespace>CyberInternauts.CmdStarter</RootNamespace>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
     <PackageId>$(BasePackageName).CmdStarter</PackageId>
     <Title>CmdStarter</Title>
     <Description>Turns plain C# classes and methods into a System.CommandLine command tree, with Microsoft dependency injection, a REPL and command states.</Description>

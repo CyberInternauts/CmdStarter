@@ -39,20 +39,68 @@ if (-not $versionMatch.Success) { throw 'The version was not found in ProjectsCo
 $packageVersion = $versionMatch.Groups[1].Value
 
 # The applications: the sample to copy, the commands to run, and what each must give.
-# Expect = 'Output' (exit code 0 and the first line of the output), 'AnyOutput' (exit code 0 and a non-empty output), 'ParseError' (an exit code from 1 to 255, and no unhandled exception).
-# The third application is written by the script itself: it has the collection options that the two samples do not have (a List<string> option, a string[] argument, an int[] option), which are read
-# through GetInterfaces. Its single command is not rooted, so that the command name is on the command line.
+# Expect = 'Output' (exit code 0 and the first line of the output), 'OutputAndError' (the same, and the first line of the error output is ErrorLine), 'AnyOutput' (exit code 0 and a non-empty output),
+# 'ParseError' (an exit code from 1 to 255, and no unhandled exception).
+# The third application is written by the script itself. It has what the two samples do not have:
+# - the collection options (a List<string> option, a string[] argument, an int[] option), which are read through GetInterfaces (command `show`);
+# - a service provider set on the starter with one service, IGreeter, and no command registered in it. The command `greet` takes IGreeter in its constructor, so it is created by ActivatorUtilities;
+# - a filter registered by type with AddFilter<T>, which has two constructors, one that takes IGreeter: it is created by ActivatorUtilities, and writes a line on the error output that tells which
+#   constructor served;
+# - a command `made` that declares its own static GetInstance, so it is created through FindGetInstanceMethod (MakeGenericMethod on a class, then Invoke), and shows that this method made it. A command
+#   created that way runs without the service provider (ADR 0006), so its filter is created with its parameterless constructor;
+# - a class with a method marked [Command] that has an [Option] List<string> parameter and an int parameter (command `tag`), created by ActivatorUtilities too.
+# The commands are not rooted, so that the command name is on the command line.
+# The fourth application, Tree, places its commands with Starter.UseTree, under a group.
 $listsProgram = @'
 using CyberInternauts.CmdStarter;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CyberInternauts.CmdStarter.Samples.Lists;
 
 public static class Program
 {
-    public static Task<int> Main(string[] args) => new Starter { IsRootingLonelyCommand = false }.Start(args);
+    public static Task<int> Main(string[] args)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IGreeter, Greeter>();
+        var starter = new Starter { IsRootingLonelyCommand = false, ServiceProvider = services.BuildServiceProvider() };
+        starter.AddFilter<MarkFilter>();
+        return starter.Start(args);
+    }
 }
 '@
-$listsCommand = @'
+$listsServices = @'
+using CyberInternauts.CmdStarter.Interfaces;
+
+namespace CyberInternauts.CmdStarter.Samples.Lists;
+
+public interface IGreeter
+{
+    string Greet(string name);
+}
+
+public sealed class Greeter : IGreeter
+{
+    public string Greet(string name) => $"Hello, {name}!";
+}
+
+public sealed class MarkFilter : ICommandFilter
+{
+    private readonly string message;
+
+    // Used when the starter has no service provider for the command, which is the case of a command created by its own GetInstance.
+    public MarkFilter() => message = "filter: no container";
+
+    public MarkFilter(IGreeter greeter) => message = $"filter: {greeter.Greet("filter")}";
+
+    public Task<int> InvokeAsync(CommandContext context, Func<Task<int>> next)
+    {
+        context.Console.Error.WriteLine(message);
+        return next();
+    }
+}
+'@
+$listsShow = @'
 namespace CyberInternauts.CmdStarter.Samples.Lists;
 
 public sealed class Show : StarterCommand
@@ -63,6 +111,70 @@ public sealed class Show : StarterCommand
 
     public override Delegate HandlingMethod => (string[] values) =>
         Console.WriteLine($"names={string.Join(",", Names)} values={string.Join(",", values)} numbers={string.Join(",", Numbers)}");
+}
+'@
+$listsGreet = @'
+namespace CyberInternauts.CmdStarter.Samples.Lists;
+
+public sealed class Greet(IGreeter greeter) : StarterCommand
+{
+    public string Who { get; set; } = "World";
+
+    public override Delegate HandlingMethod => () => Console.WriteLine(greeter.Greet(Who));
+}
+'@
+$listsMade = @'
+using CyberInternauts.CmdStarter.Interfaces;
+
+namespace CyberInternauts.CmdStarter.Samples.Lists;
+
+public sealed class Made : StarterCommand
+{
+    private string origin = "the constructor";
+
+    public new static IStarterCommand GetInstance<TCommand>() where TCommand : IStarterCommand => new Made { origin = "GetInstance" };
+
+    public override Delegate HandlingMethod => () => Console.WriteLine($"made by {origin}");
+}
+'@
+
+$listsTagger = @'
+using CyberInternauts.CmdStarter.Attributes;
+
+namespace CyberInternauts.CmdStarter.Samples.Lists;
+
+public sealed class Tagger
+{
+    [Command]
+    public int Tag(string label, [Option] List<string> tags, int count)
+    {
+        Console.WriteLine($"label={label} tags={string.Join(",", tags)} count={count}");
+        return 0;
+    }
+}
+'@
+
+# The fourth application places its commands with Starter.UseTree, under a group.
+$treeProgram = @'
+using CyberInternauts.CmdStarter;
+
+namespace CyberInternauts.CmdStarter.Samples.Tree;
+
+public static class Program
+{
+    public static Task<int> Main(string[] args) => new Starter { IsRootingLonelyCommand = false }
+        .UseTree(tree => tree.Group("tools", tools => tools.Add<Show>()))
+        .Start(args);
+}
+'@
+$treeShow = @'
+namespace CyberInternauts.CmdStarter.Samples.Tree;
+
+public sealed class Show : StarterCommand
+{
+    public string Label { get; set; } = "none";
+
+    public override Delegate HandlingMethod => () => Console.WriteLine($"label={Label}");
 }
 '@
 
@@ -88,9 +200,22 @@ $applications = @(
     [pscustomobject]@{
         Name   = 'Lists'
         Sample = $null
-        Files  = [ordered]@{ 'Program.cs' = $listsProgram; 'Show.cs' = $listsCommand }
+        Files  = [ordered]@{ 'Program.cs' = $listsProgram; 'Services.cs' = $listsServices; 'Show.cs' = $listsShow; 'Greet.cs' = $listsGreet; 'Made.cs' = $listsMade; 'Tagger.cs' = $listsTagger }
         Runs   = @(
-            [pscustomobject]@{ Arguments = 'show a b --names x --names y --numbers 1 2'; Expect = 'Output'; Line = 'names=x,y values=a,b numbers=1,2' }
+            [pscustomobject]@{ Arguments = 'show a b --names x --names y --numbers 1 2'; Expect = 'Output'; Line = 'names=x,y values=a,b numbers=1,2' },
+            [pscustomobject]@{ Arguments = 'greet --who Bob'; Expect = 'Output'; Line = 'Hello, Bob!' },
+            [pscustomobject]@{ Arguments = 'made'; Expect = 'OutputAndError'; Line = 'made by GetInstance'; ErrorLine = 'filter: no container' },
+            [pscustomobject]@{ Arguments = 'tag red 3 --tags a --tags b'; Expect = 'Output'; Line = 'label=red tags=a,b count=3' },
+            [pscustomobject]@{ Arguments = 'show c --names z --numbers 3'; Expect = 'OutputAndError'; Line = 'names=z values=c numbers=3'; ErrorLine = 'filter: Hello, filter!' }
+        )
+    },
+    [pscustomobject]@{
+        Name   = 'Tree'
+        Sample = $null
+        Files  = [ordered]@{ 'Program.cs' = $treeProgram; 'Show.cs' = $treeShow }
+        Runs   = @(
+            [pscustomobject]@{ Arguments = 'tools show --label x'; Expect = 'Output'; Line = 'label=x' },
+            [pscustomobject]@{ Arguments = 'tools --help'; Expect = 'AnyOutput'; Line = '' }
         )
     }
 )
@@ -281,12 +406,14 @@ try {
 
                 $ok = switch ($run.Expect) {
                     'Output' { ($result.ExitCode -eq 0) -and ($firstOutput -ceq $run.Line) }
+                    'OutputAndError' { ($result.ExitCode -eq 0) -and ($firstOutput -ceq $run.Line) -and ($firstError -ceq $run.ErrorLine) }
                     'AnyOutput' { ($result.ExitCode -eq 0) -and ($firstOutput.Length -gt 0) }
                     'ParseError' { ($null -ne $result.ExitCode) -and ($result.ExitCode -ge 1) -and ($result.ExitCode -le 255) -and (-not $crashed) }
                 }
 
                 $expected = switch ($run.Expect) {
                     'Output' { "0, first line '$($run.Line)'" }
+                    'OutputAndError' { "0, first line '$($run.Line)', first error line '$($run.ErrorLine)'" }
                     'AnyOutput' { '0, non-empty output' }
                     'ParseError' { 'a parse error (1 to 255)' }
                 }

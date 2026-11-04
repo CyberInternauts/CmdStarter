@@ -130,18 +130,28 @@ The factories exist so that an application can build its symbols without a gener
 | `Assemblies` reduced to the assembly of the measures | 538 | 702 | 602 | 681 |
 | every loaded assembly | 2,065 | 1,837 | 2,033 | 1,844 |
 
-In each series, the error intervals of the two variants overlap: no measurable gain. The cold start, `FirstInstantiate`, was 148.3 ms and 147.5 ms, against 137.3 ms before catalogs; the intervals barely overlap and the measure has no twin by scan, so a cold start a dozen milliseconds slower is neither established nor excluded (see [Performance](performance.md)).
+In each series, the error intervals of the two variants overlap: no measurable gain. The cold start, `FirstInstantiate`, was 148.3 ms and 147.5 ms, against 137.3 ms before catalogs; the intervals barely overlap and the measure has no twin by scan, so a cold start a dozen milliseconds slower is neither established nor excluded (see [Performance](performance.md)); settled in [ADR 0029](../adr/0029-trimming-and-native-aot-second-evaluation.md): no measurable difference.
 
 Every searched assembly has its catalog attribute read. Without `Assemblies`, every loaded assembly pays that read, and only an assembly that has a catalog avoids its scan: the assemblies of the framework and the others are scanned as before, `GetReferencedAssemblies` included.
+
+## Trimming and Native AOT
+
+With the catalog and the factories, version 2.0 supports trimming and Native AOT for an application on win-x64: [Trimming](trimming.md) and [Native AOT](native-aot.md) give the measures, and [ADR 0029](../adr/0029-trimming-and-native-aot-second-evaluation.md) the decision. What an application needs:
+
+- **The package and the generator.** The package `cints.CmdStarter` carries the generator, and it is active by default. An application that declares `CommandCatalogAttribute` itself replaces the generated catalog: it then has to declare in its catalog everything that the application uses, the commands, the classes of method commands, the global options containers and the value types.
+- **Catalogs on.** `Starter.UseCommandCatalogs` stays `true`. In a runtime that does not support dynamic code, as a Native AOT executable, only the catalogs are read: no assembly is scanned, so an assembly without a catalog gives no command, and setting `Starter.UseCommandCatalogs` to `false` there makes the search throw a `CmdStarterException`.
+- **A readable `HandlingMethod`.** The generator reads the delegate by the rule of [Symbol factories](#symbol-factories). When it cannot, it reports `CMDS0015`, and a value type that only that handler uses is not registered: its factory is made by reflection, which Native AOT does not support for a value type.
+- **Commands from a catalog.** With the generator active, the catalog declares every command class of the assembly, so `Starter.UseTree` and `Starter.CommandsTypes` on those types are supported (`Starter.UseTree` with a group is measured). A command type that no catalog declares, because a catalog written by hand omits it or the generator is turned off, is not kept by the trimmer: that function is lost.
+
+The class and method commands, the options and arguments (lists included), the commands created by a container that does not have them registered, the filters registered by type, the commands that declare their own static `GetInstance`, and `Starter.UseTree` were measured, trimmed and as a native executable, in [Trimming](trimming.md#second-evaluation) and [Native AOT](native-aot.md#second-evaluation). What was not measured: a culture other than the French one of the measure machine, an order of methods that differs from the order of their declarations, every platform but win-x64, and `CmdStarter.Hosting`, which is flagged by static analysis only.
 
 ## What it does not do yet
 
 - It does not generate the binding: the options, arguments, values and instances are still read and set by reflection. The factories only replace the construction of generic types for the symbols.
-- It does not make trimming or Native AOT work. [Trimming](trimming.md) and [Native AOT](native-aot.md) give the results taken without it, and neither has been measured with a catalog.
-- A `Starter` with no `Assemblies` still scans the assemblies that have no catalog, those of the framework included.
+- A `Starter` with no `Assemblies` still scans the assemblies that have no catalog, those of the framework included, when the runtime supports dynamic code. In a trimmed application, the scan of an assembly without a catalog is not supported.
 
 ## See also
 
 - Examples: [HandWrittenCatalog](../../CmdStarter.Tests.CatalogCommands/HandWrittenCatalog.cs).
 - Neighbouring pages: [Discovery](../concepts/discovery.md), [Analyzers](analyzers.md), [Trimming](trimming.md), [Native AOT](native-aot.md), [Performance](performance.md).
-- ADRs: [0027, command catalog](../adr/0027-command-catalog.md), [0028, typed symbol factories](../adr/0028-typed-symbol-factories.md).
+- ADRs: [0027, command catalog](../adr/0027-command-catalog.md), [0028, typed symbol factories](../adr/0028-typed-symbol-factories.md), [0029, trimming and Native AOT, second evaluation](../adr/0029-trimming-and-native-aot-second-evaluation.md).

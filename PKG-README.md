@@ -17,6 +17,7 @@ CmdStarter turns plain C# code into a command-line interface built on System.Com
 - A remote REPL over a named pipe.
 - Command states.
 - Generic Host integration.
+- Trimming and Native AOT, for an application that has the command catalog that the package generates.
 - Readable error messages and consistent exit codes.
 
 <!-- snippet: samples/CmdStarter.Samples.HelloWorld/Commands/Hello.cs -->

@@ -5,6 +5,8 @@
   <PropertyGroup>
     <RootNamespace>CyberInternauts.CmdStarter.Hosting</RootNamespace>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
     <PackageId>$(BasePackageName).CmdStarter.Hosting</PackageId>
     <Description>Generic Host (Microsoft.Extensions.Hosting) integration for CmdStarter.</Description>
     <PackageTags>System.CommandLine;command line;cli;generic host;hosting</PackageTags>

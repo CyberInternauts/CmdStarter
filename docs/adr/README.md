@@ -26,7 +26,8 @@
 | 0022 | [Command Sequences](0022-command-sequences.md) | Accepted |
 | 0023 | [Text Pipes](0023-text-pipes.md) | Accepted |
 | 0024 | [Remote REPL over a Named Pipe](0024-remote-repl.md) | Accepted |
-| 0025 | [Trimming and Native AOT](0025-trimming-and-native-aot.md) | Accepted |
+| 0025 | [Trimming and Native AOT](0025-trimming-and-native-aot.md) | Superseded by 0029 |
 | 0026 | [Daemon Mode](0026-daemon-mode.md) | Accepted |
 | 0027 | [Command Catalog Generated at Compile Time](0027-command-catalog.md) | Accepted |
 | 0028 | [Typed Symbol Factories](0028-typed-symbol-factories.md) | Accepted |
+| 0029 | [Trimming and Native AOT, Second Evaluation](0029-trimming-and-native-aot-second-evaluation.md) | Accepted |

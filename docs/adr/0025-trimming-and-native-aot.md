@@ -1,6 +1,6 @@
 # 0025. Trimming and Native AOT
 
-Status: Accepted
+Status: Superseded by [ADR 0029](0029-trimming-and-native-aot-second-evaluation.md)
 Date: 2026-11-04
 
 ## Context
