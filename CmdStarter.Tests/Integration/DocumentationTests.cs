@@ -14,7 +14,7 @@ public sealed class DocumentationTests
     private static readonly Regex SnippetMarker = new(@"^<!-- snippet: (\S+) -->$", RegexOptions.CultureInvariant);
     private static readonly Regex AttributeToken = new(@"^\[(?<name>[A-Za-z_]\w*)(<[^\[\]]*>)?(\(.*\))?\]$", RegexOptions.CultureInvariant);
 
-    private static readonly Lazy<Type[]> LibraryTypes = new(() => LibraryAssemblies().SelectMany(ExportedTypes).Where(type => !type.IsNested).ToArray());
+    private static readonly Lazy<Type[]> LibraryTypes = new(() => [.. LibraryAssemblies().SelectMany(ExportedTypes).Where(type => !type.IsNested)]);
     private static readonly Lazy<HashSet<string>> AttributeNames = new(FindAttributeNames);
 
     [Test]

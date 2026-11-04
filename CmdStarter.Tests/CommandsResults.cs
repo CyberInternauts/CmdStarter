@@ -69,7 +69,7 @@ public class CommandsResults
         if (optionsArgs.Any()) mainArgs.AddRange(optionsArgs);
 
         // Run and compare
-        var actualReturn = await starter.Start(mainArgs.ToArray());
+        var actualReturn = await starter.Start([.. mainArgs]);
         Assert.That(actualReturn, Is.EqualTo(handleTester.ExpectedReturn));
 
         Assert.That(executed, Is.Not.Null);

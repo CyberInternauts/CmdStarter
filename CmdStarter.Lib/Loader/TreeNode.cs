@@ -178,7 +178,7 @@ public sealed class TreeNode<T> where T : class
     {
         if (isImmutable) throw new ReadOnlyException();
 
-        return values.Select(AddChild).ToArray();
+        return [.. values.Select(AddChild)];
     }
 
     /// <summary>

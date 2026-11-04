@@ -155,19 +155,19 @@ public static class Helper
 
         bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal));
 
-        Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal))
+        Regex[] excludes = [.. classes.Where(filter => filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter[1..]);
                 return new Regex(pattern, RegexOptions.RightToLeft);
-            }).ToArray();
+            })];
 
-        Regex[] filters = classes.Where(filter => !filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal))
+        Regex[] filters = [.. classes.Where(filter => !filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter);
                 return new Regex(pattern, RegexOptions.RightToLeft);
-            }).ToArray();
+            })];
 
         commandsTypes = commandsTypes.Where(type =>
         {
@@ -214,6 +214,6 @@ public static class Helper
     {
         if (interfacePropertiesNames != null) return;
 
-        interfacePropertiesNames = typeof(IStarterCommand).GetProperties().Select(p => p.Name).ToList();
+        interfacePropertiesNames = [.. typeof(IStarterCommand).GetProperties().Select(p => p.Name)];
     }
 }

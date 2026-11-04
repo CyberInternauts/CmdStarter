@@ -45,6 +45,6 @@ internal static class AnalyzerRunner
 
         var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new ParentAttributeAnalyzer(), new AutoCompleteAttributeAnalyzer(), new CommandDefinitionAnalyzer(), new OptionsAnalyzer());
         var diagnostics = await compilation.WithAnalyzers(analyzers).GetAnalyzerDiagnosticsAsync();
-        return diagnostics.OrderBy(diagnostic => diagnostic.Location.SourceSpan.Start).ToImmutableArray();
+        return [.. diagnostics.OrderBy(diagnostic => diagnostic.Location.SourceSpan.Start)];
     }
 }

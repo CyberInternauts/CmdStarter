@@ -92,13 +92,13 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
             && !(Implements(declaringType, starterInterface) && starterInterface.GetMembers().OfType<IPropertySymbol>().Any(item => StringComparer.Ordinal.Equals(item.Name, property.Name))))
             .ToArray();
         var hasOption = properties.Any(property => property.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, optionAttribute)));
-        return properties.Where(property =>
+        return [.. properties.Where(property =>
         {
             var attrs = property.GetAttributes();
             var hasOptionAttr = attrs.Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, optionAttribute));
             var hasNotOption = attrs.Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, notOptionAttribute));
             return !hasNotOption && (!hasOption || hasOptionAttr);
-        }).ToArray();
+        })];
     }
 
     private static IEnumerable<IPropertySymbol> GetBaseProperties(INamedTypeSymbol type)

@@ -57,8 +57,8 @@ public sealed class GlobalOptionsManager
         {
             filteredTypes = filteredTypes.Where(type => starter.Assemblies.Contains(type.Assembly));
         }
-        filteredTypes = FilterTypesByNamespaces(filteredTypes, starter.Namespaces.ToList());
-        filteredTypes = FilterTypesByClasses(filteredTypes, starter.Classes.ToList());
+        filteredTypes = FilterTypesByNamespaces(filteredTypes, [.. starter.Namespaces]);
+        filteredTypes = FilterTypesByClasses(filteredTypes, [.. starter.Classes]);
 
         GlobalOptionsTypes.AddRange(filteredTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
     }

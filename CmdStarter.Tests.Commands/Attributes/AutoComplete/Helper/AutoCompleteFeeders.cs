@@ -2,7 +2,7 @@ namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete.Help
 
 internal sealed class AutoCompletionArgumentFeeder : IAutoCompleteProvider
 {
-    public string[] GetAutoCompletes() => FakeService().ToArray();
+    public string[] GetAutoCompletes() => [.. FakeService()];
 
     private IEnumerable<string> FakeService()
     {
@@ -14,7 +14,7 @@ internal sealed class AutoCompletionArgumentFeeder : IAutoCompleteProvider
 
 internal sealed class AutoCompletionOptionFeeder : IAutoCompleteProvider
 {
-    public string[] GetAutoCompletes() => FakeService().ToArray();
+    public string[] GetAutoCompletes() => [.. FakeService()];
 
     private IEnumerable<string> FakeService()
     {

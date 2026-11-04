@@ -72,7 +72,7 @@ public sealed class CommandTreeDefinition
         }
 
         var childNode = node.AddChild(commandType);
-        state.GroupPaths.Add(commandType, groups.ToList());
+        state.GroupPaths.Add(commandType, [.. groups]);
         var childDefinition = new CommandTreeDefinition(childNode, state, NodeKind.Command, commandType, new List<GroupSegment>());
         children?.Invoke(childDefinition);
         return this;

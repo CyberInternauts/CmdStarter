@@ -409,8 +409,7 @@ public class Basics
     }
 
     /// <summary>Each node as "parent > child", the root being "&lt;root&gt;": the tree shape without the children order.</summary>
-    private static List<string> DescribeTree(TreeNode<Type> tree) => tree.FlattenNodes()
+    private static List<string> DescribeTree(TreeNode<Type> tree) => [.. tree.FlattenNodes()
         .Where(node => node.Value is not null)
-        .Select(node => (node.Parent?.Value?.FullName ?? "<root>") + " > " + node.Value!.FullName)
-        .ToList();
+        .Select(node => (node.Parent?.Value?.FullName ?? "<root>") + " > " + node.Value!.FullName)];
 }

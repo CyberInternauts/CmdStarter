@@ -36,7 +36,7 @@ internal static class GeneratorRunner
         return new GeneratorResult(
             generatedTree?.GetText().ToString(),
             result.Diagnostics,
-            diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToImmutableArray(),
-            diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning && generatedTree is not null && diagnostic.Location.SourceTree == generatedTree).ToImmutableArray());
+            [.. diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)],
+            [.. diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning && generatedTree is not null && diagnostic.Location.SourceTree == generatedTree)]);
     }
 }

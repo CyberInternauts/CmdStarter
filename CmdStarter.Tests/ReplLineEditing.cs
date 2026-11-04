@@ -205,12 +205,11 @@ public class ReplLineEditing
     // Each render is "\r" + prompt + buffer + padding spaces + backspaces, so splitting on "\r" isolates the buffers.
     private static string[] RenderedBuffers(string readOutput, string prompt)
     {
-        return readOutput
+        return [.. readOutput
             .TrimEnd('\r', '\n')
             .Split('\r')
             .Skip(1)
-            .Select(render => render[prompt.Length..].TrimEnd(' ', '\b'))
-            .ToArray();
+            .Select(render => render[prompt.Length..].TrimEnd(' ', '\b'))];
     }
 
     private ReplLineEditor CreateEditor(params object[] keys) => CreateEditorWithHistory(100, keys);

@@ -43,8 +43,8 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
                 Sorted(found.Commands),
                 Sorted(found.MethodClasses),
                 Sorted(found.GlobalOptions),
-                Sorted(found.SymbolTypes.ToList()),
-                Sorted(found.DiagnosticIds.Where(id => id is not ("CS0612" or "CS0618")).ToList())));
+                Sorted([.. found.SymbolTypes]),
+                Sorted([.. found.DiagnosticIds.Where(id => id is not ("CS0612" or "CS0618"))])));
     }
 
     private static List<string> Sorted(List<string> names)

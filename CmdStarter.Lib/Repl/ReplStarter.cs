@@ -233,7 +233,7 @@ public sealed class ReplStarter : Starter
             completions.UnionWith(ExitCommands.Concat(HelpCommands).Where(word => word.StartsWith(typedWord, StringComparison.Ordinal)));
         }
 
-        return completions.Order(StringComparer.Ordinal).ToArray();
+        return [.. completions.Order(StringComparer.Ordinal)];
     }
 
     /// <summary>Stops the REPL loop.</summary>
@@ -382,11 +382,10 @@ public sealed class ReplStarter : Starter
         HelpCommands.Any(command => string.Equals(word, command, StringComparison.OrdinalIgnoreCase));
 
     private string[] GetCommandCompletions(string line, int position) =>
-        RootCommand.Parse(line).GetCompletions(position)
+        [.. RootCommand.Parse(line).GetCompletions(position)
             .Select(item => item.Label)
             .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal)
-            .ToArray();
+            .Order(StringComparer.Ordinal)];
 
     private static int FindWhitespace(string value)
     {

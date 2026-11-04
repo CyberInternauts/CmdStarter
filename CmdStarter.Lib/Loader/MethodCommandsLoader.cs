@@ -19,7 +19,7 @@ internal static class MethodCommandsLoader
         var methods = type
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Where(method => Attribute.IsDefined(method, typeof(CommandAttribute)));
-        return (dynamicCodeSupported ? methods.OrderBy(method => method.MetadataToken) : methods).ToArray();
+        return [.. (dynamicCodeSupported ? methods.OrderBy(method => method.MetadataToken) : methods)];
     }
 
     internal static void Validate([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)] Type type)

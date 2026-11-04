@@ -790,11 +790,11 @@ public sealed class CommandCatalogGeneratorTests
 
     // The calls that register a type of value.
     private static string[] SymbolCalls(GeneratorResult result) =>
-        Calls(result).Where(call => call.StartsWith("builder.AddSymbolType<", StringComparison.Ordinal)).ToArray();
+        [.. Calls(result).Where(call => call.StartsWith("builder.AddSymbolType<", StringComparison.Ordinal))];
 
     // The calls that Describe makes, one per line, without their indentation.
     private static string[] Calls(GeneratorResult result) =>
-        result.Generated!.Split('\n').Select(line => line.Trim()).Where(line => line.StartsWith("builder.", StringComparison.Ordinal)).ToArray();
+        [.. result.Generated!.Split('\n').Select(line => line.Trim()).Where(line => line.StartsWith("builder.", StringComparison.Ordinal))];
 
     // The generated file must never break a valid compilation: no error, and no warning that comes from the generated file.
     private static void AssertCompiles(GeneratorResult result)

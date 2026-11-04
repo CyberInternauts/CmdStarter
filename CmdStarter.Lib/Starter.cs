@@ -76,7 +76,7 @@ public class Starter
     /// <summary>Raised after a command handler returns, before its instance and services are released. It is not raised when parsing fails or the handler throws.</summary>
     public event EventHandler<CommandHandledEventArgs>? CommandHandled;
 
-    internal IReadOnlyList<Type> FilterTypes => filters.Where(filter => filter.FilterType is not null).Select(filter => filter.FilterType!).ToArray();
+    internal IReadOnlyList<Type> FilterTypes => [.. filters.Where(filter => filter.FilterType is not null).Select(filter => filter.FilterType!)];
 
     /// <summary>Adds a command filter instance.</summary>
     /// <param name="filter">The filter instance to use for every command execution.</param>
@@ -726,29 +726,29 @@ public class Starter
             }
         }
 
-        var classTypes = definedTree?.FlattenValues().ToArray() ?? classCandidates
+        var classTypes = definedTree?.FlattenValues().ToArray() ?? [.. classCandidates
             .Where(t =>
                 t.IsClass &&
                 !t.IsAbstract &&
                 t.IsAssignableTo(typeof(IStarterCommand)) &&
                 t.Namespace != null
-            ).ToArray();
+            )];
         var methodTypes = methodCandidates.Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(KeptTypes.Of(type))).ToArray();
         if (!Assemblies.IsEmpty && classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
 
         // Filter by namespaces
-        if (definedTree is null) classTypes = FilterTypesByNamespaces(classTypes, Namespaces.ToList()).ToArray();
-        methodTypes = FilterTypesByNamespaces(methodTypes, Namespaces.ToList()).ToArray();
+        if (definedTree is null) classTypes = [.. FilterTypesByNamespaces(classTypes, [.. Namespaces])];
+        methodTypes = [.. FilterTypesByNamespaces(methodTypes, [.. Namespaces])];
         if (classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Namespaces);
 
         // Filter by classes
-        if (definedTree is null) classTypes = FilterTypesByClasses(classTypes, Classes.ToList()).ToArray();
-        methodTypes = FilterTypesByClasses(methodTypes, Classes.ToList()).ToArray();
+        if (definedTree is null) classTypes = [.. FilterTypesByClasses(classTypes, [.. Classes])];
+        methodTypes = [.. FilterTypesByClasses(methodTypes, [.. Classes])];
         if (classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Classes);
 
         // Deterministic order: assemblies loading and reflection order must not change the tree or the help
         this.commandsTypes = CommandsTypes.Clear().AddRange(definedTree is null ? classTypes.OrderBy(type => type.FullName, StringComparer.Ordinal) : classTypes);
-        MethodCommandsTypes = ImmutableList<Type>.Empty.AddRange(methodTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
+        MethodCommandsTypes = [.. methodTypes.OrderBy(type => type.FullName, StringComparer.Ordinal)];
     }
 
     /// <summary>
@@ -961,7 +961,7 @@ public class Starter
                 commonLength++;
             }
 
-            baseSegments = baseSegments.Take(commonLength).ToList();
+            baseSegments = [.. baseSegments.Take(commonLength)];
         }
 
         foreach (var child in CommandsTypesTree.Children)
