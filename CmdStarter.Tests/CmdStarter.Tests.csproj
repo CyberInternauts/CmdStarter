@@ -24,6 +24,7 @@
     <ProjectReference Include="..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
     <ProjectReference Include="..\CmdStarter.Tests.Commands\CmdStarter.Tests.Commands.csproj" />
     <ProjectReference Include="..\CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj" />
+    <ProjectReference Include="..\CmdStarter.Tests.CatalogCommands\CmdStarter.Tests.CatalogCommands.csproj" />
     <!-- Build order only: the app must not be copied here, or DirectoryCatalog(".") loads its commands into every test -->
     <ProjectReference Include="..\CmdStarter.Tests.App\CmdStarter.Tests.App.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\CmdStarter.Demo.SimpleInjector\CmdStarter.Demo.SimpleInjector.csproj" ReferenceOutputAssembly="false" />

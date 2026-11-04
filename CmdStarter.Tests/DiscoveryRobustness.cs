@@ -51,7 +51,7 @@ public class DiscoveryRobustness
     public void UnreadableAssembliesDoNotBreakGlobalOptionsDiscovery()
     {
         // The global options types are found once per process and kept in a private static field:
-        // the test empties it, so that the next Starter scans again, then puts the previous value back.
+        // the test empties it, so that the next Starter that builds its commands (FilterTypes) scans again, then puts the previous value back.
         var field = typeof(GlobalOptionsManager).GetField("foundTypes", BindingFlags.NonPublic | BindingFlags.Static)!;
         var typeBeingDefined = DefineDynamicAssembly();
         LoadAssemblyWithUnloadableType();
@@ -60,7 +60,7 @@ public class DiscoveryRobustness
         {
             field.SetValue(null, null);
 
-            Assert.DoesNotThrow(() => _ = new Starter());
+            Assert.DoesNotThrow(() => TestsCommon.CreateCmdStarter().InstantiateCommands());
 
             var found = (IEnumerable<Type>)field.GetValue(null)!;
             Assert.That(found, Does.Contain(typeof(MainGlobalOptions)));

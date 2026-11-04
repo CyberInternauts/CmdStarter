@@ -1,3 +1,4 @@
+using CyberInternauts.CmdStarter.Catalog;
 using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
@@ -21,7 +22,6 @@ public sealed class GlobalOptionsManager
     internal GlobalOptionsManager(Starter starter)
     {
         this.starter = starter;
-        FindTypes();
     }
 
     /// <summary>
@@ -48,7 +48,9 @@ public sealed class GlobalOptionsManager
     {
         GlobalOptionsTypes.Clear();
 
-        var filteredTypes = foundTypes!; // foundTypes can't be null as initialized in constructor
+        // Found here and not in the constructor: a catalog that fails is a configuration error of the tree, never of "new Starter()", and the setting UseCommandCatalogs is the one the starter has by now.
+        FindTypes(starter.UseCommandCatalogs);
+        var filteredTypes = foundTypes!;
         if (!starter.Assemblies.IsEmpty)
         {
             filteredTypes = filteredTypes.Where(type => starter.Assemblies.Contains(type.Assembly));
@@ -97,12 +99,13 @@ public sealed class GlobalOptionsManager
         }
     }
 
-    private static void FindTypes()
+    private static void FindTypes(bool useCatalogs)
     {
         if (foundTypes != null) return;
 
+        // Assembly by assembly, like the search of the commands: the catalog of an assembly, else its types. The same predicate applies to both.
         var types = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(GetLoadableTypes)
+            .SelectMany(assembly => CatalogReader.TryRead(assembly, useCatalogs, out var catalog) ? catalog.GlobalOptionsTypes : GetLoadableTypes(assembly))
             .Where(t => t.IsClass && t.IsAssignableTo(typeof(IGlobalOptionsContainer)));
 
         foundTypes = new List<Type>(types);

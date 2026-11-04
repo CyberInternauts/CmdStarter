@@ -7,6 +7,7 @@ using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Loader;
 using System.Diagnostics.CodeAnalysis;
 using CyberInternauts.CmdStarter.Binding;
+using CyberInternauts.CmdStarter.Catalog;
 using CyberInternauts.CmdStarter.Reflection;
 using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Attributes;
@@ -53,6 +54,7 @@ public class Starter
     private ImmutableList<string> namespaces = ImmutableList<string>.Empty;
     private ImmutableList<string> classes = ImmutableList<string>.Empty;
     private ImmutableList<Assembly> assemblies = ImmutableList<Assembly>.Empty;
+    private bool useCommandCatalogs = true;
     private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
     private ImmutableList<Type> methodCommandsTypes = ImmutableList<Type>.Empty;
     private readonly List<MethodCommandRegistration> methodRegistrations = new();
@@ -104,6 +106,25 @@ public class Starter
         {
             ResetCommands();
             assemblies = value ?? ImmutableList<Assembly>.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether an assembly that has a <see cref="Catalog.CommandCatalogAttribute"/> is read from its catalog, which the generator of the CmdStarter package writes
+    /// at compile time, instead of being scanned by reflection. The default is <see langword="true"/>. When it is <see langword="false"/>, every assembly is scanned.
+    /// An assembly without a catalog is always scanned.
+    /// </summary>
+    /// <remarks>
+    /// Changing it resets the discovery. The global options containers are found once for the process, by the first <see cref="Starter"/> that builds its tree,
+    /// and that <see cref="Starter"/> setting decides how: a later change does not find them again.
+    /// </remarks>
+    public bool UseCommandCatalogs
+    {
+        get => useCommandCatalogs;
+        set
+        {
+            ResetCommands();
+            useCommandCatalogs = value;
         }
     }
 
@@ -661,23 +682,40 @@ public class Starter
     private void DiscoverCommandsTypes()
     {
         var searchAssemblies = Assemblies.IsEmpty ? AppDomain.CurrentDomain.GetAssemblies() : Assemblies.Distinct();
-        var commandCandidates = definedTree is null ? searchAssemblies
-                    .SelectMany(a => GetLoadableTypes(a)
-                        .Where(t =>
-                            t.IsClass &&
-                            !t.IsAbstract &&
-                            t.IsAssignableTo(typeof(IStarterCommand)) &&
-                            t.Namespace != null
-                        )
-                    ) : Enumerable.Empty<Type>();
 
+        // An assembly with a catalog is read from it, without loading its types or its references; the others are scanned.
+        // The predicates below apply to both sources, so a catalog cannot add a type that the scan would not find.
         var libraryName = typeof(Starter).Assembly.GetName().Name;
-        var methodCandidates = searchAssemblies
-            .Where(assembly => assembly == typeof(Starter).Assembly || assembly.GetReferencedAssemblies().Any(reference => reference.Name == libraryName))
-            .SelectMany(assembly => GetLoadableTypes(assembly).Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(type)));
+        var classCandidates = new List<Type>();
+        var methodCandidates = new List<Type>();
+        foreach (var assembly in searchAssemblies)
+        {
+            if (CatalogReader.TryRead(assembly, UseCommandCatalogs, out var catalog))
+            {
+                classCandidates.AddRange(catalog.CommandTypes);
+                methodCandidates.AddRange(catalog.MethodCommandTypes);
+                continue;
+            }
 
-        var classTypes = definedTree?.FlattenValues().ToArray() ?? commandCandidates.ToArray();
-        var methodTypes = methodCandidates.ToArray();
+            if (definedTree is null)
+            {
+                classCandidates.AddRange(GetLoadableTypes(assembly));
+            }
+
+            if (assembly == typeof(Starter).Assembly || assembly.GetReferencedAssemblies().Any(reference => reference.Name == libraryName))
+            {
+                methodCandidates.AddRange(GetLoadableTypes(assembly));
+            }
+        }
+
+        var classTypes = definedTree?.FlattenValues().ToArray() ?? classCandidates
+            .Where(t =>
+                t.IsClass &&
+                !t.IsAbstract &&
+                t.IsAssignableTo(typeof(IStarterCommand)) &&
+                t.Namespace != null
+            ).ToArray();
+        var methodTypes = methodCandidates.Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(type)).ToArray();
         if (!Assemblies.IsEmpty && classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
 
         // Filter by namespaces
