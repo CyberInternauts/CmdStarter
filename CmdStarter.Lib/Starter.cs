@@ -56,6 +56,7 @@ public class Starter
     private ImmutableList<Type> methodCommandsTypes = ImmutableList<Type>.Empty;
     private readonly List<MethodCommandRegistration> methodRegistrations = new();
     private readonly Dictionary<Command, CommandStateMetadata> commandStateMetadata = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<Command> implicitMethodGroups = new(ReferenceEqualityComparer.Instance);
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
     private bool hasToInstantiate = true;
@@ -687,13 +688,25 @@ public class Starter
         Command? group = null;
         if (groupAttribute is not null)
         {
-            group = new Command((groupAttribute.Name ?? type.Name).ToCommandName());
+            var groupPath = GetCommandPath(groupAttribute.Name ?? type.Name, type, "<group>");
+            var groupParent = ResolveMethodCommandParent(RootCommand, groupPath);
+            var groupName = groupPath[^1];
+            group = groupParent.Subcommands.FirstOrDefault(command => string.Equals(command.Name, groupName, StringComparison.Ordinal) && implicitMethodGroups.Contains(command));
+            if (group is null)
+            {
+                group = new Command(groupName);
+                EnsureUniqueName(groupParent, group, type, "<group>");
+                groupParent.Subcommands.Add(group);
+            }
+            else
+            {
+                implicitMethodGroups.Remove(group);
+            }
+
             Reflection.Loader.LoadDescription(type, group);
             Reflection.Loader.LoadAliases(type, group.Aliases);
             group.Hidden = Attribute.IsDefined(type, typeof(HiddenAttribute));
             AddStateMetadata(group, type, canHide: true);
-            EnsureUniqueName(RootCommand, group, type, "<group>");
-            RootCommand.Subcommands.Add(group);
         }
         var parent = group ?? RootCommand;
         foreach (var method in MethodCommandsLoader.GetCommandMethods(type))
@@ -701,7 +714,9 @@ public class Starter
             var attribute = method.GetCustomAttribute<CommandAttribute>()!;
             var inferredName = method.Name.EndsWith("Async", StringComparison.Ordinal) ? method.Name[..^5] : method.Name;
             var name = attribute.Name ?? inferredName;
-            var command = new Command(name.ToCommandName());
+            var commandPath = GetCommandPath(name, type, method.Name);
+            var commandParent = ResolveMethodCommandParent(parent, commandPath);
+            var command = new Command(commandPath[^1]);
             Reflection.Loader.LoadDescription(method, command);
             Reflection.Loader.LoadAliases(method, command.Aliases);
             command.Hidden = Attribute.IsDefined(method, typeof(HiddenAttribute));
@@ -731,12 +746,45 @@ public class Starter
                 command.Arguments.Add(argument);
                 parameters.Add(new(parameter, ParameterBindingKind.Argument, argument));
             }
-            EnsureUniqueName(parent, command, type, method.Name);
-            parent.Subcommands.Add(command);
+            EnsureUniqueName(commandParent, command, type, method.Name);
+            commandParent.Subcommands.Add(command);
             var registration = new MethodCommandRegistration(method, command, parameters);
             methodRegistrations.Add(registration);
             command.SetAction((parseResult, token) => HandleMethodCommandAsync(registration, parseResult, token));
         }
+    }
+
+    private static string[] GetCommandPath(string name, Type type, string memberName)
+    {
+        var path = name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(segment => segment.ToCommandName())
+            .ToArray();
+        if (path.Length == 0)
+        {
+            throw new InvalidAttributeException($"Command name cannot be empty. Type '{type.FullName}', method '{memberName}'.");
+        }
+
+        return path;
+    }
+
+    private Command ResolveMethodCommandParent(Command start, string[] path)
+    {
+        var parent = start;
+        for (var index = 0; index < path.Length - 1; index++)
+        {
+            var segment = path[index];
+            var child = parent.Subcommands.FirstOrDefault(command => string.Equals(command.Name, segment, StringComparison.Ordinal));
+            if (child is null)
+            {
+                child = new Command(segment);
+                parent.Subcommands.Add(child);
+                implicitMethodGroups.Add(child);
+            }
+
+            parent = child;
+        }
+
+        return parent;
     }
 
     private static void EnsureUniqueName(Command parent, Command candidate, Type type, string methodName)
@@ -817,6 +865,7 @@ public class Starter
         registrationsByType.Clear();
         methodRegistrations.Clear();
         commandStateMetadata.Clear();
+        implicitMethodGroups.Clear();
         rootCommand = new();
     }
 

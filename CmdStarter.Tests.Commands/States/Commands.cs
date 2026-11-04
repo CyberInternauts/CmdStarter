@@ -25,6 +25,14 @@ public sealed class Profile : StarterCommand
     public override Delegate HandlingMethod => () => 20;
 }
 
+[Command("vault secrets")]
+[AvailableInState(TestState.Member)]
+public sealed class VaultSecretsCommands
+{
+    [Command]
+    public static int List() => 60;
+}
+
 public sealed class Always : StarterCommand
 {
     public override Delegate HandlingMethod => () => 30;

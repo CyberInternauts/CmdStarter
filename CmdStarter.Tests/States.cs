@@ -60,6 +60,21 @@ public class States
     }
 
     [Test]
+    public async Task PathGroupFollowsState()
+    {
+        var provider = new TestStateProvider { CurrentState = TestState.Anonymous };
+        var starter = CreateStarter(provider);
+
+        Assert.That(await starter.Start("vault secrets list"), Is.EqualTo(1));
+        var vault = starter.RootCommand.Subcommands.Single(command => command.Name == "vault");
+        Assert.That(vault.Hidden, Is.False);
+        Assert.That(vault.Subcommands.Single(command => command.Name == "secrets").Hidden, Is.True);
+
+        provider.CurrentState = TestState.Member;
+        Assert.That(await starter.Start("vault secrets list"), Is.EqualTo(60));
+    }
+
+    [Test]
     public async Task StateProviderResolvedFromServices()
     {
         var provider = new TestStateProvider { CurrentState = TestState.Member };
