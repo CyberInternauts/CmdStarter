@@ -17,7 +17,6 @@ dotnet test CmdStarter.sln --filter "FullyQualifiedName~CmdStarter.Tests.Options
 dotnet test CmdStarter.sln --filter "TestCategory=REPL"     # fixtures carry [Category(...)]; "Integration" for the process tests
 ```
 
-- Always go through `CmdStarter.sln`, even for a filtered run: the library's `PackageId` is `$(BasePackageName).$(SolutionName)`, so building a project alone (`dotnet test CmdStarter.Tests`) fails with an invalid package id `cints.`.
 - Do not chain `dotnet build` then `dotnet test --no-build`: if the build fails, the old binaries are tested and pass.
 - `TreatWarningsAsErrors` is on everywhere; the library also runs the `latest-recommended` analyzers. CA1707, CA1716 and CA1822 stay disabled in `.editorconfig` because fixing them would break the public API (decision pending; `docs/adr/0008`). Public generic type parameters take the `T` prefix (CA1715).
 - Building `CmdStarter.Lib` also produces a NuGet package in `artefacts/` at the repository root (`GeneratePackageOnBuild`).
@@ -63,13 +62,13 @@ Each command type gets one **description instance**, created when the tree is bu
 - Command test classes must expose read-only public properties unless the property is meant to be an option: any setter, even a private one, makes `Helper.GetProperties` turn the property into an option.
 - Discovery only sees loaded assemblies, so fixtures call `TestsCommon.GlobalSetup()`, which forces `CmdStarter.Tests.Commands` to load (`DirectoryCatalog`). That catalog loads every DLL in the test output folder, so any command assembly copied there joins every default discovery.
 - `CmdStarter.Tests.App` is a real CLI app (class and method commands, Microsoft DI) that `Integration/AppProcessTests` runs as a separate process (`dotnet <dll>`) to check exit codes, stdout and stderr. The test project references it with `ReferenceOutputAssembly="false"` (build order only), for the reason above.
+- `samples/` holds the documented examples, one runnable project each (`samples/README.md`). `Integration/SamplesTests` and `Integration/DemosTests` run them the same way through `Integration/AppRunner` (project path relative to the repository root, optional environment variables), so every new sample or demo needs a `ReferenceOutputAssembly="false"` reference in `CmdStarter.Tests.csproj`. `samples/CmdStarter.Samples.Testing.Tests` is a second NUnit project, run by the same `dotnet test CmdStarter.sln`.
 
 ## Conventions
 
 - File-scoped namespaces only (`namespace X;`), enforced by `.editorconfig`. Root namespace: `com.cyberinternauts.csharp.<Project>`.
 - Ordinal string comparisons in the library.
 - Architecture decisions are recorded in `docs/adr/` (index in `docs/adr/README.md`); breaking changes go in `docs/migration/1.x-to-2.0.md`.
-- `CmdStarter.Demo.SimpleInjector` still references the published 0.9 NuGet package, not the project.
 
 ## Development workflow (local)
 
