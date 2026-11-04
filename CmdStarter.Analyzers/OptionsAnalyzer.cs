@@ -21,16 +21,26 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
             var notOption = start.Compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Attributes.NotOptionAttribute");
             var excluded = start.Compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Attributes.AllOptionsExcludedAttribute");
             var alias = start.Compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Attributes.AliasAttribute");
+            var commandAttribute = start.Compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Attributes.CommandAttribute");
             if (starterInterface is null || globalInterface is null || option is null || notOption is null || excluded is null || alias is null)
             {
                 return;
             }
 
-            start.RegisterSymbolAction(action => AnalyzeType(action, starterInterface, globalInterface, option, notOption, excluded, alias), SymbolKind.NamedType);
+            var globalNames = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var globalType in GetAllTypes(start.Compilation.Assembly.GlobalNamespace).Where(candidate => Implements(candidate, globalInterface)))
+            {
+                foreach (var property in GetOptions(globalType, starterInterface, globalInterface, option, notOption, excluded))
+                {
+                    AddNames(globalNames, property.Name, property.GetAttributes(), alias);
+                }
+            }
+
+            start.RegisterSymbolAction(action => AnalyzeType(action, starterInterface, globalInterface, option, notOption, excluded, alias, commandAttribute, globalNames), SymbolKind.NamedType);
         });
     }
 
-    private static void AnalyzeType(SymbolAnalysisContext context, INamedTypeSymbol starterInterface, INamedTypeSymbol globalInterface, INamedTypeSymbol optionAttribute, INamedTypeSymbol notOptionAttribute, INamedTypeSymbol excludedAttribute, INamedTypeSymbol aliasAttribute)
+    private static void AnalyzeType(SymbolAnalysisContext context, INamedTypeSymbol starterInterface, INamedTypeSymbol globalInterface, INamedTypeSymbol optionAttribute, INamedTypeSymbol notOptionAttribute, INamedTypeSymbol excludedAttribute, INamedTypeSymbol aliasAttribute, INamedTypeSymbol? commandAttribute, HashSet<string> globalNames)
     {
         var type = (INamedTypeSymbol)context.Symbol;
         if (type.TypeKind != TypeKind.Class)
@@ -38,21 +48,9 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var globalTypes = GetAllTypes(context.Compilation.Assembly.GlobalNamespace)
-            .Where(candidate => Implements(candidate, globalInterface))
-            .ToArray();
         if (!type.IsAbstract && Implements(type, globalInterface) && GetOptions(type, starterInterface, globalInterface, optionAttribute, notOptionAttribute, excludedAttribute).Length == 0)
         {
             context.ReportDiagnostic(Diagnostic.Create(Descriptors.EmptyGlobalOptions, type.Locations.FirstOrDefault(), type.Name));
-        }
-
-        var globalNames = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var global in globalTypes)
-        {
-            foreach (var property in GetOptions(global, starterInterface, globalInterface, optionAttribute, notOptionAttribute, excludedAttribute))
-            {
-                AddNames(globalNames, property.Name, property.GetAttributes(), aliasAttribute);
-            }
         }
 
         if (Implements(type, starterInterface))
@@ -66,7 +64,6 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        var commandAttribute = context.Compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Attributes.CommandAttribute");
         if (commandAttribute is not null)
         {
             foreach (var method in type.GetMembers().OfType<IMethodSymbol>().Where(method => method.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, commandAttribute))))
