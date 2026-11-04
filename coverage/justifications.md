@@ -259,10 +259,10 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`.
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Lib/Binding/CommandActivation.cs:26
+### CmdStarter.Lib/Binding/CommandActivation.cs:25
 
 - **File**: `CmdStarter.Lib/Binding/CommandActivation.cs`
-- **Line**: 26, the branch where `disposed` is already `true` (1 of 2 branches is covered).
+- **Line**: 25, the branch where `disposed` is already `true` (1 of 2 branches is covered).
 - **Code**:
 
   ```csharp
@@ -275,10 +275,10 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`: contract of IDisposable.
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Lib/Binding/CommandBinder.cs:87
+### CmdStarter.Lib/Binding/CommandBinder.cs:86
 
 - **File**: `CmdStarter.Lib/Binding/CommandBinder.cs`
-- **Line**: 87, the statement after `ExceptionDispatchInfo.Throw()`.
+- **Line**: 86, the statement after `ExceptionDispatchInfo.Throw()`.
 - **Code**:
 
   ```csharp
