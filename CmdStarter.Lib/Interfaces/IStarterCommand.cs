@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace CyberInternauts.CmdStarter.Interfaces;
 
 /// <summary>
@@ -26,6 +28,7 @@ public interface IStarterCommand
     /// </summary>
     /// <typeparam name="TCommand">Command type to get the instance of</typeparam>
     /// <returns>An instance of the class implementing <see cref="IStarterCommand"/></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "TCommand is a command type, and the command catalog keeps all the members of the commands it declares, their parameterless constructor included.")]
     public static virtual IStarterCommand GetInstance<TCommand>() where TCommand : IStarterCommand
     {
         return Activator.CreateInstance<TCommand>();

@@ -1,6 +1,7 @@
 using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Interfaces;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -22,10 +23,22 @@ public static class Helper
     /// </summary>
     /// <param name="commandType">Command type to look for <see cref="IStarterCommand.GetInstance{TCommand}"/></param>
     /// <returns>A method info object of the method to execute. The result only depends on the type, so it is computed once per type.</returns>
-    public static MethodInfo FindGetInstanceMethod(Type commandType) =>
-        getInstanceMethods.GetOrAdd(commandType, SearchGetInstanceMethod);
+    public static MethodInfo FindGetInstanceMethod([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type commandType)
+    {
+        // Not GetOrAdd with a method group: a delegate to a method whose parameter is annotated is a reflection access for the trimmer. Two threads that search at once find the same method.
+        if (!getInstanceMethods.TryGetValue(commandType, out var method))
+        {
+            method = SearchGetInstanceMethod(commandType);
+            getInstanceMethods[commandType] = method;
+        }
 
-    private static MethodInfo SearchGetInstanceMethod(Type commandType)
+        return method;
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "GetMethod reads the public methods of the base types of a command, and a command type that is kept (the command catalog keeps all its members) keeps the public methods that it inherits.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "The generic method is IStarterCommand.GetInstance, instantiated over a command class, which is a reference type: the instantiation shares the code of the canonical form and needs nothing of its own.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "The generic method is IStarterCommand.GetInstance, instantiated over a command class, which is a reference type: the instantiation shares the code of the canonical form, so no native code has to be generated at run time.")]
+    private static MethodInfo SearchGetInstanceMethod([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type commandType)
     {
         const string methodName = nameof(IStarterCommand.GetInstance);
 
@@ -51,10 +64,11 @@ public static class Helper
         return method;
     }
 
-    internal static bool DeclaresGetInstance(Type commandType) =>
+    internal static bool DeclaresGetInstance([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type commandType) =>
         FindGetInstanceMethod(commandType).DeclaringType != typeof(IStarterCommand);
 
     /// <inheritdoc cref="GetProperties(Type)"/>
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "The type is the one of an instance that exists, which is a command or a global options container: the command catalog keeps all the members of the types it declares.")]
     public static IEnumerable<PropertyInfo> GetProperties(object obj)
     {
         return GetProperties(obj.GetType());
@@ -65,7 +79,7 @@ public static class Helper
     /// </summary>
     /// <param name="type">Type to look properties on</param>
     /// <returns>A list of properties</returns>
-    public static IEnumerable<PropertyInfo> GetProperties(Type type)
+    public static IEnumerable<PropertyInfo> GetProperties([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
     {
         LoadInterfaceProperties();
 
@@ -183,6 +197,7 @@ public static class Helper
     /// <summary>
     /// Gets the types of an assembly that can be loaded: the others (a type that depends on a missing assembly) are left out instead of failing the whole assembly.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The scan of the types of an assembly only runs for an assembly that has no command catalog, which is not supported in a trimmed application: an assembly that has one is read from its catalog, which keeps the types it declares.")]
     internal static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
     {
         try

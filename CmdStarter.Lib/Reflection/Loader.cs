@@ -12,21 +12,28 @@ using System.Text;
 using static CyberInternauts.CmdStarter.Reflection.Helper;
 using CyberInternauts.CmdStarter.Binding;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CyberInternauts.CmdStarter.Reflection;
 
 internal static class Loader
 {
 
-    internal static List<OptionBinding> LoadOptions(Type from, Command receptacle)
+    // The type of an option is the type of a property or of a parameter of a command that is kept with all its members. A collection type that an option uses is a type that the application uses,
+    // and the trimmer keeps the interfaces of a type that is used.
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "The type of an option comes from a property or a parameter of a command that the command catalog keeps with all its members, and the interfaces of a type that the application uses are kept with it.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "The type of an option comes from a property or a parameter of a command that the command catalog keeps with all its members, and the interfaces of a type that the application uses are kept with it.")]
+    private static bool ImplementsIList(Type type) => type.GetInterfaces()
+        .Any(implemented => implemented.IsGenericType && implemented.GetGenericTypeDefinition() == typeof(IList<>));
+
+    internal static List<OptionBinding> LoadOptions([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type from, Command receptacle)
     {
         var bindings = new List<OptionBinding>();
         var properties = GetProperties(from);
 
         foreach (var property in properties)
         {
-            var isList = property.PropertyType.GetInterfaces()
-                .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+            var isList = ImplementsIList(property.PropertyType);
 
             var optionName = StarterCommand.OptionPrefix + property.Name.PascalToKebabCase();
             var option = SymbolFactories.For(property.PropertyType).CreateOption(optionName);
@@ -86,8 +93,7 @@ internal static class Loader
         option.Required = Attribute.IsDefined(parameter, typeof(RequiredAttribute));
         AddValidationAttributes(parameter, option, parameter.Name!.PascalToKebabCase());
         option.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
-        option.AllowMultipleArgumentsPerToken = parameter.ParameterType.GetInterfaces()
-            .Any(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IList<>));
+        option.AllowMultipleArgumentsPerToken = ImplementsIList(parameter.ParameterType);
         LoadDescription(parameter, option);
         LoadAliases(parameter, option.Aliases);
         LoadAutoCompletes(parameter, completion => option.CompletionSources.Add(completion));
@@ -218,9 +224,9 @@ internal static class Loader
             return;
         }
 
-        var context = new ValidationContext(new object())
+        // The constructor that takes a display name is the one that does not look for attributes on the type of the instance.
+        var context = new ValidationContext(new object(), displayName, serviceProvider: null, items: null)
         {
-            DisplayName = displayName,
             MemberName = displayName
         };
         var validationResult = attribute.GetValidationResult(value, context);

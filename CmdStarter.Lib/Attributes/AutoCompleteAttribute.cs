@@ -1,5 +1,6 @@
 using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine.Completions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CyberInternauts.CmdStarter.Attributes;
 
@@ -44,7 +45,7 @@ public class AutoCompleteAttribute : Attribute
     /// </para>
     /// </summary>
     /// <param name="features"><see cref="Type"/> of an <see cref="Enum"/> or an <see cref="IAutoCompleteProvider"/>.</param>
-    public AutoCompleteAttribute(Type features)
+    public AutoCompleteAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type features)
         : this(features, Array.Empty<string>())
     { }
 
@@ -69,7 +70,7 @@ public class AutoCompleteAttribute : Attribute
     /// </summary>
     /// <param name="features">Must be <see langword="typeof"/> <see cref="IAutoCompleteFactory"/>.</param>
     /// <param name="completions">Labels for the auto completions.</param>
-    public AutoCompleteAttribute(Type features, params object[] completions)
+    public AutoCompleteAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type features, params object[] completions)
     {
         _labels = new LinkedList<string>();
         FillLabels(completions);
@@ -158,7 +159,7 @@ public class AutoCompleteAttribute : Attribute
 /// </para>
 /// </typeparam>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = true)]
-public sealed class AutoCompleteAttribute<T> : AutoCompleteAttribute
+public sealed class AutoCompleteAttribute<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] T> : AutoCompleteAttribute
 {
     /// <summary>
     /// <para>

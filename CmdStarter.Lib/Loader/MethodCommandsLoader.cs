@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Exceptions;
@@ -7,13 +8,13 @@ namespace CyberInternauts.CmdStarter.Loader;
 
 internal static class MethodCommandsLoader
 {
-    internal static bool DeclaresCommands(Type type) => Attribute.IsDefined(type, typeof(CommandAttribute))
+    internal static bool DeclaresCommands([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)] Type type) => Attribute.IsDefined(type, typeof(CommandAttribute))
         || type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Any(method => Attribute.IsDefined(method, typeof(CommandAttribute)));
 
     // The commands of a class in the order of their declaration (the metadata token). Without dynamic code (Native AOT), a method has no metadata token:
     // the order is the one that GetMethods gives, which is not necessarily the order of the declarations.
-    internal static IReadOnlyList<MethodInfo> GetCommandMethods(Type type, bool dynamicCodeSupported)
+    internal static IReadOnlyList<MethodInfo> GetCommandMethods([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type type, bool dynamicCodeSupported)
     {
         var methods = type
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
@@ -21,7 +22,7 @@ internal static class MethodCommandsLoader
         return (dynamicCodeSupported ? methods.OrderBy(method => method.MetadataToken) : methods).ToArray();
     }
 
-    internal static void Validate(Type type)
+    internal static void Validate([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)] Type type)
     {
         var declared = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly);
         var methods = declared.Where(method => Attribute.IsDefined(method, typeof(CommandAttribute))).ToArray();

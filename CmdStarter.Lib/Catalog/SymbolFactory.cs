@@ -1,10 +1,11 @@
 using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CyberInternauts.CmdStarter.Catalog;
 
 // The factory of one value type. The code that the generator writes instantiates it with a type argument known at compile time, which is what makes
 // Option<T>, Argument<T> and ParseResult.GetValue<T> exist statically in the application; SymbolFactories builds it by reflection for any other type.
-internal sealed class SymbolFactory<T> : ISymbolFactory
+internal sealed class SymbolFactory<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : ISymbolFactory
 {
     public Type ValueType => typeof(T);
 

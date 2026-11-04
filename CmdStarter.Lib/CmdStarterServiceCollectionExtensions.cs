@@ -22,15 +22,16 @@ public static class CmdStarterServiceCollectionExtensions
         starter.FindCommandsTypes();
         foreach (var commandType in starter.CommandsTypes)
         {
-            if (!Helper.DeclaresGetInstance(commandType)) services.TryAddTransient(commandType);
+            var kept = KeptTypes.Of(commandType);
+            if (!Helper.DeclaresGetInstance(kept)) services.TryAddTransient(kept);
         }
         foreach (var commandType in starter.MethodCommandsTypes.Where(type => !type.IsAbstract))
         {
-            services.TryAddTransient(commandType);
+            services.TryAddTransient(KeptTypes.Of(commandType));
         }
         foreach (var filterType in starter.FilterTypes)
         {
-            services.TryAddTransient(filterType);
+            services.TryAddTransient(KeptTypes.Of(filterType));
         }
         services.TryAddSingleton<Starter>(provider =>
         {

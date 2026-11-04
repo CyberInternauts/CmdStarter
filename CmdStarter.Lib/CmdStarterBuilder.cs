@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Loader;
@@ -38,7 +39,7 @@ public sealed class CmdStarterBuilder
     /// <summary>Adds a command filter type to the configured starter.</summary>
     /// <typeparam name="TFilter">The filter type.</typeparam>
     /// <returns>This builder.</returns>
-    public CmdStarterBuilder AddFilter<TFilter>() where TFilter : class, ICommandFilter
+    public CmdStarterBuilder AddFilter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TFilter>() where TFilter : class, ICommandFilter
     {
         options.AddFilter<TFilter>();
         return this;

@@ -5,6 +5,8 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using static CyberInternauts.CmdStarter.Reflection.Helper;
 using CyberInternauts.CmdStarter.Binding;
+using CyberInternauts.CmdStarter.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace CyberInternauts.CmdStarter;
@@ -67,9 +69,10 @@ public sealed class GlobalOptionsManager
         optionBindings.Clear();
         foreach (var type in GlobalOptionsTypes)
         {
-            var bindings = Reflection.Loader.LoadOptions(type, receptacle);
+            var kept = KeptTypes.Of(type);
+            var bindings = Reflection.Loader.LoadOptions(kept, receptacle);
             optionBindings[type] = bindings;
-            var sample = CreateSample(type);
+            var sample = CreateSample(kept);
             foreach (var binding in bindings)
             {
                 Reflection.Loader.SetImplicitDefault(binding.Option, binding.Property.GetValue(sample));
@@ -77,7 +80,7 @@ public sealed class GlobalOptionsManager
         }
     }
 
-    private static object CreateSample(Type type)
+    private static object CreateSample([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type)
     {
         try
         {
@@ -95,7 +98,7 @@ public sealed class GlobalOptionsManager
         {
             if (optionBindings.TryGetValue(type, out var bindings))
             {
-                globalOptions[type] = CommandBinder.CreateGlobalOptions(parseResult, type, bindings);
+                globalOptions[type] = CommandBinder.CreateGlobalOptions(parseResult, KeptTypes.Of(type), bindings);
             }
         }
     }

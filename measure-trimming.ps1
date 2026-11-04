@@ -4,9 +4,9 @@
 
 .DESCRIPTION
     1. builds CmdStarter.sln in Release, which writes the package cints.CmdStarter in artefacts/;
-    2. recreates, outside the repository, $env:TEMP\CmdStarter-trimming\HelloWorld and ...\DevOpsTool: an application that references the package
+    2. recreates, outside the repository, $env:TEMP\CmdStarter-trimming\HelloWorld, ...\DevOpsTool and ...\Lists: an application that references the package
        (RestoreSources = artefacts/ and nuget.org, RestorePackagesPath = $env:TEMP\CmdStarter-trimming\packages, so the global NuGet cache of the user is never read or written)
-       and holds a copy of the sources of the sample;
+       and holds a copy of the sources of the sample (Lists, which has the collection options, is written by the script);
     3. publishes each application with -p:PublishTrimmed=true and with -p:PublishAot=true (-c Release -r win-x64 --self-contained);
     4. runs each executable and records the exit code, the first line of the output and the first line of the error output;
     5. writes coverage/trimming/trimming.md (coverage/trimming/ is ignored by git).
@@ -40,10 +40,37 @@ $packageVersion = $versionMatch.Groups[1].Value
 
 # The applications: the sample to copy, the commands to run, and what each must give.
 # Expect = 'Output' (exit code 0 and the first line of the output), 'AnyOutput' (exit code 0 and a non-empty output), 'ParseError' (an exit code from 1 to 255, and no unhandled exception).
+# The third application is written by the script itself: it has the collection options that the two samples do not have (a List<string> option, a string[] argument, an int[] option), which are read
+# through GetInterfaces. Its single command is not rooted, so that the command name is on the command line.
+$listsProgram = @'
+using CyberInternauts.CmdStarter;
+
+namespace CyberInternauts.CmdStarter.Samples.Lists;
+
+public static class Program
+{
+    public static Task<int> Main(string[] args) => new Starter { IsRootingLonelyCommand = false }.Start(args);
+}
+'@
+$listsCommand = @'
+namespace CyberInternauts.CmdStarter.Samples.Lists;
+
+public sealed class Show : StarterCommand
+{
+    public List<string> Names { get; set; } = new();
+
+    public int[] Numbers { get; set; } = [];
+
+    public override Delegate HandlingMethod => (string[] values) =>
+        Console.WriteLine($"names={string.Join(",", Names)} values={string.Join(",", values)} numbers={string.Join(",", Numbers)}");
+}
+'@
+
 $applications = @(
     [pscustomobject]@{
         Name   = 'HelloWorld'
         Sample = 'samples/CmdStarter.Samples.HelloWorld'
+        Files  = $null
         Runs   = @(
             [pscustomobject]@{ Arguments = '--to Bob'; Expect = 'Output'; Line = 'Hello, Bob!' }
         )
@@ -51,10 +78,19 @@ $applications = @(
     [pscustomobject]@{
         Name   = 'DevOpsTool'
         Sample = 'samples/CmdStarter.Samples.DevOpsTool'
+        Files  = $null
         Runs   = @(
             [pscustomobject]@{ Arguments = 'service deploy api --version 1.2.3'; Expect = 'Output'; Line = 'Deploying api 1.2.3 to dev' },
             [pscustomobject]@{ Arguments = '--help'; Expect = 'AnyOutput'; Line = '' },
             [pscustomobject]@{ Arguments = 'service deploy'; Expect = 'ParseError'; Line = '' }
+        )
+    },
+    [pscustomobject]@{
+        Name   = 'Lists'
+        Sample = $null
+        Files  = [ordered]@{ 'Program.cs' = $listsProgram; 'Show.cs' = $listsCommand }
+        Runs   = @(
+            [pscustomobject]@{ Arguments = 'show a b --names x --names y --numbers 1 2'; Expect = 'Output'; Line = 'names=x,y values=a,b numbers=1,2' }
         )
     }
 )
@@ -146,14 +182,21 @@ foreach ($application in $applications) {
     $directory = Join-Path $workRoot $application.Name
     New-Item -ItemType Directory -Path $directory | Out-Null
 
-    $sampleFolder = Join-Path $repositoryRoot $application.Sample
-    foreach ($file in Get-ChildItem -LiteralPath $sampleFolder -Recurse -File -Filter '*.cs') {
-        $relative = [IO.Path]::GetRelativePath($sampleFolder, $file.FullName)
-        if ($relative -match '^(bin|obj)[\\/]') { continue }
+    if ($null -ne $application.Sample) {
+        $sampleFolder = Join-Path $repositoryRoot $application.Sample
+        foreach ($file in Get-ChildItem -LiteralPath $sampleFolder -Recurse -File -Filter '*.cs') {
+            $relative = [IO.Path]::GetRelativePath($sampleFolder, $file.FullName)
+            if ($relative -match '^(bin|obj)[\\/]') { continue }
 
-        $destination = Join-Path $directory $relative
-        New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
-        Copy-Item -LiteralPath $file.FullName -Destination $destination
+            $destination = Join-Path $directory $relative
+            New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+            Copy-Item -LiteralPath $file.FullName -Destination $destination
+        }
+    }
+    else {
+        foreach ($name in $application.Files.Keys) {
+            [IO.File]::WriteAllText((Join-Path $directory $name), $application.Files[$name], $utf8)
+        }
     }
 
     # Same settings as ProjectsCommon.props, but without TreatWarningsAsErrors: the IL warnings of the publication must not stop the measure.

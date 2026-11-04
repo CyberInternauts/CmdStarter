@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CyberInternauts.CmdStarter.Catalog;
 
@@ -26,6 +27,8 @@ internal static class SymbolFactories
     internal static bool IsGenerated(Type valueType) => registered.ContainsKey(valueType);
 
     // The only place that builds a generic type at run time for the symbols: it behaves as the factory that the generator would have registered.
+    [UnconditionalSuppressMessage("Trimming", "IL2071", Justification = "The fallback only runs for a value type that no command catalog registered, which the generator does not leave out for a type it can write. A type it cannot write is not supported under trimming; on CoreCLR the type is kept, because the application uses it.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "The fallback only runs for a value type that no command catalog registered: the generator registers the value types that the commands use, so that their factories exist in the application. Under Native AOT, a value type it could not register is not supported.")]
     internal static ISymbolFactory CreateFallback(Type valueType) =>
         (ISymbolFactory)Activator.CreateInstance(typeof(SymbolFactory<>).MakeGenericType(valueType))!;
 }

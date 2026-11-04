@@ -30,6 +30,7 @@ internal static class CatalogReader
 
     // Whether the assembly is the library or references it: only such an assembly can carry a catalog or declare method commands.
     // GetReferencedAssemblies is not supported by Native AOT: a caller that runs without dynamic code does not ask.
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The assemblies searched are those of the application, and an assembly that uses the library keeps its reference to it. The references are asked only when dynamic code is supported, never under Native AOT.")]
     internal static bool ReferencesLibrary(Assembly assembly) =>
         assembly == Library || assembly.GetReferencedAssemblies().Any(reference => reference.Name == LibraryName);
 
@@ -97,6 +98,6 @@ internal static class CatalogReader
 
         public void AddGlobalOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TContainer>() where TContainer : class, IGlobalOptionsContainer => GlobalOptionsTypes.Add(typeof(TContainer));
 
-        public void AddSymbolType<T>() => SymbolFactories.Register(new SymbolFactory<T>());
+        public void AddSymbolType<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>() => SymbolFactories.Register(new SymbolFactory<T>());
     }
 }

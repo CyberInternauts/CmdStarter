@@ -92,7 +92,7 @@ public class Starter
     /// <summary>Adds a command filter type, activated for each command execution.</summary>
     /// <typeparam name="TFilter">The filter type.</typeparam>
     /// <returns>This starter.</returns>
-    public Starter AddFilter<TFilter>() where TFilter : class, ICommandFilter
+    public Starter AddFilter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TFilter>() where TFilter : class, ICommandFilter
     {
         filters.Add(new FilterRegistration(null, typeof(TFilter)));
         return this;
@@ -115,6 +115,8 @@ public class Starter
     /// An assembly without a catalog is always scanned.
     /// </summary>
     /// <remarks>
+    /// On a runtime that does not support the reflection scan (Native AOT), only the catalogs are read, so setting it to <see langword="false"/> there makes the search of the commands
+    /// throw a <see cref="Exceptions.CmdStarterException"/>.
     /// Changing it resets the discovery. The global options containers are found once for the process, by the first <see cref="Starter"/> that builds its tree,
     /// and that <see cref="Starter"/> setting decides how: a later change does not find them again.
     /// </remarks>
@@ -685,6 +687,11 @@ public class Starter
 
     private void DiscoverCommandsTypes()
     {
+        if (!DynamicCodeSupported && !UseCommandCatalogs)
+        {
+            throw new CmdStarterException("Command catalogs are off (UseCommandCatalogs = false), and this runtime does not support the reflection scan: turn catalogs on.");
+        }
+
         var searchAssemblies = Assemblies.IsEmpty ? AppDomain.CurrentDomain.GetAssemblies() : Assemblies.Distinct();
 
         // An assembly with a catalog is read from it, without loading its types or its references; the others are scanned.
@@ -727,7 +734,7 @@ public class Starter
                 t.IsAssignableTo(typeof(IStarterCommand)) &&
                 t.Namespace != null
             ).ToArray();
-        var methodTypes = methodCandidates.Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(type)).ToArray();
+        var methodTypes = methodCandidates.Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(KeptTypes.Of(type))).ToArray();
         if (!Assemblies.IsEmpty && classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
 
         // Filter by namespaces
@@ -871,8 +878,9 @@ public class Starter
 
         foreach (var type in MethodCommandsTypes)
         {
-            MethodCommandsLoader.Validate(type);
-            AddMethodCommands(type);
+            var kept = KeptTypes.Of(type);
+            MethodCommandsLoader.Validate(kept);
+            AddMethodCommands(kept);
         }
 
         GlobalOptionsManager.LoadOptions(RootCommand);
@@ -1019,7 +1027,7 @@ public class Starter
 
     private CommandRegistration CreateCommand(Type commandType, List<CommandActivation> activations)
     {
-        var activation = Activate(commandType);
+        var activation = Activate(KeptTypes.Of(commandType));
         activations.Add(activation);
         var instance = (IStarterCommand)activation.Instance!;
         instance.GlobalOptionsManager = GlobalOptionsManager;
@@ -1059,7 +1067,7 @@ public class Starter
             command.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult, cancellationToken));
         }
 
-        registration.OptionBindings = Reflection.Loader.LoadOptions(registration.DescriptionInstance.GetType(), receptacle);
+        registration.OptionBindings = Reflection.Loader.LoadOptions(KeptTypes.Of(registration.DescriptionInstance.GetType()), receptacle);
         foreach (var binding in registration.OptionBindings)
         {
             binding.InitialValue = binding.Property.GetValue(registration.DescriptionInstance);
@@ -1106,7 +1114,7 @@ public class Starter
 
     private async Task<int> HandleCommandCoreAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
-        await using var activation = Activate(registration.CommandType);
+        await using var activation = Activate(KeptTypes.Of(registration.CommandType));
         var instance = (IStarterCommand)activation.Instance!;
         instance.GlobalOptionsManager = GlobalOptionsManager;
         if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
@@ -1255,7 +1263,7 @@ public class Starter
         return parameter.ParameterType.IsValueType ? SymbolFactories.For(parameter.ParameterType).DefaultValue : null;
     }
 
-    private void AddMethodCommands(Type type)
+    private void AddMethodCommands([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type type)
     {
         var groupAttribute = type.GetCustomAttribute<CommandAttribute>();
         Command? group = null;
@@ -1419,9 +1427,10 @@ public class Starter
 
     private CommandActivation ActivateMethodCommand(MethodInfo method)
     {
-        if (ServiceProvider is not null) return ActivateFromServices(method.IsStatic ? null : method.DeclaringType);
+        // The class that declares a method command was registered by the catalog (AddMethodCommands keeps all its members), or handed to the starter by the application.
+        if (ServiceProvider is not null) return ActivateFromServices(method.IsStatic ? null : KeptTypes.Of(method.DeclaringType!));
         if (method.IsStatic) return new CommandActivation(null, ownsInstance: false);
-        return new CommandActivation(Activator.CreateInstance(method.DeclaringType!)!, ownsInstance: true);
+        return new CommandActivation(Activator.CreateInstance(KeptTypes.Of(method.DeclaringType!))!, ownsInstance: true);
     }
 
     private static object? GetMethodService(CommandActivation activation, ParameterInfo parameter)
@@ -1453,7 +1462,7 @@ public class Starter
         rootCommand = new();
     }
 
-    private CommandActivation Activate(Type commandType)
+    private CommandActivation Activate([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] Type commandType)
     {
         var getInstance = FindGetInstanceMethod(commandType);
         if (getInstance.DeclaringType != typeof(IStarterCommand))
@@ -1478,7 +1487,7 @@ public class Starter
         return new CommandActivation((IStarterCommand)Activator.CreateInstance(commandType)!, ownsInstance: true);
     }
 
-    private CommandActivation ActivateFromServices(Type? instanceType)
+    private CommandActivation ActivateFromServices([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type? instanceType)
     {
         var provider = ServiceProvider!;
         var scopeFactory = provider.GetService<IServiceScopeFactory>();
@@ -1518,6 +1527,6 @@ public class Starter
         CommandsTypes.ForEach(type => serviceManager.SetService(type));
     }
 
-    private sealed record FilterRegistration(ICommandFilter? Instance, Type? FilterType);
+    private sealed record FilterRegistration(ICommandFilter? Instance, [param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)][property: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type? FilterType);
 
 }

@@ -28,6 +28,6 @@ public interface ICommandCatalogBuilder
     /// Declares a type of value that options and arguments use, so that CmdStarter has a typed factory of symbols for it (<see cref="ISymbolFactory"/>)
     /// that exists in the assembly of the catalog. The first declaration of a type is kept for the whole process; a later one is ignored.
     /// </summary>
-    /// <typeparam name="T">The type of the values.</typeparam>
-    void AddSymbolType<T>();
+    /// <typeparam name="T">The type of the values. Its parameterless constructor is kept when the application is trimmed, because the default value of a value type is the one it gives.</typeparam>
+    void AddSymbolType<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>();
 }

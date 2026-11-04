@@ -74,6 +74,22 @@ public class DynamicCodeSupport
         Assert.That(plain.TypesCalls, Is.EqualTo(0));
     }
 
+    [Test]
+    public void CatalogsOffWithoutDynamicCodeIsAConfigurationError()
+    {
+        // Nothing could be read and nothing could be scanned: the error says why, instead of a NoCommandFoundException that blames a filter.
+        var starter = new Starter { DynamicCodeSupported = false, UseCommandCatalogs = false, Assemblies = ImmutableList.Create<Assembly>(new CatalogAssembly("WithCatalog", typeof(CatalogWithContainer))) };
+
+        var exception = Assert.Throws<CmdStarterException>(() => starter.FindCommandsTypes());
+
+        Assert.That(exception!.Message, Is.EqualTo("Command catalogs are off (UseCommandCatalogs = false), and this runtime does not support the reflection scan: turn catalogs on."));
+        Assert.That(exception, Is.TypeOf<CmdStarterException>());
+
+        // A failed discovery leaves nothing half done: the next call fails the same way.
+        var again = Assert.Throws<CmdStarterException>(() => starter.FindCommandsTypes());
+        Assert.That(again!.Message, Is.EqualTo(exception.Message));
+    }
+
     [TestCase(true, typeof(FileNotFoundException))]
     [TestCase(true, typeof(FileLoadException))]
     [TestCase(true, typeof(TypeLoadException))]

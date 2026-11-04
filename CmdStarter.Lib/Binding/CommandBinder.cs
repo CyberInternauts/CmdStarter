@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using CyberInternauts.CmdStarter.Catalog;
@@ -34,7 +35,7 @@ internal static class CommandBinder
         }
     }
 
-    internal static object CreateGlobalOptions(ParseResult parseResult, Type type, IEnumerable<OptionBinding> bindings)
+    internal static object CreateGlobalOptions(ParseResult parseResult, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, IEnumerable<OptionBinding> bindings)
     {
         var instance = Activator.CreateInstance(type)!;
         foreach (var binding in bindings)

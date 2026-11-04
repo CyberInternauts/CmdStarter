@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Attributes;
@@ -88,6 +89,7 @@ public abstract class StarterCommand : IStarterCommand
     /// </summary>
     /// <typeparam name="TCommand">Command type to instantiate.</typeparam>
     /// <returns>An instance of the requested command type.</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2087", Justification = "TCommand is a command type, and the command catalog keeps all the members of the commands it declares, the public methods that a command inherits included.")]
     public static IStarterCommand GetInstance<TCommand>() where TCommand : IStarterCommand
     {
         var method = FindGetInstanceMethod(typeof(TCommand));
