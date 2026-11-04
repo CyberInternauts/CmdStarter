@@ -1,4 +1,3 @@
-using System.CommandLine;
 using CyberInternauts.CmdStarter.Interfaces;
 
 namespace CyberInternauts.CmdStarter.Samples.Filters;
@@ -22,22 +21,7 @@ public sealed class ConfirmationFilter : ICommandFilter
             return await next();
         }
 
-        Option<bool>? yesOption = null;
-        Command? command = context.Command;
-        while (command is not null && yesOption is null)
-        {
-            yesOption = command.Options
-                .OfType<Option<bool>>()
-                .SingleOrDefault(option => string.Equals(option.Name, "--yes", StringComparison.Ordinal));
-            command = command.Parents.FirstOrDefault() as Command;
-        }
-
-        if (yesOption is null)
-        {
-            throw new InvalidOperationException("The --yes option is not registered.");
-        }
-
-        if (context.ParseResult.GetValue(yesOption))
+        if (context.ParseResult.GetValue<bool>("--yes"))
         {
             return await next();
         }
