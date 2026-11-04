@@ -15,5 +15,9 @@ When a handler throws `OperationCanceledException` while its command cancellatio
 
 Configuration errors are exceptions derived from `CmdStarterException`. They are thrown while the command tree is built and are not converted to an exit code by CmdStarter.
 
+## Name conflicts
+
+Conflicting command names or aliases between a command and its direct subcommands, and conflicting option names or aliases on the same command, are configuration errors. `Starter.InstantiateCommands` throws `InvalidAttributeException` when it finds one. This catches conflicts before parsing: System.CommandLine otherwise throws a less informative `ArgumentException` only when parsing reaches the affected command, or silently leaves one of two conflicting options masked. An option on a subcommand that masks a global option inherited from the root is not checked.
+
 ## Consequences
 Callers can use the process exit code for successful results, parse failures, command exceptions, and cancelled commands. Exception messages are concise by default; applications can enable full details through `ShowExceptionDetails`. Invalid application configuration is surfaced as a `CmdStarterException` during startup rather than as a command result.
