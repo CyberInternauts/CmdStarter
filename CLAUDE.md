@@ -19,7 +19,7 @@ dotnet test CmdStarter.sln --filter "TestCategory=REPL"     # fixtures carry [Ca
 
 - Do not chain `dotnet build` then `dotnet test --no-build`: if the build fails, the old binaries are tested and pass.
 - `TreatWarningsAsErrors` is on everywhere; the library also runs the `latest-recommended` analyzers, with no rule disabled (`docs/adr/0008`, `docs/adr/0013`): public constants are PascalCase (`Starter.ExclusionSymbol`, `StarterCommand.OptionPrefix`…), public generic type parameters take the `T` prefix (CA1715), and the only CA1031 suppressions are the two catch-all handlers in `Starter`.
-- Building `CmdStarter.Lib` and `CmdStarter.Hosting` also produces their NuGet packages in `artefacts/` at the repository root (`GeneratePackageOnBuild`).
+- Building `CmdStarter.Lib` and `CmdStarter.Hosting` also produces their NuGet packages in `artefacts/` at the repository root (`GeneratePackageOnBuild`). `cints.CmdStarter` ships the Roslyn analyzer `CmdStarter.Analyzers` (netstandard2.0, Microsoft.CodeAnalysis.CSharp 5.0.0) under `analyzers/dotnet/cs`, with no package dependency (`docs/adr/0018`).
 - System.CommandLine localizes its help text (French on this machine): tests must check exit codes or symbols, never help wording.
 
 ## Architecture
@@ -73,8 +73,11 @@ Each command type gets one **description instance**, created when the tree is bu
   - commands the application added to `RootCommand` itself are left alone.
 - The attribute without any provider throws `InvalidAttributeException` when the tree is built.
 
+**Analyzer** (`CmdStarter.Analyzers`, `docs/adr/0018`): rules `CMDS0001`–`CMDS0011` repeat at compile time checks the runtime already makes (parent cycles, several `[Parent]`, `[AutoComplete]` that yields nothing or uses an unsupported type, blank command names, invalid `[Command]` methods, mixed models, empty `[Command]` groups); `CMDS0012` (a command option hides a global option) and `CMDS0013` (a global options container has no option) are advice only. All are warnings, so with `TreatWarningsAsErrors` they break the build of `CmdStarter.Tests.App` and of every project under `samples/` (`samples/Directory.Build.props` references the analyzer). `NameConversion` copies the library's kebab-casing; keep the two in sync (the `KebabCaseMatchesLibrary` test compares them). New rules go in `AnalyzerReleases.Unshipped.md`.
+
 ## Tests
 
+- `CmdStarter.Analyzers.Tests` compiles C# snippets against the library (`AnalyzerRunner`) and counts the diagnostics per rule.
 - `CmdStarter.Tests` (NUnit) exercises commands defined in `CmdStarter.Tests.Commands`; `CmdStarter.Tests.Common` holds the shared interfaces and the generic `[TestCase<T>]` attributes.
 - **The namespaces and attributes of the test commands are test data.** Tree-building tests depend on where a command class lives, so moving or adding a class in `CmdStarter.Tests.Commands` can change other tests' trees.
 - Each test isolates its commands by setting `Namespaces`/`Classes` on a fresh `Starter`. `TestsCommon.CreateCmdStarter()` excludes the `Erroneous`, `DepencendyInjection`, `Lifecycle`, `Methods`, `Cancellation`, `ReplApp`, `States`, `Validation`, `MethodGroups`, `Hosting`, `SameLeafNames`, `DefaultValues`, `FluentTree` and `NamespaceGroups` namespaces by default (a new namespace of special-purpose test commands is added to both lists) (exclusions also repeated in `Repl.SetDefaultNamespaces`). The lifecycle and DI tests instead isolate one command type with a `Classes` filter, which makes it a lonely, rooted command.
