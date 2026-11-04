@@ -1,3 +1,4 @@
+using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingByInterface;
 using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.ChildingByInterface.Children;
@@ -340,4 +341,57 @@ public class Basics
             yield return new(namespaceFilter, types);
         }
     }
+
+    [Test]
+    [Category("Commands")]
+    public void DiscoversCommandsInDeterministicOrder()
+    {
+        starter.FindCommandsTypes();
+        var sorted = starter.CommandsTypes.OrderBy(type => type.FullName, StringComparer.Ordinal).ToList();
+        Assert.That(starter.CommandsTypes, Is.EqualTo(sorted));
+
+        var other = TestsCommon.CreateCmdStarter();
+        other.FindCommandsTypes();
+        Assert.That(other.CommandsTypes, Is.EqualTo(starter.CommandsTypes));
+    }
+
+    [Test]
+    [Category("GlobalOptions")]
+    public void OrdersGlobalOptionsTypesDeterministically()
+    {
+        starter.InstantiateCommands();
+
+        var types = starter.GlobalOptionsManager.GlobalOptionsTypes;
+        Assert.That(types, Is.Not.Empty);
+        Assert.That(types, Is.EqualTo(types.OrderBy(type => type.FullName, StringComparer.Ordinal).ToList()));
+    }
+
+    [Test]
+    [Category("Commands")]
+    public void BuildsSameTreeWhateverTheTypesOrder([Values] ClassesBuildingMode mode)
+    {
+        // DuplicatedChildren is ambiguous on purpose (two [Children] parents claim the same child): there,
+        // the last claimant in discovery order wins, which the sorted discovery order makes deterministic.
+        var ambiguous = TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Attributes.Children.DuplicatedChildren.DuplicateOnSame).Namespace!;
+
+        starter.Namespaces = starter.Namespaces.Add(ambiguous);
+        starter.ClassesBuildingMode = mode;
+        starter.BuildTree();
+        var sortedOrderTree = DescribeTree(starter.CommandsTypesTree);
+
+        var reversed = TestsCommon.CreateCmdStarter();
+        reversed.Namespaces = reversed.Namespaces.Add(ambiguous);
+        reversed.ClassesBuildingMode = mode;
+        reversed.FindCommandsTypes();
+        reversed.CommandsTypes = reversed.CommandsTypes.Reverse();
+        reversed.BuildTree();
+
+        Assert.That(DescribeTree(reversed.CommandsTypesTree), Is.EquivalentTo(sortedOrderTree));
+    }
+
+    /// <summary>Each node as "parent > child", the root being "&lt;root&gt;": the tree shape without the children order.</summary>
+    private static List<string> DescribeTree(TreeNode<Type> tree) => tree.FlattenNodes()
+        .Where(node => node.Value is not null)
+        .Select(node => (node.Parent?.Value?.FullName ?? "<root>") + " > " + node.Value!.FullName)
+        .ToList();
 }

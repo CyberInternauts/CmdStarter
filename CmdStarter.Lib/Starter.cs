@@ -366,8 +366,9 @@ public class Starter
         methodTypes = FilterTypesByClasses(methodTypes, Classes.ToList()).ToArray();
         if (classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Classes);
 
-        this.commandsTypes = CommandsTypes.Clear().AddRange(classTypes);
-        MethodCommandsTypes = ImmutableList<Type>.Empty.AddRange(methodTypes);
+        // Deterministic order: assemblies loading and reflection order must not change the tree or the help
+        this.commandsTypes = CommandsTypes.Clear().AddRange(classTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
+        MethodCommandsTypes = ImmutableList<Type>.Empty.AddRange(methodTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
     }
 
     /// <summary>

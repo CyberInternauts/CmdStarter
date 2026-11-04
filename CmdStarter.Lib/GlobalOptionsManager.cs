@@ -73,7 +73,7 @@ public sealed class GlobalOptionsManager
         filteredTypes = FilterTypesByNamespaces(filteredTypes, starter.Namespaces.ToList());
         filteredTypes = FilterTypesByClasses(filteredTypes, starter.Classes.ToList());
 
-        GlobalOptionsTypes.AddRange(filteredTypes);
+        GlobalOptionsTypes.AddRange(filteredTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
     }
 
     internal void LoadOptions(Command receptacle)

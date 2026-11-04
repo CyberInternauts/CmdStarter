@@ -81,6 +81,9 @@ internal sealed class CommandsTreeBuilder
         var commandsWithParent = CommandsTypes.Where(t => t.GetCustomAttributes(false).Any(IsParent));
         foreach (var command in commandsWithParent)
         {
+            // Already placed as the ancestor of a command processed earlier: its whole parent chain was built then
+            if (tree.FindNode(command) != null) continue;
+
             var parentAttribute = GetParentAttribute(command);
             if (parentAttribute?.Parent == null)
             {
