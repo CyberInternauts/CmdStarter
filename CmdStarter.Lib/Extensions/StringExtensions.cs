@@ -7,6 +7,8 @@ namespace com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
 /// </summary>
 public static class StringExtensions
 {
+    internal static string ToCommandName(this string name) => name.Contains('-') ? name.ToLowerInvariant() : name.PascalToKebabCase();
+
     /// <summary>
     /// Transpose from pascal case to kebab one.
     /// </summary>

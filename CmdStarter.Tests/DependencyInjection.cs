@@ -108,7 +108,7 @@ public class DependencyInjection
         var starter = CreateLifecycleStarter<ServicesCommand>();
         starter.ServiceProvider = provider;
         ServicesCommand? executed = null;
-        starter.CommandHandled += (_, e) => executed = (ServicesCommand)e.Instance;
+        starter.CommandHandled += (_, e) => executed = (ServicesCommand)e.Instance!;
         Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(0));
         Assert.That(executed!.IsDisposed, Is.True);
         Assert.That(executed.Scoped.IsDisposed, Is.True);
@@ -145,7 +145,7 @@ public class DependencyInjection
     private static List<ServicesCommand> Capture(CmdStarterApp app)
     {
         var executed = new List<ServicesCommand>();
-        app.Starter.CommandHandled += (_, e) => executed.Add((ServicesCommand)e.Instance);
+        app.Starter.CommandHandled += (_, e) => executed.Add((ServicesCommand)e.Instance!);
         return executed;
     }
 

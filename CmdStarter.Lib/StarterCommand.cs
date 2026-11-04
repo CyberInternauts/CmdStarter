@@ -60,7 +60,7 @@ public abstract class StarterCommand : IStarterCommand
             throw new ArgumentException(nameof(name) + " parameter can't be null or white spaces");
         }
 
-        Name = name.Contains('-') ? name.ToLowerInvariant() : name.PascalToKebabCase();
+        Name = name.ToCommandName();
         Description = description;
     }
 

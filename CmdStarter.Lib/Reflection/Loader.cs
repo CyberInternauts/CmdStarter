@@ -58,22 +58,27 @@ internal static class Loader
         {
             var parameter = parameters[i];
             if (parameter.Name == null) continue; // Skipping param without name
-
-            var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
-            var constructor = argumentType.GetConstructor(new[] { typeof(string) });
-            var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name });
-            argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
-            if (parameter.DefaultValue is not System.DBNull)
-            {
-                typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
-                    .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { argument, parameter.DefaultValue });
-            }
-            LoadDescription(parameter, argument);
-            LoadAutoCompletes(parameter, completion => argument.CompletionSources.Add(completion));
+            var argument = CreateArgument(parameter);
             receptacle.Arguments.Add(argument);
             arguments[i] = argument;
         }
         return arguments;
+    }
+
+    internal static Argument CreateArgument(ParameterInfo parameter)
+    {
+        var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
+        var constructor = argumentType.GetConstructor(new[] { typeof(string) });
+        var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name! });
+        argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
+        if (parameter.DefaultValue is not System.DBNull)
+        {
+            typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { argument, parameter.DefaultValue });
+        }
+        LoadDescription(parameter, argument);
+        LoadAutoCompletes(parameter, completion => argument.CompletionSources.Add(completion));
+        return argument;
     }
 
     internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)

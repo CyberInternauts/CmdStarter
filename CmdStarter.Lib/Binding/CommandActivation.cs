@@ -9,14 +9,14 @@ internal sealed class CommandActivation : IDisposable, IAsyncDisposable
     private readonly AsyncServiceScope? scope;
     private bool disposed;
 
-    internal CommandActivation(IStarterCommand instance, bool ownsInstance, AsyncServiceScope? scope = null)
+    internal CommandActivation(object? instance, bool ownsInstance, AsyncServiceScope? scope = null)
     {
         Instance = instance;
         this.ownsInstance = ownsInstance;
         this.scope = scope;
     }
 
-    internal IStarterCommand Instance { get; }
+    internal object? Instance { get; }
 
     public async ValueTask DisposeAsync()
     {

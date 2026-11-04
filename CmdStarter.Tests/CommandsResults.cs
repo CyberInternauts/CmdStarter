@@ -48,7 +48,7 @@ public class CommandsResults
         Assert.That(command, Is.Not.Null);
         var handleTester = (IHandleTester)starter.FindCommandInstance(command)!;
         IHandleTester? executed = null;
-        starter.CommandHandled += (_, e) => executed = (IHandleTester)e.Instance;
+        starter.CommandHandled += (_, e) => executed = (IHandleTester)e.Instance!;
 
         var mainArgs = new List<string>();
 

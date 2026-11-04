@@ -82,17 +82,24 @@ internal static class CommandBinder
             }
         }
 
-        object? result;
-        try
-        {
-            result = handler.DynamicInvoke(values);
-        }
+        var result = Invoke(() => handler.DynamicInvoke(values));
+        return await ToExitCodeAsync(result);
+    }
+
+    internal static object? Invoke(Func<object?> call)
+    {
+        try { return call(); }
         catch (TargetInvocationException exception) when (exception.InnerException is not null)
         {
             ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
             throw;
         }
+    }
 
+    internal static async Task<int> ToExitCodeAsync(object? result)
+    {
+        if (result is ValueTask<int> valueTaskInt) return await valueTaskInt;
+        if (result is ValueTask valueTask) { await valueTask; return 0; }
         if (result is Task<int> intTask) return await intTask;
         if (result is Task task)
         {

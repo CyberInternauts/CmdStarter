@@ -40,6 +40,8 @@ public sealed class GlobalOptionsManager
         return globalOptions.TryGetValue(type, out object? value) ? (GlobalOptionsType)value : null;
     }
 
+    internal object? GetGlobalOptions(Type type) => globalOptions.TryGetValue(type, out var value) ? value : null;
+
     /// <summary>
     /// Add/change a global options container object based on its type
     /// </summary>

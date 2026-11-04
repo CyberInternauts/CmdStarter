@@ -155,7 +155,7 @@ public class Lifecycle
     {
         var starter = CreateLifecycleStarter<DisposableCommand>();
         DisposableCommand? executed = null;
-        starter.CommandHandled += (_, e) => executed = (DisposableCommand)e.Instance;
+        starter.CommandHandled += (_, e) => executed = (DisposableCommand)e.Instance!;
         var code = await starter.Start(Array.Empty<string>());
         Assert.That(executed, Is.Not.SameAs(starter.FindCommandInstance<DisposableCommand>()));
         Assert.That(executed!.Id, Is.EqualTo(code));

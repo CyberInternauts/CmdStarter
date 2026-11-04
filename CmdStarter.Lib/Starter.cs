@@ -459,7 +459,7 @@ public class Starter
     {
         var activation = Activate(commandType);
         activations.Add(activation);
-        var instance = activation.Instance;
+        var instance = (IStarterCommand)activation.Instance!;
         instance.GlobalOptionsManager = GlobalOptionsManager;
 
         var name = instance is StarterCommand starterCommand
@@ -507,7 +507,7 @@ public class Starter
     private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult)
     {
         await using var activation = Activate(registration.CommandType);
-        var instance = activation.Instance;
+        var instance = (IStarterCommand)activation.Instance!;
         instance.GlobalOptionsManager = GlobalOptionsManager;
         if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
         GlobalOptionsManager.BindGlobalOptions(parseResult);
