@@ -361,6 +361,8 @@ public class CommandsBasics
     [TestCase<SingleDesc>(SingleDesc.DESC)]
     [TestCase<MultipleDesc>(MultipleDesc.FIRST_DESC + StarterCommand.DESCRIPTION_JOINER + MultipleDesc.SECOND_DESC)]
     [TestCase<SingleDescByInterface>(SingleDescByInterface.DESC)]
+    [TestCase<ConstructorDesc>(ConstructorDesc.DESC)]
+    [TestCase<ConstructorAndAttributeDesc>(ConstructorAndAttributeDesc.ATTRIBUTE_DESC)]
     public void HasCommandDescription<DescClass>(string description) where DescClass : IStarterCommand
     {
         starter.InstantiateCommands();

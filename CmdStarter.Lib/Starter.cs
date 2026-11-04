@@ -500,6 +500,12 @@ public class Starter
             binding.InitialValue = binding.Property.GetValue(registration.DescriptionInstance);
         }
         Reflection.Loader.LoadDescription(registration.DescriptionInstance.GetType(), receptacle);
+        if (string.IsNullOrEmpty(receptacle.Description)
+            && registration.DescriptionInstance is StarterCommand starterCommand
+            && starterCommand.Description is not null)
+        {
+            receptacle.Description = starterCommand.Description;
+        }
         Reflection.Loader.LoadAliases(registration.DescriptionInstance.GetType(), receptacle.Aliases);
         command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
     }
