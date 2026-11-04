@@ -7,7 +7,7 @@ namespace CyberInternauts.CmdStarter;
 /// <summary>Describes a command execution after its inputs have been bound.</summary>
 public sealed class CommandContext
 {
-    internal CommandContext(Command command, string commandPath, MemberInfo member, object? instance, ParseResult parseResult, IServiceProvider? services, CancellationToken cancellationToken)
+    internal CommandContext(Command command, string commandPath, MemberInfo member, object? instance, ParseResult parseResult, IServiceProvider? services, CommandConsole console, CancellationToken cancellationToken)
     {
         Command = command;
         CommandPath = commandPath;
@@ -15,6 +15,7 @@ public sealed class CommandContext
         Instance = instance;
         ParseResult = parseResult;
         Services = services;
+        Console = console;
         CancellationToken = cancellationToken;
     }
 
@@ -35,6 +36,9 @@ public sealed class CommandContext
 
     /// <summary>Gets the execution scope's service provider, or <see langword="null"/> when dependency injection is not configured.</summary>
     public IServiceProvider? Services { get; }
+
+    /// <summary>Gets the console of this execution: the one given to <c>Start</c>, else <see cref="Starter.DefaultConsole"/>, else the console of the process.</summary>
+    public CommandConsole Console { get; }
 
     /// <summary>Gets the cancellation token for this execution.</summary>
     public CancellationToken CancellationToken { get; }

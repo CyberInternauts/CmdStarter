@@ -12,6 +12,7 @@ using CyberInternauts.CmdStarter.Reflection;
 using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Attributes;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CyberInternauts.CmdStarter;
@@ -68,6 +69,7 @@ public class Starter
     private bool groupsByNamespace;
     private bool isRootingLonelyCommand = true;
     private Func<Type, IStarterCommand>? factory;
+    private readonly ConditionalWeakTable<InvocationConfiguration, CommandConsole> consoles = new();
 
     /// <summary>Raised after a command handler returns, before its instance and services are released. It is not raised when parsing fails or the handler throws.</summary>
     public event EventHandler<CommandHandledEventArgs>? CommandHandled;
@@ -111,6 +113,9 @@ public class Starter
     /// <summary>Gets or sets whether unhandled command exceptions include their full details.</summary>
     /// <remarks>When <see langword="false"/>, an exception from command activation, binding, handling, or release writes only its message on one line to <c>parseResult.InvocationConfiguration.Error</c> and returns exit code 1. When <see langword="true"/>, System.CommandLine's default handler writes the full exception and returns exit code 1.</remarks>
     public bool ShowExceptionDetails { get; set; }
+
+    /// <summary>Gets or sets the console of every execution that is started without an explicit console. <see langword="null"/> means the console of the process, read when each command executes.</summary>
+    public CommandConsole? DefaultConsole { get; set; }
 
     /// <summary>Gets or sets the application state provider. When unset, CmdStarter resolves an <see cref="ICommandStateProvider"/> from <see cref="ServiceProvider"/>.</summary>
     /// <remarks>When registered with dependency injection, the state provider should be a singleton so state changes remain visible across command scopes.</remarks>
@@ -308,12 +313,22 @@ public class Starter
     /// </summary>
     /// <param name="args">Command line arguments.</param>
     /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    public async Task<int> Start(string[] args, CancellationToken cancellationToken)
+    public Task<int> Start(string[] args, CancellationToken cancellationToken)
     {
-        InstantiateCommands();
-        UpdateCommandAvailability();
+        return StartCoreAsync(root => root.Parse(args), null, cancellationToken);
+    }
 
-        return await RootCommand.Parse(args).InvokeAsync(CreateInvocationConfiguration(), cancellationToken);
+    /// <summary>
+    /// Find matching commands, build the tree, and execute the requested command with the given console for this execution only.
+    /// </summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <param name="console">The input, output and error of this execution: handlers, help, parse errors and exception messages use it instead of <see cref="DefaultConsole"/>.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="console"/> is null.</exception>
+    public Task<int> Start(string[] args, CommandConsole console, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(console);
+        return StartCoreAsync(root => root.Parse(args), console, cancellationToken);
     }
 
     /// <summary>
@@ -330,16 +345,47 @@ public class Starter
     /// </summary>
     /// <param name="args">Command line arguments.</param>
     /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    public async Task<int> Start(string args, CancellationToken cancellationToken)
+    public Task<int> Start(string args, CancellationToken cancellationToken)
+    {
+        return StartCoreAsync(root => root.Parse(args), null, cancellationToken);
+    }
+
+    /// <summary>
+    /// Find matching commands, build the tree, and execute the requested command with the given console for this execution only.
+    /// </summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <param name="console">The input, output and error of this execution: handlers, help, parse errors and exception messages use it instead of <see cref="DefaultConsole"/>.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="console"/> is null.</exception>
+    public Task<int> Start(string args, CommandConsole console, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(console);
+        return StartCoreAsync(root => root.Parse(args), console, cancellationToken);
+    }
+
+    // The single implementation of every Start. The console of the execution is attached to the invocation configuration itself,
+    // so concurrent executions and nested Start calls on the same Starter each keep their own console.
+    private async Task<int> StartCoreAsync(Func<RootCommand, ParseResult> parse, CommandConsole? console, CancellationToken cancellationToken)
     {
         InstantiateCommands();
         UpdateCommandAvailability();
 
-        return await RootCommand.Parse(args).InvokeAsync(CreateInvocationConfiguration(), cancellationToken);
+        var parseResult = parse(RootCommand);
+        console ??= DefaultConsole;
+        var configuration = CreateInvocationConfiguration();
+        if (console is not null)
+        {
+            configuration ??= new InvocationConfiguration();
+            configuration.Output = console.Out;
+            configuration.Error = console.Error;
+            consoles.AddOrUpdate(configuration, console);
+        }
+
+        return await parseResult.InvokeAsync(configuration, cancellationToken);
     }
 
     /// <summary>Creates the System.CommandLine invocation configuration.</summary>
-    /// <returns>The configuration, or <see langword="null"/> to keep System.CommandLine defaults.</returns>
+    /// <returns>The configuration, or <see langword="null"/> to keep System.CommandLine defaults. A non-null configuration must be a new instance at each call: a console given to <c>Start</c> is attached to it.</returns>
     protected virtual InvocationConfiguration? CreateInvocationConfiguration() => null;
 
     /// <summary>
@@ -787,13 +833,14 @@ public class Starter
         if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         CommandBinder.BindOptions(parseResult, instance, registration.OptionBindings);
-        var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.CommandType, instance, parseResult, activation.Services, cancellationToken);
+        var console = GetExecutionConsole(parseResult);
+        var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.CommandType, instance, parseResult, activation.Services, console, cancellationToken);
         return await InvokeFiltersAsync(context, async () =>
         {
             int exitCode;
             try
             {
-                exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments, cancellationToken);
+                exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments, console, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -832,6 +879,7 @@ public class Starter
     {
         await using var activation = ActivateMethodCommand(registration.Method);
         GlobalOptionsManager.BindGlobalOptions(parseResult);
+        var console = GetExecutionConsole(parseResult);
         var values = new object?[registration.Parameters.Count];
         for (var index = 0; index < registration.Parameters.Count; index++)
         {
@@ -839,6 +887,7 @@ public class Starter
             values[index] = binding.Kind switch
             {
                 ParameterBindingKind.CancellationToken => cancellationToken,
+                ParameterBindingKind.Console => console,
                 ParameterBindingKind.GlobalOptions => GlobalOptionsManager.GetGlobalOptions(binding.Parameter.ParameterType),
                 ParameterBindingKind.Service => GetMethodService(activation, binding.Parameter),
                 ParameterBindingKind.Option => GetMethodOptionValue(parseResult, (Option)binding.Symbol!, binding.Parameter),
@@ -846,7 +895,7 @@ public class Starter
                 _ => null
             };
         }
-        var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.Method, activation.Instance, parseResult, activation.Services, cancellationToken);
+        var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.Method, activation.Instance, parseResult, activation.Services, console, cancellationToken);
         return await InvokeFiltersAsync(context, async () =>
         {
             int exitCode;
@@ -863,6 +912,10 @@ public class Starter
             return exitCode;
         });
     }
+
+    // The console attached to this invocation by StartCoreAsync, else the console of the process read now.
+    private CommandConsole GetExecutionConsole(ParseResult parseResult) =>
+        consoles.TryGetValue(parseResult.InvocationConfiguration, out var console) ? console : CommandConsole.Standard;
 
     private async Task<int> InvokeFiltersAsync(CommandContext context, Func<Task<int>> command)
     {
@@ -972,6 +1025,7 @@ public class Starter
             {
                 var parameterType = parameter.ParameterType;
                 if (parameterType == typeof(CancellationToken)) { parameters.Add(new(parameter, ParameterBindingKind.CancellationToken, null)); continue; }
+                if (parameterType == typeof(CommandConsole)) { parameters.Add(new(parameter, ParameterBindingKind.Console, null)); continue; }
                 if (typeof(IGlobalOptionsContainer).IsAssignableFrom(parameterType)) { parameters.Add(new(parameter, ParameterBindingKind.GlobalOptions, null)); continue; }
                 if (Attribute.IsDefined(parameter, typeof(FromServicesAttribute)))
                 {

@@ -208,6 +208,30 @@ public sealed class ReplStarter : Starter
     public new Task<int> Start(string args, CancellationToken cancellationToken) =>
         ExecuteAndRaiseAsync(token => base.Start(args, token), cancellationToken);
 
+    /// <summary>Executes arguments with the console of this execution and raises <see cref="OnCommandExecuted"/>.</summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <param name="console">The input, output and error of this execution.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <returns>The command exit code.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="console"/> is null.</exception>
+    public new Task<int> Start(string[] args, CommandConsole console, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(console);
+        return ExecuteAndRaiseAsync(token => base.Start(args, console, token), cancellationToken);
+    }
+
+    /// <summary>Executes arguments with the console of this execution and raises <see cref="OnCommandExecuted"/>.</summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <param name="console">The input, output and error of this execution.</param>
+    /// <param name="cancellationToken">Token used to cancel command execution.</param>
+    /// <returns>The command exit code.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="console"/> is null.</exception>
+    public new Task<int> Start(string args, CommandConsole console, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(console);
+        return ExecuteAndRaiseAsync(token => base.Start(args, console, token), cancellationToken);
+    }
+
     /// <inheritdoc/>
     protected override InvocationConfiguration? CreateInvocationConfiguration() => new()
     {
