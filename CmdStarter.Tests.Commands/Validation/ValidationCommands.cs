@@ -40,6 +40,20 @@ public sealed class PickCommands
         int size = 1) => size;
 }
 
+public sealed class ImplicitDefaultCommand : StarterCommand
+{
+    [Range(1, 3)]
+    public int Level { get; set; } = 5;
+
+    public override Delegate HandlingMethod => (Func<int>)(() => Level);
+}
+
+public sealed class ImplicitDefaultCommands
+{
+    [Command]
+    public static int Fit([Option][Range(1, 3)] int size = 7) => size;
+}
+
 public sealed class LimitOptions : IGlobalOptionsContainer
 {
     [Range(0, 3)]

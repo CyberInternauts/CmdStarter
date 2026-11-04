@@ -394,4 +394,20 @@ public sealed class SamplesTests
         Assert.That(result.ExitCode, Is.Zero);
         Assert.That(result.StdOut, Does.Contain("deployed"));
     }
+
+    [Test]
+    public async Task TestingSampleTransfers()
+    {
+        var done = await AppRunner.RunAsync("samples/CmdStarter.Samples.Testing", "transfer", "alice", "bob", "--amount", "10");
+        Assert.That(done.ExitCode, Is.Zero);
+        Assert.That(done.StdOut, Does.Contain("Transferred 10 from alice to bob."));
+
+        var invalidAmount = await AppRunner.RunAsync("samples/CmdStarter.Samples.Testing", "transfer", "alice", "bob", "--amount", "0");
+        Assert.That(invalidAmount.ExitCode, Is.EqualTo(2));
+        Assert.That(invalidAmount.StdErr, Does.Contain("The amount must be positive."));
+
+        var refused = await AppRunner.RunAsync("samples/CmdStarter.Samples.Testing", "transfer", "alice", "carol", "--amount", "10");
+        Assert.That(refused.ExitCode, Is.EqualTo(1));
+        Assert.That(refused.StdErr, Does.Contain("Transfer refused."));
+    }
 }

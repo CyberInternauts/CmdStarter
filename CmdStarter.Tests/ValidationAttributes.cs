@@ -95,6 +95,32 @@ public sealed class ValidationAttributes
         Assert.That(await starter.Start("slot-command 12"), Is.Not.Zero.And.Not.EqualTo(12));
     }
 
+    [Test]
+    public async Task ImplicitValuesAreNotValidated()
+    {
+        var starter = CreateStarter();
+
+        // The initial value 5 and the parameter default 7 are outside the allowed range: they are used as they are.
+        Assert.That(await starter.Start("implicit-default-command"), Is.EqualTo(5));
+        Assert.That(await starter.Start("fit"), Is.EqualTo(7));
+
+        // The same values given explicitly are validated.
+        Assert.That(await starter.Start("implicit-default-command --level 5"), Is.Not.Zero.And.Not.EqualTo(5));
+        Assert.That(await starter.Start("fit --size 7"), Is.Not.Zero.And.Not.EqualTo(7));
+    }
+
+    [Test]
+    public async Task CustomValidatorCanBeAdded()
+    {
+        var starter = CreateStarter();
+        starter.InstantiateCommands();
+        var level = starter.FindCommand<LevelCommand>()!.Options.Single(option => option.Name == "--level");
+
+        Assert.That(await starter.Start("level-command --level 3"), Is.EqualTo(3));
+        level.Validators.Add(result => result.AddError("custom validator"));
+        Assert.That(await starter.Start("level-command --level 3"), Is.Not.Zero.And.Not.EqualTo(3));
+    }
+
     private static Starter CreateStarter()
     {
         var starter = new Starter();

@@ -53,6 +53,23 @@ public class CommandConsoles
     }
 
     [Test]
+    public async Task AppStarterReceivesConsole()
+    {
+        await using var app = new CmdStarterBuilder()
+            .AddCommandsFromAssembly(typeof(Write).Assembly)
+            .ConfigureStarter(starter => starter.Namespaces = ImmutableList.Create(typeof(Write).Namespace!))
+            .Build();
+
+        // RunAsync has no console parameter: the console goes through the app's Starter.
+        Assert.That(await app.Starter.Start("echo hello", CreateConsole()), Is.EqualTo(0));
+        Assert.That(output.ToString(), Does.Contain("hello"));
+
+        app.Starter.DefaultConsole = CreateConsole();
+        Assert.That(await app.RunAsync("echo again"), Is.EqualTo(0));
+        Assert.That(output.ToString(), Does.Contain("again"));
+    }
+
+    [Test]
     public async Task ConsoleInputIsAvailable()
     {
         var starter = CreateStarter();

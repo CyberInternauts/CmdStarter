@@ -43,6 +43,7 @@
     <ProjectReference Include="..\samples\CmdStarter.Samples.Filters\CmdStarter.Samples.Filters.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.Hosting\CmdStarter.Samples.Hosting.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.ReplServer\CmdStarter.Samples.ReplServer.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\samples\CmdStarter.Samples.Testing\CmdStarter.Samples.Testing.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
