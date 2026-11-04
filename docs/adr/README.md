@@ -24,3 +24,4 @@
 | 0020 | [REPL Line Editing](0020-repl-line-editing.md) | Accepted |
 | 0021 | [Command Console](0021-command-console.md) | Accepted |
 | 0022 | [Command Sequences](0022-command-sequences.md) | Accepted |
+| 0023 | [Text Pipes](0023-text-pipes.md) | Accepted |

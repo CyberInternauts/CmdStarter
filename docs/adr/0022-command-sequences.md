@@ -11,7 +11,7 @@ Typing `login; list` or `build && deploy` in the REPL, or passing the same line 
 
 Commands run from left to right. After `;`, the next command always runs. After `&&`, it runs only if the last executed exit code is 0. After `||`, it runs only if that code is not 0. A skipped command does not change the last exit code. The exit code of a sequence is that of the last executed command. A cancelled command (exit code 130) stops the sequence.
 
-Operators count only outside double quotes, the only quotes System.CommandLine recognizes (there is no escaping). The quotes remain in the text of the step. A single `|` and a single `&` remain plain text. Empty steps after `;` are ignored.
+Operators count only outside double quotes, the only quotes System.CommandLine recognizes (there is no escaping). The quotes remain in the text of the step. A single `&` remains plain text; a single `|` joins the commands of a pipeline inside a step ([ADR 0023](0023-text-pipes.md)). Empty steps after `;` are ignored.
 
 The following are refused, with a message that names the operator:
 
