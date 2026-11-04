@@ -54,8 +54,8 @@ The measures use 12 class commands on three levels placed with `[Parent<T>]`, ea
 - `DiscoverAllAssemblies`: a new `Starter`, then `InstantiateCommands()`, searching every assembly loaded in the benchmark process.
 - `DiscoverOneAssembly`: the same, with `Assemblies` reduced to the benchmark assembly.
 - `DefinedTree`: the same, with the 12 class commands placed by `UseTree`; method commands are still discovered.
-- `ExecuteCommand`: a `Starter` built once in `[GlobalSetup]`, then `Start("beta beta-two --count 1 value")` for each invocation.
-- `ExecuteCommandWithDependencyInjection`: a `CmdStarterBuilder` application built once in `[GlobalSetup]`, with a transient service injected into the `beta-two` command, then `RunAsync("beta beta-two --count 1 value")` for each invocation.
+- `ExecuteCommand`: a `Starter` built once in a `GlobalSetup` method, then `Start("beta beta-two --count 1 value")` for each invocation.
+- `ExecuteCommandWithDependencyInjection`: a `CmdStarterBuilder` application built once in a `GlobalSetup` method, with a transient service injected into the `beta-two` command, then `RunAsync("beta beta-two --count 1 value")` for each invocation.
 - `FirstInstantiate`: the first `InstantiateCommands()` of a new process, JIT and assembly loading included, searching every loaded assembly.
 
 Global options containers are found by `GlobalOptionsManager` through a static cache shared by every `Starter` of the process, so the warm measures pay that search once per process, while `FirstInstantiate` includes it.

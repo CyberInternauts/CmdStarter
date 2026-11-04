@@ -38,11 +38,8 @@ internal static class AppRunner
         var baseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
         var configuration = baseDirectory.Parent?.Name ?? "Debug";
         var targetFramework = baseDirectory.Name;
-        var root = baseDirectory;
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "CmdStarter.sln"))) root = root.Parent;
-        Assert.That(root, Is.Not.Null, "Could not find the repository root containing CmdStarter.sln.");
         var assemblyPath = Path.GetFullPath(Path.Combine(
-            root!.FullName,
+            RepositoryPaths.Root,
             projectPath.Replace('/', Path.DirectorySeparatorChar),
             "bin",
             configuration,

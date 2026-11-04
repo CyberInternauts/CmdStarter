@@ -32,7 +32,7 @@ in beta too.
      > For dependency injection, see below.
 - Create the Program class below.
 
-```csharp
+```text
 using CyberInternauts.CmdStarter;
 
 internal class Program
@@ -49,7 +49,7 @@ internal class Program
 
 Commands are created in this priority order: a command type's own `GetInstance<T>()`, `Starter.ServiceProvider`, `Starter.SetFactory`, then a parameterless constructor. The `IServiceManager` overload remains available for other containers. Microsoft DI users can get one scope per execution with `CmdStarterBuilder`:
 
-```csharp
+```text
 await using var app = new CmdStarterBuilder()
     .AddCommandsFromAssembly(typeof(MyCommand).Assembly)
     .ConfigureStarter(starter => starter.Namespaces = starter.Namespaces.Add("MyApp.Commands"))
@@ -67,7 +67,7 @@ Method parameters become positional arguments unless an attribute or dependency 
 Services registered with the builder can be inferred from their parameter types.
 Use `[Option]` to expose a parameter as an option.
 
-```csharp
+```text
 [Command("users")]
 public sealed class UserCommands
 {
