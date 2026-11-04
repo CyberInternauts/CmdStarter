@@ -2,6 +2,10 @@
 	<Import Project="..\ProjectsCommon.props" />
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
     <ProjectReference Include="..\CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj" />
   </ItemGroup>

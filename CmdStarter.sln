@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Samples.Repl", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Samples.CommandStates", "samples\CmdStarter.Samples.CommandStates\CmdStarter.Samples.CommandStates.csproj", "{DFAEDEF7-30D0-4C2A-A326-3F4B47FBCB45}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdStarter.Hosting", "CmdStarter.Hosting\CmdStarter.Hosting.csproj", "{36501AB1-223F-4CE6-B9A0-DD30B202EB20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -323,6 +325,18 @@ Global
 		{DFAEDEF7-30D0-4C2A-A326-3F4B47FBCB45}.Release|x64.Build.0 = Release|Any CPU
 		{DFAEDEF7-30D0-4C2A-A326-3F4B47FBCB45}.Release|x86.ActiveCfg = Release|Any CPU
 		{DFAEDEF7-30D0-4C2A-A326-3F4B47FBCB45}.Release|x86.Build.0 = Release|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Debug|x64.Build.0 = Debug|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Debug|x86.Build.0 = Debug|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Release|x64.ActiveCfg = Release|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Release|x64.Build.0 = Release|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Release|x86.ActiveCfg = Release|Any CPU
+		{36501AB1-223F-4CE6-B9A0-DD30B202EB20}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

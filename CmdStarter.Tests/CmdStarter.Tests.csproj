@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CmdStarter.Hosting\CmdStarter.Hosting.csproj" />
     <ProjectReference Include="..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
     <ProjectReference Include="..\CmdStarter.Tests.Commands\CmdStarter.Tests.Commands.csproj" />
     <ProjectReference Include="..\CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj" />
