@@ -181,7 +181,7 @@ public static class TestsCommon
     /// </summary>
     /// <param name="commandToGetProperties"></param>
     /// <param name="commandToGetOptions"></param>
-    public static void AssertOptionsPresence(Command commandToGetProperties, Command commandToGetOptions)
+    public static void AssertOptionsPresence(object commandToGetProperties, Command commandToGetOptions)
     {
         var properties = Helper.GetProperties(commandToGetProperties).ToList();
         var options = commandToGetOptions.Options

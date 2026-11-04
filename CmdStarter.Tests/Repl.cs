@@ -67,10 +67,10 @@ public class Repl
             Assert.That(actualReturnCode, Is.EqualTo(command.ExpectedValue));
         };
 
-        var preCommand = (PreCommand)starter.FindCommand<PreCommand>()!;
-        var commandOne = (CommandOne)starter.FindCommand<CommandOne>()!;
-        var commandTwo = (CommandTwo)starter.FindCommand<CommandTwo>()!;
-        var commandThree = (CommandThree)starter.FindCommand<CommandThree>()!;
+        var preCommand = starter.FindCommandInstance<PreCommand>()!;
+        var commandOne = starter.FindCommandInstance<CommandOne>()!;
+        var commandTwo = starter.FindCommandInstance<CommandTwo>()!;
+        var commandThree = starter.FindCommandInstance<CommandThree>()!;
 
         executionQueue.Enqueue(preCommand);
         executionQueue.Enqueue(commandOne);
@@ -111,10 +111,10 @@ public class Repl
             Assert.That(actualReturnCode, Is.EqualTo(command.ExpectedValue));
         };
 
-        var preCommand = (PreCommand)starter.FindCommand<PreCommand>()!;
-        var commandOne = (CommandOne)starter.FindCommand<CommandOne>()!;
-        var commandTwo = (CommandTwo)starter.FindCommand<CommandTwo>()!;
-        var commandThree = (CommandThree)starter.FindCommand<CommandThree>()!;
+        var preCommand = starter.FindCommandInstance<PreCommand>()!;
+        var commandOne = starter.FindCommandInstance<CommandOne>()!;
+        var commandTwo = starter.FindCommandInstance<CommandTwo>()!;
+        var commandThree = starter.FindCommandInstance<CommandThree>()!;
 
         executionQueue.Enqueue(preCommand);
         executionQueue.Enqueue(commandOne);
@@ -154,9 +154,9 @@ public class Repl
             Assert.That(actualReturnCode, Is.EqualTo(command.ExpectedValue));
         };
 
-        var commandOne = (CommandOne)starter.FindCommand<CommandOne>()!;
-        var commandTwo = (CommandTwo)starter.FindCommand<CommandTwo>()!;
-        var commandThree = (CommandThree)starter.FindCommand<CommandThree>()!;
+        var commandOne = starter.FindCommandInstance<CommandOne>()!;
+        var commandTwo = starter.FindCommandInstance<CommandTwo>()!;
+        var commandThree = starter.FindCommandInstance<CommandThree>()!;
 
         executionQueue.Enqueue(commandOne);
         executionQueue.Enqueue(commandTwo);

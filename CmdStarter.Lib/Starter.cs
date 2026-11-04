@@ -5,9 +5,12 @@ using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
 using System.Data;
-using com.cyberinternauts.csharp.CmdStarter.Lib.SpecialCommands;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Loader;
 using System.Diagnostics.CodeAnalysis;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Binding;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Reflection;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Extensions;
+using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Lib;
 
@@ -42,6 +45,8 @@ public class Starter
     public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = "**";
 
     private RootCommand rootCommand = new();
+    private readonly Dictionary<Command, CommandRegistration> registrationsByCommand = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<Type, CommandRegistration> registrationsByType = new();
     private ImmutableList<string> namespaces = ImmutableList<string>.Empty;
     private ImmutableList<string> classes = ImmutableList<string>.Empty;
     private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
@@ -232,14 +237,9 @@ public class Starter
     /// <returns>a <see cref="StarterCommand"/> derived class</returns>
     public Command? FindCommand<CommandType>() where CommandType : IStarterCommand
     {
-        var loopBody = (Command child) =>
-        {
-            if (child is GenericStarterCommand<CommandType>) return child;
-            if (child is CommandType) return child;
-            return null;
-        };
-
-        return VisitCommands(RootCommand, loopBody);
+        return registrationsByType.TryGetValue(typeof(CommandType), out var registration)
+            ? registration.CliCommand
+            : null;
     }
 
     /// <summary>
@@ -249,13 +249,9 @@ public class Starter
     /// <returns>The command instance, or <see langword="null"/> when no matching command exists.</returns>
     public CommandType? FindCommandInstance<CommandType>() where CommandType : class, IStarterCommand
     {
-        var command = FindCommand<CommandType>();
-        if (command is GenericStarterCommand<CommandType> genericCommand)
-        {
-            return genericCommand.UnderlyingCommand as CommandType;
-        }
-
-        return command is CommandType instance ? instance : null;
+        return registrationsByType.TryGetValue(typeof(CommandType), out var registration)
+            ? registration.Instance as CommandType
+            : null;
     }
 
     /// <summary>
@@ -265,7 +261,9 @@ public class Starter
     /// <returns>The associated command instance, or <see langword="null"/> when the node is not a CmdStarter command.</returns>
     public IStarterCommand? FindCommandInstance(Command command)
     {
-        return (command as StarterCommand)?.UnderlyingCommand;
+        return registrationsByCommand.TryGetValue(command, out var registration)
+            ? registration.Instance
+            : null;
     }
 
     /// <summary>
@@ -277,16 +275,13 @@ public class Starter
         if (!hasToFindCommands) return; // Quit, job already done
         hasToFindCommands = false;
 
-        var specialCommandsNamespace = typeof(GenericStarterCommand<>).Namespace;
         var commandsTypes = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(a => a.GetTypes()
                         .Where(t =>
                             t.IsClass &&
                             !t.IsAbstract &&
                             t.IsAssignableTo(typeof(IStarterCommand)) &&
-                            t.Namespace != null &&
-                            t.Namespace != specialCommandsNamespace &&
-                            !t.Namespace.StartsWith(specialCommandsNamespace + ".", StringComparison.Ordinal)
+                            t.Namespace != null
                         )
                     );
 
@@ -334,11 +329,12 @@ public class Starter
         // Lonely command
         if (IsRootingLonelyCommand && CommandsTypes.Count == 1)
         {
-            var command = CreateCommand(CommandsTypes[0])!;
-            command.Hidden = true;
-            command.Initialize(RootCommand);
-            RootCommand.Add(command);
-            RootCommand.SetAction((parseResult, cancellationToken) => command.HandleCommandAsync(parseResult));
+            var registration = CreateCommand(CommandsTypes[0]);
+            registration.CliCommand.Hidden = true;
+            InitializeRegistration(registration, RootCommand);
+            registration.CliCommand.Hidden = true;
+            RootCommand.Add(registration.CliCommand);
+            RootCommand.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult));
         }
         else
         {
@@ -347,9 +343,9 @@ public class Starter
             // Doing Initialize after having created all because a command may act differently if it has children or not
             VisitCommands(RootCommand, (child) =>
             {
-                if (child is StarterCommand command)
+                if (registrationsByCommand.TryGetValue(child, out var registration))
                 {
-                    command.Initialize();
+                    InitializeRegistration(registration);
                 }
             });
         }
@@ -387,22 +383,65 @@ public class Starter
     {
         foreach (var childNode in currentNode.Children)
         {
-            var command = CreateCommand(childNode.Value!); // childNode.Value can't be null, because only the root has a null Value
-            if (command != null)
-            {
-                currentParent.Subcommands.Add(command);
-                AddLevel(currentParent.Subcommands[currentParent.Subcommands.Count - 1], childNode);
-            }
+            var registration = CreateCommand(childNode.Value!); // childNode.Value can't be null, because only the root has a null Value
+            currentParent.Subcommands.Add(registration.CliCommand);
+            AddLevel(registration.CliCommand, childNode);
         }
     }
 
-    private StarterCommand? CreateCommand(Type commandType)
+    private CommandRegistration CreateCommand(Type commandType)
     {
-        var getInstanceMethod = typeof(StarterCommand).GetMethod(nameof(StarterCommand.GetInstance))!.MakeGenericMethod(commandType);
-        var command = getInstanceMethod!.Invoke(null, null) as StarterCommand; // This shall always returns a <see cref="StarterCommand">
+        var getInstanceMethod = FindGetInstanceMethod(commandType);
+        var instance = (IStarterCommand)getInstanceMethod.Invoke(null, null)!;
+        instance.GlobalOptionsManager = GlobalOptionsManager;
 
-        if (command != null) command.GlobalOptionsManager = GlobalOptionsManager;
-        return command;
+        var name = instance is StarterCommand starterCommand
+            ? starterCommand.Name
+            : commandType.Name.PascalToKebabCase();
+        var cliCommand = new Command(name);
+        var registration = new CommandRegistration
+        {
+            CommandType = commandType,
+            Instance = instance,
+            CliCommand = cliCommand
+        };
+
+        registrationsByCommand.Add(cliCommand, registration);
+        registrationsByType.Add(commandType, registration);
+        if (instance is StarterCommand commandInstance)
+        {
+            commandInstance.CliCommand = cliCommand;
+        }
+
+        return registration;
+    }
+
+    private void InitializeRegistration(CommandRegistration registration, Command? receptacle = null)
+    {
+        var command = registration.CliCommand;
+        receptacle ??= command;
+
+        if (command.Subcommands.Count == 0)
+        {
+            registration.HandlerArguments = Reflection.Loader.LoadArguments(registration.Instance.HandlingMethod.Method, receptacle);
+            command.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult));
+        }
+
+        registration.OptionBindings = Reflection.Loader.LoadOptions(registration.Instance.GetType(), receptacle);
+        foreach (var binding in registration.OptionBindings)
+        {
+            binding.InitialValue = binding.Property.GetValue(registration.Instance);
+        }
+        Reflection.Loader.LoadDescription(registration.Instance.GetType(), receptacle);
+        Reflection.Loader.LoadAliases(registration.Instance.GetType(), receptacle.Aliases);
+        command.Hidden = Attribute.IsDefined(registration.Instance.GetType(), typeof(HiddenAttribute));
+    }
+
+    private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult)
+    {
+        GlobalOptionsManager.BindGlobalOptions(parseResult);
+        CommandBinder.BindOptions(parseResult, registration.Instance, registration.OptionBindings);
+        return await CommandBinder.InvokeHandlerAsync(parseResult, registration.Instance.HandlingMethod, registration.HandlerArguments);
     }
 
     private void ResetCommands()
@@ -417,6 +456,8 @@ public class Starter
         hasToBuildTree = true;
         hasToInstantiate = true;
         this.CommandsTypesTree = new TreeNode<Type>(null);
+        registrationsByCommand.Clear();
+        registrationsByType.Clear();
         rootCommand = new();
     }
 
