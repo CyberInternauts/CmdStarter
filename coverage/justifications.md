@@ -307,3 +307,44 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Why refused**: The package depends on 2.0.14 exactly; a test cannot load another version of the assembly in the same process. It depends on another version of System.CommandLine.
 - **Proposal**: `keep (justified)`: depends on another version of System.CommandLine.
 - **Decision**: kept, accepted by Main on 2026-11-04.
+
+### CmdStarter.Lib/Repl/ConsoleReplProvider.cs:46
+
+- **File**: `CmdStarter.Lib/Repl/ConsoleReplProvider.cs`
+- **Line**: 46 to 51, the branch of the editor (lines 47 to 51 are uncovered, and 3 of 6 branches of line 46 are covered).
+- **Code**:
+
+  ```csharp
+  if (LineEditing && !Console.IsInputRedirected && !Console.IsOutputRedirected)
+  {
+      cancellationToken.ThrowIfCancellationRequested();
+      editor ??= new ReplLineEditor(() => Console.ReadKey(intercept: true), Console.Out) { HistorySize = HistorySize };
+      editor.CompletionSource = CompletionSource;
+      return editor.ReadLine(Prompt);
+  }
+  ```
+
+- **Reason**: The branch needs a console on which neither the standard input nor the standard output is redirected, because it reads keys with `Console.ReadKey`, which throws on a redirected input. Probe in the test host: `Console.IsInputRedirected`, `Console.IsOutputRedirected` and `Console.IsErrorRedirected` are all `True`. The separate processes of `AppProcessTests` and `AppRunner` redirect standard input too. The raw path (`LineEditing = false`, or a redirected stream) is covered in memory by `ConsoleReplProviderInput`, and the editor itself by `ReplLineEditing` and `ReplLineEditorEdges` with simulated keys.
+- **Change needed**: Either the test would run the application in a pseudo-console (ConPTY on Windows, a pty elsewhere), or the provider would take the console detection and the key reader as injectable members (for example public `Func<bool>` and `Func<ConsoleKeyInfo>` init properties).
+- **Why refused**: A pseudo-console test needs platform-specific native code (P/Invoke of the ConPTY API, another mechanism on Linux) and a child process that really owns a console: that is a test infrastructure much larger than the 5 lines it would cover. The seam would add public API only for the tests (the library has no `InternalsVisibleTo`), and it would still leave uncovered the one expression that matters, the lambda `() => Console.ReadKey(intercept: true)` on line 49, which is exactly the binding to the real console.
+- **Proposal**: `keep (justified)`.
+- **Decision**:
+
+### CmdStarter.Lib/Repl/ReplLineEditor.cs:237
+
+- **File**: `CmdStarter.Lib/Repl/ReplLineEditor.cs`
+- **Line**: 237 to 239, the branch where `candidates` is empty (lines 238 and 239 are uncovered, and 1 of 2 branches of line 237).
+- **Code**:
+
+  ```csharp
+  if (candidates.Length == 0)
+  {
+      return string.Empty;
+  }
+  ```
+
+- **Reason**: `CommonPrefix` is `private static` and has one caller, line 198 of `Complete`. Before that call, `Complete` returns when `candidates.Length == 0` (line 185) and when `candidates.Length == 1` (line 190), so `CommonPrefix` always receives at least two candidates.
+- **Change needed**: `CommonPrefix` would have to be called with an empty array, by a new caller or by removing the two returns above.
+- **Why refused**: It is private: no test can call it, and the only caller never does.
+- **Proposal**: `remove (impossible by construction)`: the `if` and its body (lines 237 to 240); the `candidates[0]` below holds for the same reason.
+- **Decision**:
