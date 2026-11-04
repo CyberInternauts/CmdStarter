@@ -1,13 +1,28 @@
 # 0006. Dependency Injection
 
-Status: Proposed
+Status: Accepted
 Date: 2026-11-03
 
 ## Context
 Applications need per-invocation service scopes while CmdStarter should remain usable without a specific container.
 
 ## Decision
-Keep the container-agnostic IServiceManager and Starter.SetFactory APIs, and add first-class Microsoft.Extensions.DependencyInjection support with one scope per invocation.
+
+CmdStarter creates a description instance while building the command tree and a new execution instance for every command run.
+Creation priority is a `GetInstance<T>()` method declared by the command type, `Starter.ServiceProvider`, `Starter.SetFactory`, then the parameterless constructor.
+Microsoft DI executions use one asynchronous service scope per execution; the scope is disposed even when a handler throws.
+The description instance resolved from Microsoft DI uses its own scope, disposed after the tree and global options are built.
+CmdStarter disposes instances it creates through `Activator` or `ActivatorUtilities`.
+The DI scope disposes command instances and services resolved from that scope.
+A custom factory and `IServiceManager` retain ownership of the instances they return; CmdStarter does not dispose those instances.
+`CmdStarterBuilder` enables `ValidateScopes` and `ValidateOnBuild` by default.
+The existing container-agnostic `IServiceManager` API remains supported and does not create scopes.
+A single `Starter` is not intended to execute concurrent `Start` calls because parsed global options are stored by that instance.
 
 ## Consequences
-This proposal is planned for lot 005 and is not yet accepted implementation.
+
+Applications can use Microsoft DI directly or continue to provide their own creation mechanism.
+Applications should register scoped dependencies when a command needs state isolated to one execution.
+Services resolved by a scope follow Microsoft DI disposal rules, including asynchronous-only services.
+Custom factories and service managers must dispose instances they own.
+Concurrent command runs require separate `Starter` instances.

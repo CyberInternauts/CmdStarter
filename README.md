@@ -45,12 +45,17 @@ internal class Program
 
 ### Dependency injection
 
-Those methods allow classes with a constructor having parameters.
-- `IStarterCommand.GetInstance` method can be overridden
-- `Starter.SetFactory` can be used to change the default behavior of instantiation
-- `(new Starter()).Start(IServiceManager, string[])` can be used having an object implementing `IServiceManager`
+Commands are created in this priority order: a command type's own `GetInstance<T>()`, `Starter.ServiceProvider`, `Starter.SetFactory`, then a parameterless constructor. The `IServiceManager` overload remains available for other containers. Microsoft DI users can get one scope per execution with `CmdStarterBuilder`:
 
-Any of your preferred library can be used. This repository includes an example with Simple Injector.
+```csharp
+await using var app = new CmdStarterBuilder()
+    .AddCommandsFromAssembly(typeof(MyCommand).Assembly)
+    .ConfigureStarter(starter => starter.Namespaces = starter.Namespaces.Add("MyApp.Commands"))
+    .Build();
+int exitCode = await app.RunAsync(args);
+```
+
+See the [1.x to 2.0 migration guide](docs/migration/1.x-to-2.0.md) for instance lifetime, disposal, and assembly filtering details.
 
 ## Participation | Submit issues, ideas
 
