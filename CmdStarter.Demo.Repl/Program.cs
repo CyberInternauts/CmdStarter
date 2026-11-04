@@ -6,7 +6,7 @@ namespace CyberInternauts.CmdStarter.Demo.Repl;
 
 internal class Program
 {
-    public static ReplStarter starter = new ReplStarter(
+    public static ReplStarter starter = new(
             new ConsoleReplProvider(),
             new string[] { typeof(Program).Namespace! }
         );

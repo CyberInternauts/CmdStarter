@@ -11,7 +11,7 @@ namespace CyberInternauts.CmdStarter.Repl;
 public sealed class ReplStarter : Starter
 {
     private readonly IReplInputProvider inputProvider;
-    private readonly object commandLock = new();
+    private readonly Lock commandLock = new();
     private CancellationTokenSource? currentCommand;
     private bool allowReplLoop = true;
     private volatile bool isLaunched;

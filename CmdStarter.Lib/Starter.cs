@@ -1087,7 +1087,6 @@ public class Starter
         command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
     }
 
-    [SuppressMessage("Design", "CA1031", Justification = "Converts any command failure into a one-line message and exit code 1 unless ShowExceptionDetails is set.")]
     private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
         if (!registration.IsAvailable)
@@ -1137,7 +1136,6 @@ public class Starter
         });
     }
 
-    [SuppressMessage("Design", "CA1031", Justification = "Converts any command failure into a one-line message and exit code 1 unless ShowExceptionDetails is set.")]
     private async Task<int> HandleMethodCommandAsync(MethodCommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
         if (!registration.IsAvailable)
@@ -1217,9 +1215,8 @@ public class Starter
 
                 var filterType = registration.FilterType!;
                 var resolved = context.Services?.GetService(filterType);
-                var filter = resolved as ICommandFilter;
                 var owned = false;
-                if (filter is null)
+                if (resolved is not ICommandFilter filter)
                 {
                     filter = context.Services is null
                         ? (ICommandFilter)Activator.CreateInstance(filterType)!
