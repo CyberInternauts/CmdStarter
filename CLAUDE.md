@@ -82,7 +82,7 @@ Each command type gets one **description instance**, created when the tree is bu
 
 ## Conventions
 
-- File-scoped namespaces only (`namespace X;`), enforced by `.editorconfig`. Root namespace: `com.cyberinternauts.csharp.<Project>`.
+- File-scoped namespaces only (`namespace X;`), enforced by `.editorconfig`. Root namespace: `CyberInternauts.CmdStarter.<Project>`.
 - Ordinal string comparisons in the library.
 - Architecture decisions are recorded in `docs/adr/` (index in `docs/adr/README.md`); breaking changes go in `docs/migration/1.x-to-2.0.md`.
 

@@ -16,13 +16,13 @@ CmdStarter disposes instances it creates itself: through a `GetInstance<T>()` me
 The DI scope disposes command instances and services resolved from that scope.
 A custom factory and `IServiceManager` retain ownership of the instances they return; CmdStarter does not dispose those instances.
 `CmdStarterBuilder` enables `ValidateScopes` and `ValidateOnBuild` by default.
-The existing container-agnostic `IServiceManager` API remains supported and does not create scopes.
+`IServiceManager` is obsolete and is planned for removal in 3.0. Applications should set `Starter.ServiceProvider` or use `CmdStarterBuilder` with Microsoft.Extensions.DependencyInjection. For another container, use `Starter.SetFactory`.
 A single `Starter` is not intended to execute concurrent `Start` calls because parsed global options are stored by that instance.
 
 ## Consequences
 
-Applications can use Microsoft DI directly or continue to provide their own creation mechanism.
+Applications can use Microsoft DI directly or provide a factory for another container. Existing `IServiceManager` implementations can migrate to `SetFactory` before the API is removed in 3.0.
 Applications should register scoped dependencies when a command needs state isolated to one execution.
 Services resolved by a scope follow Microsoft DI disposal rules, including asynchronous-only services.
-Custom factories and service managers must dispose instances they own.
+Custom factories must dispose instances they own.
 Concurrent command runs require separate `Starter` instances.
