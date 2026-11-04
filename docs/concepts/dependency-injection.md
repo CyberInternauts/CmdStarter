@@ -11,7 +11,7 @@ CmdStarter creates a command instance by the first of these means that applies:
 3. the factory set with `Starter.SetFactory`, one per `Starter`;
 4. the parameterless constructor.
 
-So a command that declares `GetInstance` is never taken from the container or the factory, and with a service provider set, the factory is not called.
+So a command that declares `GetInstance` is never taken from the container or the factory, and with a service provider set, the factory is not called. The execution of such a command still has its service scope when a service provider is set: the filters registered by type are created with their services, `CommandContext.Services` is not `null`, and the scope is released at the end of the execution.
 
 A `GetInstance` method is generic with one type parameter, static and public, and it returns a new instance on each call. The following command has no parameterless constructor, so it is created through this method:
 

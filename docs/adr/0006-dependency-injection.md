@@ -2,6 +2,7 @@
 
 Status: Accepted
 Date: 2026-11-03
+Amended: 2026-11-04 (see Consequences)
 
 ## Context
 Applications need per-invocation service scopes while CmdStarter should remain usable without a specific container.
@@ -25,5 +26,6 @@ Applications can use Microsoft DI directly or provide a factory for another cont
 Applications should register scoped dependencies when a command needs state isolated to one execution.
 For Generic Host integration, see [ADR 0015](0015-generic-host-integration.md), including the `IServiceCollection.AddCmdStarter` registration API.
 Services resolved by a scope follow Microsoft DI disposal rules, including asynchronous-only services.
+Amended on 2026-11-04: the execution scope is opened as soon as `Starter.ServiceProvider` is set, whichever means creates the command instance, so a command created by its own `GetInstance<T>()` also has it. The filters registered by type and `CommandContext.Services` are served by that scope, which is disposed at the end of the execution like the others; the instance still comes from `GetInstance<T>()` and CmdStarter still disposes it. The order of creation does not change, and neither does `Starter.SetFactory`: the factory is called only when `Starter.ServiceProvider` is not set, so there is no scope for it. Before this amendment such an execution had no scope and `CommandContext.Services` was `null`, so a filter registered by type was created by its parameterless constructor, without its services; the measure of the trimming evaluation showed it ([ADR 0029](0029-trimming-and-native-aot-second-evaluation.md)).
 Custom factories must dispose instances they own.
 Concurrent command runs require separate `Starter` instances.

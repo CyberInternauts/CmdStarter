@@ -44,10 +44,10 @@ $packageVersion = $versionMatch.Groups[1].Value
 # The third application is written by the script itself. It has what the two samples do not have:
 # - the collection options (a List<string> option, a string[] argument, an int[] option), which are read through GetInterfaces (command `show`);
 # - a service provider set on the starter with one service, IGreeter, and no command registered in it. The command `greet` takes IGreeter in its constructor, so it is created by ActivatorUtilities;
-# - a filter registered by type with AddFilter<T>, which has two constructors, one that takes IGreeter: it is created by ActivatorUtilities, and writes a line on the error output that tells which
-#   constructor served;
-# - a command `made` that declares its own static GetInstance, so it is created through FindGetInstanceMethod (MakeGenericMethod on a class, then Invoke), and shows that this method made it. A command
-#   created that way runs without the service provider (ADR 0006), so its filter is created with its parameterless constructor;
+# - a filter registered by type with AddFilter<T>, which has two constructors, one that takes IGreeter: it is created by ActivatorUtilities, which has to choose between them, and writes a line on the error
+#   output that tells which constructor served;
+# - a command `made` that declares its own static GetInstance, so it is created through FindGetInstanceMethod (MakeGenericMethod on a class, then Invoke), and shows that this method made it. Its execution
+#   still has the scope of the service provider (ADR 0006, amended on 2026-11-04), so its filter is created with the constructor that takes IGreeter, like the one of the other commands;
 # - a class with a method marked [Command] that has an [Option] List<string> parameter and an int parameter (command `tag`), created by ActivatorUtilities too.
 # The commands are not rooted, so that the command name is on the command line.
 # The fourth application, Tree, places its commands with Starter.UseTree, under a group; with the mode `ct` it sets Starter.CommandsTypes to a type of the catalog instead.
@@ -88,7 +88,8 @@ public sealed class MarkFilter : ICommandFilter
 {
     private readonly string message;
 
-    // Used when the starter has no service provider for the command, which is the case of a command created by its own GetInstance.
+    // Not reached by the measure since ADR 0006 was amended (2026-11-04): every command of this application has the service provider,
+    // made included. It stays so that ActivatorUtilities still has two constructors to choose from.
     public MarkFilter() => message = "filter: no container";
 
     public MarkFilter(IGreeter greeter) => message = $"filter: {greeter.Greet("filter")}";
@@ -213,7 +214,7 @@ $applications = @(
         Runs   = @(
             [pscustomobject]@{ Arguments = 'show a b --names x --names y --numbers 1 2'; Expect = 'Output'; Line = 'names=x,y values=a,b numbers=1,2' },
             [pscustomobject]@{ Arguments = 'greet --who Bob'; Expect = 'Output'; Line = 'Hello, Bob!' },
-            [pscustomobject]@{ Arguments = 'made'; Expect = 'OutputAndError'; Line = 'made by GetInstance'; ErrorLine = 'filter: no container' },
+            [pscustomobject]@{ Arguments = 'made'; Expect = 'OutputAndError'; Line = 'made by GetInstance'; ErrorLine = 'filter: Hello, filter!' },
             [pscustomobject]@{ Arguments = 'tag red 3 --tags a --tags b'; Expect = 'Output'; Line = 'label=red tags=a,b count=3' },
             [pscustomobject]@{ Arguments = 'show c --names z --numbers 3'; Expect = 'OutputAndError'; Line = 'names=z values=c numbers=3'; ErrorLine = 'filter: Hello, filter!' }
         )

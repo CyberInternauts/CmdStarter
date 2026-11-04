@@ -103,17 +103,17 @@ Each warning was handled with an annotation of the member that reads the type, o
 
 ### Trimmed applications
 
-The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `EBF78995B1F47E10A771B1851B8AEF4261C6490C24D5187B566AA7D26549E83A`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 13:44:05 to 13:45:57):
+The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `8B2E55C1CF7BBA34AE04B3C4C165679333A3C646F3892877E9F84837EEE6DBC7`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 14:09:10 to 14:10:38):
 
 | Application | Size of the published folder | Command run | Exit code | First line of the output |
 | --- | ---: | --- | ---: | --- |
 | HelloWorld | 21 498 346 bytes | `HelloWorld.exe --to Bob` | 0 | `Hello, Bob!` |
-| DevOpsTool | 21 616 624 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
+| DevOpsTool | 21 617 136 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
 | DevOpsTool | | `DevOpsTool.exe --help` | 0 | `Description:` |
 | DevOpsTool | | `DevOpsTool.exe service deploy` | 1 | `Description:`, and "Argument obligatoire manquant pour la commande : 'deploy'." on the error output |
-| Lists | 21 591 325 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
+| Lists | 21 591 837 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
 | Lists | | `Lists.exe greet --who Bob` | 0 | `Hello, Bob!` |
-| Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: no container` on the error output |
+| Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: Hello, filter!` on the error output |
 | Lists | | `Lists.exe tag red 3 --tags a --tags b` | 0 | `label=red tags=a,b count=3` |
 | Lists | | `Lists.exe show c --names z --numbers 3` | 0 | `names=z values=c numbers=3`, and `filter: Hello, filter!` on the error output |
 | Tree | 21 506 048 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
@@ -124,7 +124,7 @@ The publications no longer report `IL2104` ("Assembly 'CmdStarter.Lib' produced 
 
 - The collection options survive the trimmer: `--numbers 1 2` takes two tokens only when the type of the option is recognized as a list, and so does `--tags a --tags b` on the parameter of a method command.
 - A command that the container does not have registered (`greet`, `show`, `tag`) is created by `ActivatorUtilities`, with its constructor parameter; the filter registered by type is created the same way, and its line on the error output (`filter: Hello, filter!`) shows that the service was injected.
-- A command that declares its own static `GetInstance` is created by it (`made by GetInstance`). A command created that way runs without the service provider ([ADR 0006](../adr/0006-dependency-injection.md)), so the measured filter has a parameterless constructor too, which gives `filter: no container`.
+- A command that declares its own static `GetInstance` is created by it (`made by GetInstance`). The execution of a command created that way still has the scope of the service provider ([ADR 0006](../adr/0006-dependency-injection.md), amended on 2026-11-04), so its filter is created with its services, which gives `filter: Hello, filter!`.
 - `Starter.UseTree` places a command under a group, and the help of the group is not empty; `Starter.CommandsTypes`, set to a type of the catalog (the `ct` mode of `Tree`), gives the command.
 
 ### The first measure of this evaluation

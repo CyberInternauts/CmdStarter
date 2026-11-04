@@ -99,7 +99,7 @@ An exception thrown in a filter is handled like an exception thrown by the comma
 
 A filter registered by type is created for each execution. CmdStarter first looks for the type in the execution's service scope; if the scope does not have it, CmdStarter creates the filter. A filter that CmdStarter created is disposed after the execution, with `DisposeAsync` if it implements `IAsyncDisposable`, and otherwise with `Dispose`.
 
-A filter registered with the builder can therefore take a scoped service: it gets the instance of the execution that creates it.
+A filter registered with the builder can therefore take a scoped service: it gets the instance of the execution that creates it. This holds when the command is created by its own static `GetInstance` too: as soon as `Starter.ServiceProvider` is set, the execution has its scope and `CommandContext.Services` is not `null`.
 
 ## Run the sample
 
