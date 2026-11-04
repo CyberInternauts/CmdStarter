@@ -18,7 +18,7 @@ dotnet test CmdStarter.sln --filter "TestCategory=REPL"     # fixtures carry [Ca
 ```
 
 - Do not chain `dotnet build` then `dotnet test --no-build`: if the build fails, the old binaries are tested and pass.
-- `TreatWarningsAsErrors` is on everywhere; the library also runs the `latest-recommended` analyzers. CA1707, CA1716 and CA1822 stay disabled in `.editorconfig` because fixing them would break the public API (decision pending; `docs/adr/0008`). Public generic type parameters take the `T` prefix (CA1715).
+- `TreatWarningsAsErrors` is on everywhere; the library also runs the `latest-recommended` analyzers, with no rule disabled (`docs/adr/0008`, `docs/adr/0013`): public constants are PascalCase (`Starter.ExclusionSymbol`, `StarterCommand.OptionPrefix`…), public generic type parameters take the `T` prefix (CA1715), and the only CA1031 suppressions are the two catch-all handlers in `Starter`.
 - Building `CmdStarter.Lib` also produces a NuGet package in `artefacts/` at the repository root (`GeneratePackageOnBuild`).
 - System.CommandLine localizes its help text (French on this machine): tests must check exit codes or symbols, never help wording.
 
@@ -30,7 +30,7 @@ dotnet test CmdStarter.sln --filter "TestCategory=REPL"     # fixtures carry [Ca
 2. **`BuildTree`** builds a `TreeNode<Type>` with `Loader/CommandsTreeBuilder.cs`, from `[Parent]`/`[Children]` attributes, the namespace hierarchy, or both (`ClassesBuildingMode`). Leftover types become top-level commands.
 3. **`InstantiateCommands`** is the adapter. `StarterCommand` no longer derives from `Command`: each command type gets a `Binding/CommandRegistration` that links the type, its instance and a System.CommandLine `Command` it builds. `Reflection/Loader.cs` creates options from properties and arguments from the parameters of `HandlingMethod`. Only leaf commands get an action. With a single command type and `IsRootingLonelyCommand`, its symbols go on the root command.
 
-At execution, the action (`HandleCommandAsync`) binds the global options, then the options onto the instance's properties (`Binding/CommandBinder.cs`). It then invokes the `HandlingMethod` delegate through `DynamicInvoke`. A returned `int`, `Task` or `Task<int>` becomes the exit code. Parse errors return a non-zero code and never throw (`docs/adr/0007`); an unhandled handler exception goes to stderr with exit code 1; configuration errors derive from `CmdStarterException` and are thrown while the tree is built (`docs/adr/0010`).
+At execution, the action (`HandleCommandAsync`) binds the global options, then the options onto the instance's properties (`Binding/CommandBinder.cs`). It then invokes the `HandlingMethod` delegate through `DynamicInvoke`. A returned `int`, `Task` or `Task<int>` becomes the exit code. Parse errors return a non-zero code and never throw (`docs/adr/0007`); an unhandled exception during activation, binding, handling or release writes only its message, on one line, to stderr with exit code 1 (`Starter.ShowExceptionDetails = true` hands it to System.CommandLine, which prints the whole exception); configuration errors derive from `CmdStarterException` and are thrown while the tree is built (`docs/adr/0010`).
 
 Command model:
 - A command is a `StarterCommand` subclass or any class implementing `IStarterCommand`. The handler is whatever delegate `HandlingMethod` returns.
@@ -41,7 +41,7 @@ Command model:
 Instantiation (`docs/adr/0006`): `Starter.Activate` creates every instance. Its priority order is:
 1. a static `GetInstance<T>()` declared by the command type;
 2. `Starter.ServiceProvider` (Microsoft DI, one `AsyncServiceScope` per execution);
-3. the per-`Starter` factory (`SetFactory`, also set by `Start(IServiceManager, …)`);
+3. the per-`Starter` factory (`SetFactory`, the way to plug in another container, as `CmdStarter.Demo.SimpleInjector` does; `IServiceManager` and `Start(IServiceManager, …)` are `[Obsolete]`, and only `ServiceManager.cs` and one `CommandsResults` test silence CS0618);
 4. the parameterless constructor.
 
 Each command type gets one **description instance**, created when the tree is built. It is used only to read metadata (name, `HandlingMethod` signature, initial option values), it is released at the end of `InstantiateCommands`, and `FindCommandInstance` returns it. Each execution creates a fresh instance inside `HandleCommandAsync` and releases it with `Binding/CommandActivation` (`await using`), even when the handler throws. `CommandHandled` exposes that instance before it is released. `CmdStarterBuilder` and `CmdStarterApp` wrap all of this for Microsoft DI, with `ValidateScopes` and `ValidateOnBuild` on.
@@ -82,7 +82,7 @@ Each command type gets one **description instance**, created when the tree is bu
 
 ## Conventions
 
-- File-scoped namespaces only (`namespace X;`), enforced by `.editorconfig`. Root namespace: `CyberInternauts.CmdStarter.<Project>`.
+- File-scoped namespaces only (`namespace X;`), enforced by `.editorconfig`. Namespaces: `CyberInternauts.CmdStarter` for the library (assembly `CmdStarter.Lib`, package `cints.CmdStarter`), `CyberInternauts.CmdStarter.<Project>` for the other projects (`Tests`, `Tests.Commands`, `Demo.SimpleInjector`…), so test namespace filters use these names.
 - Ordinal string comparisons in the library.
 - Architecture decisions are recorded in `docs/adr/` (index in `docs/adr/README.md`); breaking changes go in `docs/migration/1.x-to-2.0.md`.
 
