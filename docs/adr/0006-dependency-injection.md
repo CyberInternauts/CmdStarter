@@ -12,7 +12,7 @@ CmdStarter creates a description instance while building the command tree and a 
 Creation priority is a `GetInstance<T>()` method declared by the command type, `Starter.ServiceProvider`, `Starter.SetFactory`, then the parameterless constructor.
 Microsoft DI executions use one asynchronous service scope per execution; the scope is disposed even when a handler throws.
 The description instance resolved from Microsoft DI uses its own scope, disposed after the tree and global options are built.
-CmdStarter disposes instances it creates through `Activator` or `ActivatorUtilities`.
+CmdStarter disposes instances it creates itself: through a `GetInstance<T>()` method declared by the command type, `Activator` or `ActivatorUtilities`.
 The DI scope disposes command instances and services resolved from that scope.
 A custom factory and `IServiceManager` retain ownership of the instances they return; CmdStarter does not dispose those instances.
 `CmdStarterBuilder` enables `ValidateScopes` and `ValidateOnBuild` by default.
