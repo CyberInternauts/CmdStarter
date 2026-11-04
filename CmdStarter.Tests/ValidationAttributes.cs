@@ -77,6 +77,24 @@ public sealed class ValidationAttributes
         Assert.That(await starter.Start("pick red --verbosity 2"), Is.EqualTo(1));
     }
 
+    [Test]
+    public async Task UnparsableOptionValueIsAParseError()
+    {
+        var starter = CreateStarter();
+
+        Assert.That(await starter.Start("level-command --level abc"), Is.Not.Zero.And.Not.EqualTo(5));
+    }
+
+    [Test]
+    public async Task UnparsableArgumentValueIsAParseError()
+    {
+        var starter = CreateStarter();
+
+        Assert.That(await starter.Start("slot-command abc"), Is.Not.Zero);
+        Assert.That(await starter.Start("slot-command 4"), Is.EqualTo(4));
+        Assert.That(await starter.Start("slot-command 12"), Is.Not.Zero.And.Not.EqualTo(12));
+    }
+
     private static Starter CreateStarter()
     {
         var starter = new Starter();

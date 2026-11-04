@@ -3,6 +3,7 @@ using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
 using System.CommandLine.Completions;
+using System.CommandLine.Parsing;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -167,17 +168,7 @@ internal static class Loader
                     return;
                 }
 
-                var value = optionResult.GetValueOrDefault<object?>();
-                var context = new ValidationContext(new object())
-                {
-                    DisplayName = displayName,
-                    MemberName = displayName
-                };
-                var validationResult = attribute.GetValidationResult(value, context);
-                if (validationResult != ValidationResult.Success)
-                {
-                    result.AddError(validationResult!.ErrorMessage!);
-                }
+                Validate(result, attribute, displayName, optionResult.GetValueOrDefault<object?>);
             });
         }
     }
@@ -194,18 +185,34 @@ internal static class Loader
                     return;
                 }
 
-                var value = argumentResult.GetValueOrDefault<object?>();
-                var context = new ValidationContext(new object())
-                {
-                    DisplayName = displayName,
-                    MemberName = displayName
-                };
-                var validationResult = attribute.GetValidationResult(value, context);
-                if (validationResult != ValidationResult.Success)
-                {
-                    result.AddError(validationResult!.ErrorMessage!);
-                }
+                Validate(result, attribute, displayName, argumentResult.GetValueOrDefault<object?>);
             });
+        }
+    }
+
+    // A value that cannot be converted is already a parse error reported by System.CommandLine,
+    // whose GetValueOrDefault throws for it: such a value is left to that error and not validated.
+    private static void Validate(SymbolResult result, ValidationAttribute attribute, string displayName, Func<object?> getValue)
+    {
+        object? value;
+        try
+        {
+            value = getValue();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        var context = new ValidationContext(new object())
+        {
+            DisplayName = displayName,
+            MemberName = displayName
+        };
+        var validationResult = attribute.GetValidationResult(value, context);
+        if (validationResult != ValidationResult.Success)
+        {
+            result.AddError(validationResult?.ErrorMessage ?? $"The value of '{displayName}' is invalid.");
         }
     }
 

@@ -25,6 +25,11 @@ public sealed class CodeCommand : StarterCommand
     public override Delegate HandlingMethod => (Func<string, int>)(([RegularExpression("^[a-z]+$")] string code) => 0);
 }
 
+public sealed class SlotCommand : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<int, int>)(([Range(1, 9)] int slot) => slot);
+}
+
 public sealed class PickCommands
 {
     [Command]
