@@ -10,3 +10,4 @@
 | 0006 | [Dependency Injection](0006-dependency-injection.md) | Accepted |
 | 0007 | [Parse Errors](0007-parse-errors.md) | Accepted |
 | 0008 | [Code Quality Gates](0008-code-quality-gates.md) | Accepted |
+| 0009 | [Method-Based Command Model](0009-method-based-command-model.md) | Accepted |

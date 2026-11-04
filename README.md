@@ -57,6 +57,34 @@ int exitCode = await app.RunAsync(args);
 
 See the [1.x to 2.0 migration guide](docs/migration/1.x-to-2.0.md) for instance lifetime, disposal, and assembly filtering details.
 
+### Method-based commands
+
+Use `[Command]` on a class to create a command group and on its methods to expose subcommands.
+An unmarked class can expose its methods directly at the root.
+Method parameters become positional arguments unless an attribute or dependency injection identifies them otherwise.
+Services registered with the builder can be inferred from their parameter types.
+Use `[Option]` to expose a parameter as an option.
+
+```csharp
+[Command("users")]
+public sealed class UserCommands
+{
+    [Command("create")]
+    public Task Create(string name, [Option] int age, IUserService service) => service.Create(name, age);
+
+    [Command]
+    public Task DeleteAsync(int id, IUserService service) => service.Delete(id);
+}
+
+// The create command is: users create <name> --age <age>
+```
+
+Register `IUserService` in `CmdStarterBuilder.Services`; each method execution resolves it from that run's service scope.
+The declaring class can receive injected constructor dependencies as well.
+An instance is created for each instance method, while static command methods need none.
+Return `Task<int>` or `ValueTask<int>` to set the process exit code; other supported results return zero.
+See [ADR 0009: Method-Based Command Model](docs/adr/0009-method-based-command-model.md) for discovery, binding, lifecycle, and validation rules.
+
 ## Participation | Submit issues, ideas
 
 The project uses a free open source licence of Jira to manage its development.
