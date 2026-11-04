@@ -486,7 +486,7 @@ public class Starter
     // so concurrent executions and nested Start calls on the same Starter each keep their own console.
     private async Task<int> StartCoreAsync(Func<RootCommand, ParseResult> parse, CommandConsole? console, CancellationToken cancellationToken)
     {
-        InstantiateCommands();
+        await InstantiateCommandsAsync();
         UpdateCommandAvailability();
 
         var parseResult = parse(RootCommand);
@@ -677,54 +677,80 @@ public class Starter
         var activations = new List<CommandActivation>();
         try
         {
-            BuildTree();
-
-            // Lonely command
-            var lonelyCommandHasGroups = CommandsTypes.Count == 1 && HasGroupPath(CommandsTypes[0]);
-            if (IsRootingLonelyCommand && CommandsTypes.Count == 1 && MethodCommandsTypes.IsEmpty && !lonelyCommandHasGroups)
-            {
-                var registration = CreateCommand(CommandsTypes[0], activations);
-                registration.CliCommand.Hidden = true;
-                AddStateMetadata(registration.CliCommand, registration.DescriptionInstance.GetType(), canHide: false);
-                InitializeRegistration(registration, RootCommand);
-                registration.CliCommand.Hidden = true;
-                RootCommand.Add(registration.CliCommand);
-                RootCommand.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult, cancellationToken));
-            }
-            else
-            {
-                AddLevel(RootCommand, CommandsTypesTree, activations);
-
-                // Doing Initialize after having created all because a command may act differently if it has children or not
-                VisitCommands(RootCommand, (child) =>
-                {
-                    if (registrationsByCommand.TryGetValue(child, out var registration))
-                    {
-                        InitializeRegistration(registration);
-                    }
-                });
-            }
-
-            foreach (var type in MethodCommandsTypes)
-            {
-                MethodCommandsLoader.Validate(type);
-                AddMethodCommands(type);
-            }
-
-            // Global options
-            GlobalOptionsManager.FilterTypes();
-            GlobalOptionsManager.LoadOptions(RootCommand);
-            if (commandStateMetadata.Values.Any(metadata => metadata.State is not null) && ResolveStateProvider() is null)
-            {
-                throw new InvalidAttributeException("Commands use [AvailableInState] but no ICommandStateProvider is configured: set Starter.StateProvider or register an ICommandStateProvider service.");
-            }
-
-            SymbolNamesValidator.Validate(RootCommand, SequenceOption);
+            InstantiateCommandsCore(activations);
         }
         finally
         {
             foreach (var activation in activations) activation.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Instantiate commands using the tree built by <see cref="BuildTree" />, like <see cref="InstantiateCommands"/>,
+    /// but the description instances are released with <c>DisposeAsync</c> when they are <see cref="IAsyncDisposable"/>, instead of blocking on it.
+    /// </summary>
+    /// <returns>A task that completes when the commands are instantiated and the description instances are released.</returns>
+    public async Task InstantiateCommandsAsync()
+    {
+        if (!hasToInstantiate) return;
+        hasToInstantiate = false;
+        var activations = new List<CommandActivation>();
+        try
+        {
+            InstantiateCommandsCore(activations);
+        }
+        finally
+        {
+            foreach (var activation in activations) await activation.DisposeAsync();
+        }
+    }
+
+    // Builds the commands. The description instances it creates are added to activations, which the caller releases.
+    private void InstantiateCommandsCore(List<CommandActivation> activations)
+    {
+        BuildTree();
+
+        // Lonely command
+        var lonelyCommandHasGroups = CommandsTypes.Count == 1 && HasGroupPath(CommandsTypes[0]);
+        if (IsRootingLonelyCommand && CommandsTypes.Count == 1 && MethodCommandsTypes.IsEmpty && !lonelyCommandHasGroups)
+        {
+            var registration = CreateCommand(CommandsTypes[0], activations);
+            registration.CliCommand.Hidden = true;
+            AddStateMetadata(registration.CliCommand, registration.DescriptionInstance.GetType(), canHide: false);
+            InitializeRegistration(registration, RootCommand);
+            registration.CliCommand.Hidden = true;
+            RootCommand.Add(registration.CliCommand);
+            RootCommand.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult, cancellationToken));
+        }
+        else
+        {
+            AddLevel(RootCommand, CommandsTypesTree, activations);
+
+            // Doing Initialize after having created all because a command may act differently if it has children or not
+            VisitCommands(RootCommand, (child) =>
+            {
+                if (registrationsByCommand.TryGetValue(child, out var registration))
+                {
+                    InitializeRegistration(registration);
+                }
+            });
+        }
+
+        foreach (var type in MethodCommandsTypes)
+        {
+            MethodCommandsLoader.Validate(type);
+            AddMethodCommands(type);
+        }
+
+        // Global options
+        GlobalOptionsManager.FilterTypes();
+        GlobalOptionsManager.LoadOptions(RootCommand);
+        if (commandStateMetadata.Values.Any(metadata => metadata.State is not null) && ResolveStateProvider() is null)
+        {
+            throw new InvalidAttributeException("Commands use [AvailableInState] but no ICommandStateProvider is configured: set Starter.StateProvider or register an ICommandStateProvider service.");
+        }
+
+        SymbolNamesValidator.Validate(RootCommand, SequenceOption);
     }
 
     /// <summary>
