@@ -15,7 +15,10 @@ dotnet test CmdStarter.sln -nologo                       # build + all tests; th
 dotnet format whitespace --verify-no-changes             # formatting gate (CI runs it)
 dotnet test CmdStarter.sln --filter "FullyQualifiedName~CmdStarter.Tests.Options.IsPropertyFilledWithOption"
 dotnet test CmdStarter.sln --filter "TestCategory=REPL"     # fixtures carry [Category(...)]; "Integration" for the process tests
+dotnet run -c Release --project benchmarks/CmdStarter.Benchmarks -- --filter * --exporters github   # startup measures
 ```
+
+- `benchmarks/CmdStarter.Benchmarks` (BenchmarkDotNet 0.15.8, in the solution, no test, no reference from the test projects) measures discovery, tree building and execution on its own 24 commands; `docs/advanced/performance.md` holds the published series. Run it alone: any parallel build or test skews the numbers. Reports go to `BenchmarkDotNet.Artifacts/` (ignored). `GlobalOptionsManager` scans the global options containers once per process (static `foundTypes`), so only the cold-start measure pays for that scan.
 
 - Do not chain `dotnet build` then `dotnet test --no-build`: if the build fails, the old binaries are tested and pass.
 - `TreatWarningsAsErrors` is on everywhere; the library also runs the `latest-recommended` analyzers, with no rule disabled (`docs/adr/0008`, `docs/adr/0013`): public constants are PascalCase (`Starter.ExclusionSymbol`, `StarterCommand.OptionPrefix`…), public generic type parameters take the `T` prefix (CA1715), the only CA1031 suppressions are the two catch-all handlers in `Starter`, and the only CA1716 suppression keeps the middleware name `next` on `ICommandFilter.InvokeAsync`.
