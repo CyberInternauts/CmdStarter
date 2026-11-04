@@ -50,13 +50,13 @@ public sealed class ReplStarter : Starter
     /// <param name="args">Arguments for the first command.</param>
     /// <param name="cancellationToken">Token used to stop the loop and cancel commands.</param>
     public Task Launch(string[] args, CancellationToken cancellationToken = default) =>
-        LaunchCoreAsync(() => ExecuteCommandAsync(args, cancellationToken), cancellationToken);
+        LaunchCoreAsync(() => Start(args, cancellationToken), cancellationToken);
 
     /// <summary>Runs the first command and starts the REPL loop.</summary>
     /// <param name="args">Arguments for the first command.</param>
     /// <param name="cancellationToken">Token used to stop the loop and cancel commands.</param>
     public Task Launch(string args, CancellationToken cancellationToken = default) =>
-        LaunchCoreAsync(() => ExecuteCommandAsync(args, cancellationToken), cancellationToken);
+        LaunchCoreAsync(() => Start(args, cancellationToken), cancellationToken);
 
     /// <summary>Starts the REPL input loop.</summary>
     /// <param name="cancellationToken">Token used to stop the loop and cancel commands.</param>
@@ -113,11 +113,11 @@ public sealed class ReplStarter : Starter
                 var rest = firstSpace < 0 ? string.Empty : line[(firstSpace + 1)..].Trim();
                 if (HelpCommands.Any(command => string.Equals(firstWord, command, StringComparison.OrdinalIgnoreCase)))
                 {
-                    await ExecuteCommandAsync(rest.Length == 0 ? "--help" : $"{rest} --help", cancellationToken);
+                    await Start(rest.Length == 0 ? "--help" : $"{rest} --help", cancellationToken);
                     continue;
                 }
 
-                await ExecuteCommandAsync(line, cancellationToken);
+                await Start(line, cancellationToken);
             }
         }
         finally
@@ -159,13 +159,15 @@ public sealed class ReplStarter : Starter
     /// <param name="args">Command line arguments.</param>
     /// <param name="cancellationToken">Token used to cancel command execution.</param>
     /// <returns>The command exit code.</returns>
-    public new Task<int> Start(string[] args, CancellationToken cancellationToken) => ExecuteAndRaiseAsync(args, cancellationToken);
+    public new Task<int> Start(string[] args, CancellationToken cancellationToken) =>
+        ExecuteAndRaiseAsync(token => base.Start(args, token), cancellationToken);
 
     /// <summary>Executes arguments and raises <see cref="OnCommandExecuted"/>.</summary>
     /// <param name="args">Command line arguments.</param>
     /// <param name="cancellationToken">Token used to cancel command execution.</param>
     /// <returns>The command exit code.</returns>
-    public new Task<int> Start(string args, CancellationToken cancellationToken) => ExecuteAndRaiseAsync(args, cancellationToken);
+    public new Task<int> Start(string args, CancellationToken cancellationToken) =>
+        ExecuteAndRaiseAsync(token => base.Start(args, token), cancellationToken);
 
     /// <inheritdoc/>
     protected override InvocationConfiguration? CreateInvocationConfiguration() => new()
@@ -173,68 +175,35 @@ public sealed class ReplStarter : Starter
         ProcessTerminationTimeout = null
     };
 
-    private async Task ExecuteCommandAsync(string args, CancellationToken cancellationToken)
+    // Runs one command as the current command (so Ctrl+C can cancel it), then raises OnCommandExecuted.
+    private async Task<int> ExecuteAndRaiseAsync(Func<CancellationToken, Task<int>> start, CancellationToken cancellationToken)
     {
-        _ = await ExecuteAndRaiseAsync(args, cancellationToken);
-    }
-
-    private async Task ExecuteCommandAsync(string[] args, CancellationToken cancellationToken)
-    {
-        _ = await ExecuteAndRaiseAsync(args, cancellationToken);
-    }
-
-    private async Task<int> ExecuteAndRaiseAsync(string args, CancellationToken cancellationToken)
-    {
-        using var commandCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        lock (commandLock)
-        {
-            currentCommand = commandCancellation;
-        }
-
-        try
-        {
-            return await RaiseCommandExecutedAsync(await base.Start(args, commandCancellation.Token));
-        }
-        finally
+        int returnCode;
+        using (var commandCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
         {
             lock (commandLock)
             {
-                if (ReferenceEquals(currentCommand, commandCancellation))
-                {
-                    currentCommand = null;
-                }
+                currentCommand = commandCancellation;
             }
-        }
-    }
 
-    private async Task<int> ExecuteAndRaiseAsync(string[] args, CancellationToken cancellationToken)
-    {
-        using var commandCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        lock (commandLock)
-        {
-            currentCommand = commandCancellation;
-        }
-
-        try
-        {
-            return await RaiseCommandExecutedAsync(await base.Start(args, commandCancellation.Token));
-        }
-        finally
-        {
-            lock (commandLock)
+            try
             {
-                if (ReferenceEquals(currentCommand, commandCancellation))
+                returnCode = await start(commandCancellation.Token);
+            }
+            finally
+            {
+                lock (commandLock)
                 {
-                    currentCommand = null;
+                    if (ReferenceEquals(currentCommand, commandCancellation))
+                    {
+                        currentCommand = null;
+                    }
                 }
             }
         }
-    }
 
-    private Task<int> RaiseCommandExecutedAsync(int returnCode)
-    {
         OnCommandExecuted?.Invoke(this, new ReplCommandEventArgs(returnCode));
-        return Task.FromResult(returnCode);
+        return returnCode;
     }
 
     private static int FindWhitespace(string value)
