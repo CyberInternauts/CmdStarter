@@ -13,24 +13,25 @@ Run from the repository root (PowerShell; on this machine Git Bash fails to fork
 ```powershell
 dotnet test CmdStarter.sln -nologo                       # build + all tests; the only trustworthy check
 dotnet format whitespace --verify-no-changes             # formatting gate (CI runs it)
-dotnet test CmdStarter.Tests --filter "FullyQualifiedName~CmdStarter.Tests.Options.IsPropertyFilledWithOption"
-dotnet test CmdStarter.Tests --filter "TestCategory=REPL"   # fixtures carry [Category(...)]
+dotnet test CmdStarter.sln --filter "FullyQualifiedName~CmdStarter.Tests.Options.IsPropertyFilledWithOption"
+dotnet test CmdStarter.sln --filter "TestCategory=REPL"     # fixtures carry [Category(...)]; "Integration" for the process tests
 ```
 
+- Always go through `CmdStarter.sln`, even for a filtered run: the library's `PackageId` is `$(BasePackageName).$(SolutionName)`, so building a project alone (`dotnet test CmdStarter.Tests`) fails with an invalid package id `cints.`.
 - Do not chain `dotnet build` then `dotnet test --no-build`: if the build fails, the old binaries are tested and pass.
-- `TreatWarningsAsErrors` is on everywhere; the library also runs the `latest-recommended` analyzers. A few CA rules (CA1010, CA1707, CA1715, CA1716, CA1822) are disabled in `.editorconfig` until the public API review.
-- Building `CmdStarter.Lib` also produces a NuGet package in `../artefacts` (`GeneratePackageOnBuild`).
+- `TreatWarningsAsErrors` is on everywhere; the library also runs the `latest-recommended` analyzers. CA1707, CA1716 and CA1822 stay disabled in `.editorconfig` because fixing them would break the public API (decision pending; `docs/adr/0008`). Public generic type parameters take the `T` prefix (CA1715).
+- Building `CmdStarter.Lib` also produces a NuGet package in `artefacts/` at the repository root (`GeneratePackageOnBuild`).
 - System.CommandLine localizes its help text (French on this machine): tests must check exit codes or symbols, never help wording.
 
 ## Architecture
 
 `Starter` (`CmdStarter.Lib/Starter.cs`) runs a lazy three-stage pipeline. Each stage runs once and is invalidated when a filter property changes (`Namespaces`, `Classes` reset everything; `ClassesBuildingMode`, `IsRootingLonelyCommand`, `CommandsTypes` reset the trees):
 
-1. **`FindCommandsTypes`** scans every assembly loaded in the AppDomain for non-abstract classes implementing `IStarterCommand` that have a namespace, then filters them by `Namespaces` (prefix, `~` excludes) and `Classes` (wildcards `?`, `??`, `*`, `**`, `~` excludes; see `Reflection/Helper.cs`).
+1. **`FindCommandsTypes`** scans every assembly loaded in the AppDomain for non-abstract classes implementing `IStarterCommand` that have a namespace, then filters them by `Namespaces` (prefix, `~` excludes) and `Classes` (wildcards `?`, `??`, `*`, `**`, `~` excludes; see `Reflection/Helper.cs`). The result is sorted by `FullName` (ordinal), as are the global options types, so the tree and the help never depend on reflection order.
 2. **`BuildTree`** builds a `TreeNode<Type>` with `Loader/CommandsTreeBuilder.cs`, from `[Parent]`/`[Children]` attributes, the namespace hierarchy, or both (`ClassesBuildingMode`). Leftover types become top-level commands.
 3. **`InstantiateCommands`** is the adapter. `StarterCommand` no longer derives from `Command`: each command type gets a `Binding/CommandRegistration` that links the type, its instance and a System.CommandLine `Command` it builds. `Reflection/Loader.cs` creates options from properties and arguments from the parameters of `HandlingMethod`. Only leaf commands get an action. With a single command type and `IsRootingLonelyCommand`, its symbols go on the root command.
 
-At execution, the action (`HandleCommandAsync`) binds the global options, then the options onto the instance's properties (`Binding/CommandBinder.cs`). It then invokes the `HandlingMethod` delegate through `DynamicInvoke`. A returned `int`, `Task` or `Task<int>` becomes the exit code. Parse errors return a non-zero code and never throw (`docs/adr/0007`).
+At execution, the action (`HandleCommandAsync`) binds the global options, then the options onto the instance's properties (`Binding/CommandBinder.cs`). It then invokes the `HandlingMethod` delegate through `DynamicInvoke`. A returned `int`, `Task` or `Task<int>` becomes the exit code. Parse errors return a non-zero code and never throw (`docs/adr/0007`); an unhandled handler exception goes to stderr with exit code 1; configuration errors derive from `CmdStarterException` and are thrown while the tree is built (`docs/adr/0010`).
 
 Command model:
 - A command is a `StarterCommand` subclass or any class implementing `IStarterCommand`. The handler is whatever delegate `HandlingMethod` returns.
@@ -60,7 +61,8 @@ Each command type gets one **description instance**, created when the tree is bu
 - **The namespaces and attributes of the test commands are test data.** Tree-building tests depend on where a command class lives, so moving or adding a class in `CmdStarter.Tests.Commands` can change other tests' trees.
 - Each test isolates its commands by setting `Namespaces`/`Classes` on a fresh `Starter`. `TestsCommon.CreateCmdStarter()` excludes the `Erroneous`, `DepencendyInjection`, `Lifecycle` and `Methods` namespaces by default (exclusions also repeated in `Repl.SetDefaultNamespaces`). The lifecycle and DI tests instead isolate one command type with a `Classes` filter, which makes it a lonely, rooted command.
 - Command test classes must expose read-only public properties unless the property is meant to be an option: any setter, even a private one, makes `Helper.GetProperties` turn the property into an option.
-- Discovery only sees loaded assemblies, so fixtures call `TestsCommon.GlobalSetup()`, which forces `CmdStarter.Tests.Commands` to load (`DirectoryCatalog`).
+- Discovery only sees loaded assemblies, so fixtures call `TestsCommon.GlobalSetup()`, which forces `CmdStarter.Tests.Commands` to load (`DirectoryCatalog`). That catalog loads every DLL in the test output folder, so any command assembly copied there joins every default discovery.
+- `CmdStarter.Tests.App` is a real CLI app (class and method commands, Microsoft DI) that `Integration/AppProcessTests` runs as a separate process (`dotnet <dll>`) to check exit codes, stdout and stderr. The test project references it with `ReferenceOutputAssembly="false"` (build order only), for the reason above.
 
 ## Conventions
 
