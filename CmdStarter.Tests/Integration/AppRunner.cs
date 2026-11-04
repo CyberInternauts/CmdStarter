@@ -14,12 +14,24 @@ internal static class AppRunner
 
     internal static Task<AppResult> RunAsync(string projectPath, params string[] args)
     {
-        return RunAsync(projectPath, null, args);
+        return RunCoreAsync(projectPath, null, null, args);
     }
 
-    internal static async Task<AppResult> RunAsync(
+    internal static Task<AppResult> RunAsync(
         string projectPath,
         IReadOnlyDictionary<string, string?>? environment,
+        params string[] args)
+    {
+        return RunCoreAsync(projectPath, environment, null, args);
+    }
+
+    internal static Task<AppResult> RunWithInputAsync(string projectPath, string standardInput, params string[] args) =>
+        RunCoreAsync(projectPath, null, standardInput, args);
+
+    private static async Task<AppResult> RunCoreAsync(
+        string projectPath,
+        IReadOnlyDictionary<string, string?>? environment,
+        string? standardInput,
         params string[] args)
     {
         var projectName = projectPath.Split('/').Last();
@@ -45,6 +57,7 @@ internal static class AppRunner
             FileName = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = standardInput is not null,
             UseShellExecute = false
         };
         if (environment is not null)
@@ -58,6 +71,11 @@ internal static class AppRunner
         Assert.That(process.Start(), Is.True, "The application process could not be started.");
         var standardOutputTask = process.StandardOutput.ReadToEndAsync();
         var standardErrorTask = process.StandardError.ReadToEndAsync();
+        if (standardInput is not null)
+        {
+            await process.StandardInput.WriteAsync(standardInput);
+            process.StandardInput.Close();
+        }
         using var timeout = new CancellationTokenSource(ProcessTimeout);
         try { await process.WaitForExitAsync(timeout.Token); }
         catch (OperationCanceledException)

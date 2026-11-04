@@ -20,5 +20,17 @@ public sealed class DemosTests
         Assert.That(result.ExitCode, Is.Zero);
         Assert.That(result.StdOut, Does.Contain("MyInt=5"));
     }
+
+    [Test]
+    public async Task ReplDemoUnlocksCommandsAfterLogin()
+    {
+        var result = await AppRunner.RunWithInputAsync(
+            "CmdStarter.Demo.Repl",
+            "login admin admin\nadd book1\nlist\nexit\n");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("You are now logged in as admin."));
+        Assert.That(result.StdOut, Does.Contain("Book: book1 added."));
+        Assert.That(result.StdOut, Does.Contain("book1"));
+    }
 }
 

@@ -261,4 +261,26 @@ public sealed class SamplesTests
         Assert.That(result.StdOut, Does.Contain("Environment: staging"));
         Assert.That(result.StdOut, Does.Contain("worker: healthy"));
     }
+
+    [Test]
+    public async Task ReplSampleRunsSession()
+    {
+        var result = await AppRunner.RunWithInputAsync(
+            "samples/CmdStarter.Samples.Repl",
+            "whoami\n\nlogin ann\nwhoami\nhelp\nexit\nwhoami\n");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("anonymous (scope 1)"));
+        Assert.That(result.StdOut, Does.Contain("Logged in as ann (scope 2)"));
+        Assert.That(result.StdOut, Does.Contain("ann (scope 3)"));
+        Assert.That(result.StdOut, Does.Not.Contain("(scope 4)"));
+        Assert.That(result.StdErr, Is.Empty);
+    }
+
+    [Test]
+    public async Task ReplSampleEndsAtEndOfInput()
+    {
+        var result = await AppRunner.RunWithInputAsync("samples/CmdStarter.Samples.Repl", "whoami\n");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("anonymous (scope 1)"));
+    }
 }
