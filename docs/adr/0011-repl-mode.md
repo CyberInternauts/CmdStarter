@@ -20,3 +20,5 @@ A cancellation token passed to `Launch` can stop input and cancel the active com
 REPL input providers must support asynchronous, cancellable reads and signal end of input with `null`. Applications can use built-in commands and cancellation without adding command types. Dependency lifetimes match regular command execution.
 
 See [ADR 0012](0012-command-states.md) for commands whose availability and help visibility follow application state.
+
+See [ADR 0020](0020-repl-line-editing.md) for line editing, history and completion in the console REPL.
