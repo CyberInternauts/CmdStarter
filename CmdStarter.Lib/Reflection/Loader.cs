@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using static CyberInternauts.CmdStarter.Reflection.Helper;
 using CyberInternauts.CmdStarter.Binding;
+using System.Collections;
 
 namespace CyberInternauts.CmdStarter.Reflection;
 
@@ -104,6 +105,36 @@ internal static class Loader
                 .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { option, parameter.DefaultValue });
         }
         return option;
+    }
+
+    internal static void SetImplicitDefault(Option option, object? value)
+    {
+        if (option.Required || value is null)
+        {
+            return;
+        }
+
+        if (value is string text && text.Length == 0)
+        {
+            return;
+        }
+
+        if (value is IEnumerable values && value is not string && !values.Cast<object?>().Any())
+        {
+            return;
+        }
+
+        var valueType = option.ValueType;
+        if (valueType.IsValueType
+            && Nullable.GetUnderlyingType(valueType) is null
+            && Equals(value, Activator.CreateInstance(valueType)))
+        {
+            return;
+        }
+
+        typeof(Loader).GetMethod(nameof(SetDefaultOptionValue), BindingFlags.NonPublic | BindingFlags.Static)!
+            .MakeGenericMethod(valueType)
+            .Invoke(null, new[] { option, value });
     }
 
     internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)

@@ -561,6 +561,7 @@ public class Starter
         foreach (var binding in registration.OptionBindings)
         {
             binding.InitialValue = binding.Property.GetValue(registration.DescriptionInstance);
+            Reflection.Loader.SetImplicitDefault(binding.Option, binding.InitialValue);
         }
         Reflection.Loader.LoadDescription(registration.DescriptionInstance.GetType(), receptacle);
         if (string.IsNullOrEmpty(receptacle.Description)

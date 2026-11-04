@@ -81,7 +81,13 @@ public sealed class GlobalOptionsManager
         optionBindings.Clear();
         foreach (var type in GlobalOptionsTypes)
         {
-            optionBindings[type] = Reflection.Loader.LoadOptions(type, receptacle);
+            var bindings = Reflection.Loader.LoadOptions(type, receptacle);
+            optionBindings[type] = bindings;
+            var sample = Activator.CreateInstance(type)!;
+            foreach (var binding in bindings)
+            {
+                Reflection.Loader.SetImplicitDefault(binding.Option, binding.Property.GetValue(sample));
+            }
         }
     }
 
