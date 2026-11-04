@@ -1,5 +1,6 @@
 using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Interfaces;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -14,12 +15,18 @@ public static partial class Helper
 
     private static List<string>? interfacePropertiesNames;
 
+    // Never invalidated: the search only reads the type hierarchy.
+    private static readonly ConcurrentDictionary<Type, MethodInfo> getInstanceMethods = new();
+
     /// <summary>
     /// Find the most derived <see cref="IStarterCommand.GetInstance{TCommand}"/> or use default implementation
     /// </summary>
     /// <param name="commandType">Command type to look for <see cref="IStarterCommand.GetInstance{TCommand}"/></param>
-    /// <returns>A method info object of the method to execute</returns>
-    public static MethodInfo FindGetInstanceMethod(Type commandType)
+    /// <returns>A method info object of the method to execute. The result only depends on the type, so it is computed once per type.</returns>
+    public static MethodInfo FindGetInstanceMethod(Type commandType) =>
+        getInstanceMethods.GetOrAdd(commandType, SearchGetInstanceMethod);
+
+    private static MethodInfo SearchGetInstanceMethod(Type commandType)
     {
         const string methodName = nameof(IStarterCommand.GetInstance);
 

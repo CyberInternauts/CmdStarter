@@ -190,6 +190,31 @@ public class Lifecycle
         Assert.That(executed!.Id, Is.EqualTo(code));
     }
 
+    [Test]
+    public async Task UnregisteredCommandUsesTheConstructorTheContainerCanSatisfy()
+    {
+        // The command type is not registered, so it is created from its constructors: the long one needs a service the container does not know.
+        await using var provider = new ServiceCollection().BuildServiceProvider();
+        var starter = CreateLifecycleStarter<TwoConstructorsCommand>();
+        starter.ServiceProvider = provider;
+
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.Zero);
+        Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "command:short" }));
+    }
+
+    [Test]
+    public async Task UnregisteredMethodClassUsesTheConstructorTheContainerCanSatisfy()
+    {
+        await using var provider = new ServiceCollection().BuildServiceProvider();
+        var starter = new Starter();
+        starter.Namespaces = starter.Namespaces.Clear();
+        starter.Classes = starter.Classes.Clear().Add(typeof(TwoConstructorsMethods).FullName!);
+        starter.ServiceProvider = provider;
+
+        Assert.That(await starter.Start("run"), Is.Zero);
+        Assert.That(LifecycleLog.Entries, Is.EqualTo(new[] { "methods:short" }));
+    }
+
     private static Starter CreateLifecycleStarter<CommandType>() where CommandType : IStarterCommand
     {
         var starter = new Starter();

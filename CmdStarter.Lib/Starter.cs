@@ -1313,9 +1313,10 @@ public class Starter
 
     private CommandActivation Activate(Type commandType)
     {
-        if (Helper.DeclaresGetInstance(commandType))
+        var getInstance = FindGetInstanceMethod(commandType);
+        if (getInstance.DeclaringType != typeof(IStarterCommand))
         {
-            var instance = (IStarterCommand)FindGetInstanceMethod(commandType).Invoke(null, null)!;
+            var instance = (IStarterCommand)getInstance.Invoke(null, null)!;
             return new CommandActivation(instance, ownsInstance: true);
         }
 
