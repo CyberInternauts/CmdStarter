@@ -26,4 +26,5 @@ internal static class Descriptors
     internal static readonly DiagnosticDescriptor HiddenGlobalOption = Create("CMDS0012", "Global option is hidden", "Option '{0}' hides an option with the same name or alias from a global options container");
     internal static readonly DiagnosticDescriptor EmptyGlobalOptions = Create("CMDS0013", "Empty global options container", "Global options container '{0}' declares no option properties");
     internal static readonly DiagnosticDescriptor NotInCatalog = Create("CMDS0014", "Type is not in the command catalog", "'{0}' is not in the command catalog: {1}", DiagnosticSeverity.Info);
+    internal static readonly DiagnosticDescriptor UnreadableHandlingMethod = Create("CMDS0015", "HandlingMethod cannot be read at compile time", "The delegate type of HandlingMethod of '{0}' cannot be read at compile time: its argument types are created by reflection at run time", DiagnosticSeverity.Info);
 }

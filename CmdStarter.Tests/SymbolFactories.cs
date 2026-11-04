@@ -56,6 +56,19 @@ public class SymbolFactoryTests
     }
 
     [Test]
+    public void GeneratedFactoryIsUsedForTheTypesOfTheCommands()
+    {
+        // ExecOptionTypes has a DateTime option. CmdStarter.Tests.Commands has a catalog that the generator wrote, and reading it registers the types of its options.
+        var assembly = typeof(Commands.Execution.ExecOptionTypes).Assembly;
+        new Starter { Assemblies = ImmutableList.Create(assembly) }.FindCommandsTypes();
+
+        Assert.That(SymbolFactories.IsGenerated(typeof(DateTime)), Is.True);
+        Assert.That(SymbolFactories.For(typeof(DateTime)), Is.TypeOf<SymbolFactory<DateTime>>());
+        // The type of a parameter of a [Command] method of that assembly is registered too.
+        Assert.That(SymbolFactories.IsGenerated(typeof(int)), Is.True);
+    }
+
+    [Test]
     public void FallbackIsUsedForAnUnregisteredType()
     {
         var type = typeof(UnregisteredStruct);

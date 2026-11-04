@@ -19,3 +19,4 @@ CMDS0011 | Usage | Warning | Empty command group
 CMDS0012 | Usage | Warning | Global option is hidden by a command option
 CMDS0013 | Usage | Warning | Global options container is empty
 CMDS0014 | Usage | Info | Type is not in the command catalog
+CMDS0015 | Usage | Info | HandlingMethod cannot be read at compile time

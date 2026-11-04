@@ -21,7 +21,7 @@ internal static class CatalogSource
         return builder.ToString();
     }
 
-    internal static string Write(string className, string version, IReadOnlyList<string> commands, IReadOnlyList<string> methodClasses, IReadOnlyList<string> globalOptions, IReadOnlyList<string> obsoleteDiagnosticIds)
+    internal static string Write(string className, string version, IReadOnlyList<string> commands, IReadOnlyList<string> methodClasses, IReadOnlyList<string> globalOptions, IReadOnlyList<string> symbolTypes, IReadOnlyList<string> obsoleteDiagnosticIds)
     {
         var generatedNamespace = "global::CyberInternauts.CmdStarter.Generated";
         var builder = new StringBuilder();
@@ -57,6 +57,11 @@ internal static class CatalogSource
         foreach (var container in globalOptions)
         {
             builder.Append("        builder.AddGlobalOptions<").Append(container).Append(">();\n");
+        }
+
+        foreach (var symbolType in symbolTypes)
+        {
+            builder.Append("        builder.AddSymbolType<").Append(symbolType).Append(">();\n");
         }
 
         builder.Append("    }\n");

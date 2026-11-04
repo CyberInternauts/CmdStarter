@@ -30,19 +30,21 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
             return; // A catalog written by hand wins: this is also the way to turn the generator off.
         }
 
-        var symbols = new Symbols(
-            starterCommand,
-            compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Interfaces.IGlobalOptionsContainer"),
-            compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Attributes.CommandAttribute"),
-            compilation.GetTypeByMetadataName("System.ObsoleteAttribute"),
-            compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.ExperimentalAttribute"));
+        var symbols = new Symbols(compilation, starterCommand);
         var found = new Found();
         VisitNamespace(compilation.SourceModule.GlobalNamespace, symbols, found, context);
 
         var version = typeof(CommandCatalogGenerator).Assembly.GetName().Version!.ToString(); // A compiled assembly always has a version.
         context.AddSource(
             CatalogSource.FileName,
-            CatalogSource.Write(CatalogSource.ClassName(compilation.AssemblyName), version, Sorted(found.Commands), Sorted(found.MethodClasses), Sorted(found.GlobalOptions), Sorted(found.DiagnosticIds.Where(id => id is not ("CS0612" or "CS0618")).ToList())));
+            CatalogSource.Write(
+                CatalogSource.ClassName(compilation.AssemblyName),
+                version,
+                Sorted(found.Commands),
+                Sorted(found.MethodClasses),
+                Sorted(found.GlobalOptions),
+                Sorted(found.SymbolTypes.ToList()),
+                Sorted(found.DiagnosticIds.Where(id => id is not ("CS0612" or "CS0618")).ToList())));
     }
 
     private static List<string> Sorted(List<string> names)
@@ -113,16 +115,20 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
         if (isCommand)
         {
             found.Commands.Add(name);
+            SymbolTypeCollector.AddProperties(type, symbols, found);
+            SymbolTypeCollector.AddHandlingMethod(type, name, symbols, found, context);
         }
 
         if (isMethodClass)
         {
             found.MethodClasses.Add(name);
+            SymbolTypeCollector.AddMethodParameters(type, symbols, found);
         }
 
         if (isContainer)
         {
             found.GlobalOptions.Add(name);
+            SymbolTypeCollector.AddProperties(type, symbols, found);
         }
     }
 
@@ -133,7 +139,7 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
     private static bool DeclaresCommands(INamedTypeSymbol type, INamedTypeSymbol? commandAttribute) =>
         HasAttribute(type, commandAttribute) || type.GetMembers().OfType<IMethodSymbol>().Any(method => HasAttribute(method, commandAttribute));
 
-    private static bool HasAttribute(ISymbol symbol, INamedTypeSymbol? attributeClass) => FindAttribute(symbol, attributeClass) is not null;
+    internal static bool HasAttribute(ISymbol symbol, INamedTypeSymbol? attributeClass) => FindAttribute(symbol, attributeClass) is not null;
 
     // The attribute class is compared as a symbol, never by name. A library that lacks the attribute class (a null here) declares nothing.
     private static AttributeData? FindAttribute(ISymbol symbol, INamedTypeSymbol? attributeClass) =>
@@ -198,7 +204,7 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
     }
 
     // The DiagnosticId of [Obsolete], when the type has one: the compiler reports the use of the type under that id instead of CS0618.
-    private static string? ObsoleteDiagnosticId(INamedTypeSymbol type, Symbols symbols)
+    internal static string? ObsoleteDiagnosticId(INamedTypeSymbol type, Symbols symbols)
     {
         var attribute = FindAttribute(type, symbols.Obsolete);
         var named = attribute?.NamedArguments.FirstOrDefault(argument => argument.Key == "DiagnosticId").Value.Value as string;
@@ -206,25 +212,35 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
     }
 
     // What a #pragma warning disable accepts as an id: [A-Za-z_][A-Za-z0-9_]*.
-    private static bool IsIdentifier(string text) =>
+    internal static bool IsIdentifier(string text) =>
         (IsAsciiLetter(text[0]) || text[0] == '_') && text.All(character => IsAsciiLetter(character) || character == '_' || (character >= '0' && character <= '9'));
 
     private static bool IsAsciiLetter(char character) => (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z');
 
     // [Obsolete("message", true)]: using the type is a compilation error, so the generated code could not name it.
-    private static bool IsObsoleteError(INamedTypeSymbol type, INamedTypeSymbol? obsolete) =>
+    internal static bool IsObsoleteError(INamedTypeSymbol type, INamedTypeSymbol? obsolete) =>
         FindAttribute(type, obsolete) is { ConstructorArguments.Length: 2 } attribute && Equals(attribute.ConstructorArguments[1].Value, true);
 
-    private sealed class Symbols
+    internal sealed class Symbols
     {
-        internal Symbols(INamedTypeSymbol starterCommand, INamedTypeSymbol? globalOptionsContainer, INamedTypeSymbol? commandAttribute, INamedTypeSymbol? obsolete, INamedTypeSymbol? experimental)
+        internal Symbols(Compilation compilation, INamedTypeSymbol starterCommand)
         {
+            Compilation = compilation;
             StarterCommand = starterCommand;
-            GlobalOptionsContainer = globalOptionsContainer;
-            CommandAttribute = commandAttribute;
-            Obsolete = obsolete;
-            Experimental = experimental;
+            GlobalOptionsContainer = compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Interfaces.IGlobalOptionsContainer");
+            CommandAttribute = compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.Attributes.CommandAttribute");
+            Obsolete = compilation.GetTypeByMetadataName("System.ObsoleteAttribute");
+            Experimental = compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.ExperimentalAttribute");
+            CancellationToken = compilation.GetTypeByMetadataName("System.Threading.CancellationToken");
+            CommandConsole = compilation.GetTypeByMetadataName("CyberInternauts.CmdStarter.CommandConsole");
         }
+
+        internal Compilation Compilation { get; }
+
+        // The two types that never become an argument: the token and the console of the execution.
+        internal INamedTypeSymbol? CancellationToken { get; }
+
+        internal INamedTypeSymbol? CommandConsole { get; }
 
         internal INamedTypeSymbol StarterCommand { get; }
 
@@ -237,13 +253,15 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
         internal INamedTypeSymbol? Experimental { get; }
     }
 
-    private sealed class Found
+    internal sealed class Found
     {
         internal List<string> Commands { get; } = new();
 
         internal List<string> MethodClasses { get; } = new();
 
         internal List<string> GlobalOptions { get; } = new();
+
+        internal HashSet<string> SymbolTypes { get; } = new(StringComparer.Ordinal);
 
         internal HashSet<string> DiagnosticIds { get; } = new(StringComparer.Ordinal);
     }

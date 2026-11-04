@@ -332,6 +332,320 @@ public sealed class CommandCatalogGeneratorTests
         Assert.That(Calls(result), Is.EqualTo(new[] { "builder.AddCommand<global::Ns.Hello>();" }));
     }
 
+    [Test]
+    public void PropertyTypesOfCommandsAreRegistered()
+    {
+        var source = Usings + """
+            using System.Collections.Generic;
+            namespace Ns;
+            public abstract class BaseCommand : StarterCommand { public decimal Rate { get; set; } }
+            public sealed class First : BaseCommand
+            {
+                public int Count { get; set; }
+                public string? Name { get; set; }
+                public List<int> Values { get; set; } = new();
+                public bool ReadOnly { get; }
+                public static double Shared { get; set; }
+                public long Big { get; init; }
+                public char Mark { get; private set; }
+                public uint this[int index] { get => 0; set { } }
+            }
+            public sealed class Second : StarterCommand { public int Count { get; set; } }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        // The inherited property counts, the properties without a setter, the static ones and the indexers do not, a private setter does, and a type is written once.
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[]
+        {
+            "builder.AddSymbolType<char>();",
+            "builder.AddSymbolType<decimal>();",
+            "builder.AddSymbolType<global::System.Collections.Generic.List<int>>();",
+            "builder.AddSymbolType<int>();",
+            "builder.AddSymbolType<long>();",
+            "builder.AddSymbolType<string>();"
+        }));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void GlobalOptionsPropertyTypesAreRegistered()
+    {
+        var source = Usings + "namespace Ns { public class Options : IGlobalOptionsContainer { public int Level { get; set; } public DayOfWeek Day { get; set; } public string Skipped { get; } = \"\"; } }";
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<global::System.DayOfWeek>();", "builder.AddSymbolType<int>();" }));
+    }
+
+    [Test]
+    public void CommandMethodParameterTypesAreRegistered()
+    {
+        var source = Usings + """
+            using System.Threading;
+            namespace Ns;
+            public class Methods { [Command] public int Run(int count, CancellationToken token, CommandConsole console, [Option] bool verbose, ref decimal skipped) => 0; public int NotACommand(float ignored) => 0; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        // The token and the console never become arguments, a ref parameter is not a type argument, and only the [Command] methods count.
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<bool>();", "builder.AddSymbolType<int>();" }));
+    }
+
+    [Test]
+    public void HandlingMethodCastIsRead()
+    {
+        var source = Usings + "namespace Ns; public sealed class Cast : StarterCommand { public override Delegate HandlingMethod => (Func<int, string, int>)((a, b) => 0); }";
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<int>();", "builder.AddSymbolType<string>();" }));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void HandlingMethodMethodGroupIsRead()
+    {
+        // The method group by its name, with this, in parentheses, and the getter with a single return or an expression body.
+        var source = Usings + """
+            namespace Ns;
+            public sealed class ByName : StarterCommand { public override Delegate HandlingMethod => Run; private int Run(double x) => 0; }
+            public sealed class ByThis : StarterCommand { public override Delegate HandlingMethod => (this.Run); private int Run(float x) => 0; }
+            public sealed class ByReturn : StarterCommand { public override Delegate HandlingMethod { get { return Run; } } private int Run(short x) => 0; }
+            public sealed class ByGetter : StarterCommand { public override Delegate HandlingMethod { get => Run; } private int Run(byte x) => 0; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<byte>();", "builder.AddSymbolType<double>();", "builder.AddSymbolType<float>();", "builder.AddSymbolType<short>();" }));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void HandlingMethodNewDelegateIsRead()
+    {
+        var source = Usings + "namespace Ns; public sealed class Created : StarterCommand { public override Delegate HandlingMethod => new Func<bool, int>(Run); private int Run(bool x) => 0; }";
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<bool>();" }));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void HandlingMethodLambdaWithoutCastIsRead()
+    {
+        // A lambda has a natural delegate type: its own parameters, without any cast. No parameter registers nothing and reports nothing; a ref parameter is not a type argument.
+        var source = Usings + """
+            namespace Ns;
+            public sealed class WithParameters : StarterCommand { public override Delegate HandlingMethod => (int count, string name) => 0; }
+            public sealed class WithoutParameter : StarterCommand { public override Delegate HandlingMethod => () => 10; }
+            public sealed class Asynchronous : StarterCommand { public override Delegate HandlingMethod => async (short value) => await System.Threading.Tasks.Task.CompletedTask; }
+            public sealed class ByReference : StarterCommand { public override Delegate HandlingMethod => (byte kept, ref long skipped) => { }; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<byte>();", "builder.AddSymbolType<int>();", "builder.AddSymbolType<short>();", "builder.AddSymbolType<string>();" }));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void HandlingMethodDelegateTypedMemberIsRead()
+    {
+        // A field, a property and a call whose static type is a concrete delegate type.
+        var source = Usings + """
+            namespace Ns;
+            public sealed class ByField : StarterCommand { private static readonly Action<double> Handler = _ => { }; public override Delegate HandlingMethod => Handler; }
+            public sealed class ByProperty : StarterCommand { private static Func<float, int> Prop { get; } = _ => 0; public override Delegate HandlingMethod => Prop; }
+            public sealed class ByCall : StarterCommand { private static Func<char, int> Make() => _ => 0; public override Delegate HandlingMethod => Make(); }
+            public sealed class ByEmpty : StarterCommand { public override Delegate HandlingMethod => IStarterCommand.EmptyExecution; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<char>();", "builder.AddSymbolType<double>();", "builder.AddSymbolType<float>();" }));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void HandlingMethodOfAParentClassAndOfAnInterfaceIsRead()
+    {
+        // The first class that declares the property decides, and a command that implements the interface itself declares it too.
+        var source = Usings + """
+            namespace Ns;
+            public abstract class Parent : StarterCommand { public override Delegate HandlingMethod => (Func<ushort, int>)(a => 0); }
+            public sealed class Child : Parent { }
+            public sealed class Direct : IStarterCommand
+            {
+                public GlobalOptionsManager? GlobalOptionsManager { get; set; }
+                public Delegate HandlingMethod => (Func<byte, int>)(a => 0);
+            }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Does.Contain("builder.AddSymbolType<ushort>();").And.Contain("builder.AddSymbolType<byte>();"));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void UnreadableHandlingMethodReportsInfo()
+    {
+        var source = Usings + $$"""
+            namespace Ns;
+            public sealed class Unreadable : StarterCommand
+            {
+                private readonly Delegate handler = (Func<sbyte, int>)(a => 0);
+                public override Delegate HandlingMethod => handler;
+            }
+            public sealed class Readable : StarterCommand { public override Delegate HandlingMethod => (Func<int, int>)(a => 0); }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        // No line for the parameters of the unreadable one, the rest of the catalog is intact.
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<int>();" }));
+        Assert.That(Calls(result), Does.Contain("builder.AddCommand<global::Ns.Unreadable>();").And.Contain("builder.AddCommand<global::Ns.Readable>();"));
+        var diagnostic = result.GeneratorDiagnostics.Single();
+        Assert.That(diagnostic.Id, Is.EqualTo("CMDS0015"));
+        Assert.That(diagnostic.Severity, Is.EqualTo(Microsoft.CodeAnalysis.DiagnosticSeverity.Info));
+        Assert.That(diagnostic.GetMessage(), Does.Contain("global::Ns.Unreadable").And.Contain("cannot be read at compile time"));
+        Assert.That(diagnostic.Location.GetLineSpan().StartLinePosition.Line, Is.GreaterThan(0), "reported on the property");
+    }
+
+    [Test]
+    public void OtherUnreadableHandlingMethodsReportInfo()
+    {
+        // A call, a cast to a type that is not a delegate, a cast to an array, an initializer, a getter of two statements, and a property that is not written in a body.
+        var source = Usings + """
+            namespace Ns;
+            public sealed class Call : StarterCommand { public override Delegate HandlingMethod => Make(); private static Delegate Make() => (Func<int>)(() => 0); }
+            public sealed class ToDelegate : StarterCommand { private Delegate d = null!; public override Delegate HandlingMethod => (Delegate)d; }
+            public sealed class ToArray : StarterCommand { private object d = null!; public override Delegate HandlingMethod => (Func<int>[])d; }
+            public sealed class Initialized : StarterCommand { public override Delegate HandlingMethod { get; } = (Func<int>)(() => 0); }
+            public sealed class TwoStatements : StarterCommand { public override Delegate HandlingMethod { get { var x = 1; return (Func<int>)(() => x); } } }
+            public sealed class NoGetter : StarterCommand { public override Delegate HandlingMethod { set { } } }
+            public sealed record Positional(Delegate HandlingMethod) : IStarterCommand { public GlobalOptionsManager? GlobalOptionsManager { get; set; } }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        Assert.That(result.GeneratorDiagnostics.Select(diagnostic => diagnostic.Id), Is.EqualTo(Enumerable.Repeat("CMDS0015", 7)));
+        Assert.That(SymbolCalls(result), Does.Not.Contain("builder.AddSymbolType<int>();"));
+    }
+
+    [Test]
+    public void CommandWithAnUnknownBaseDoesNotBreakTheGenerator()
+    {
+        // The code does not compile (the base class does not exist): the generator still runs, and the walk of the base types ends at the error type.
+        var source = Usings + "namespace Ns; public class Broken : Missing, IStarterCommand { public GlobalOptionsManager? GlobalOptionsManager { get; set; } public Delegate HandlingMethod => (Func<int, int>)(a => 0); public short Value { get; set; } }";
+
+        var result = GeneratorRunner.Run(source);
+
+        Assert.That(Calls(result), Does.Contain("builder.AddCommand<global::Ns.Broken>();"));
+        Assert.That(SymbolCalls(result), Does.Contain("builder.AddSymbolType<short>();").And.Contain("builder.AddSymbolType<int>();"));
+    }
+
+    [Test]
+    public void NotOverriddenHandlingMethodReportsNothing()
+    {
+        var result = GeneratorRunner.Run(Usings + "namespace Ns; public sealed class Plain : StarterCommand { public static int HandlingMethod { get; set; } }");
+
+        AssertCompiles(result);
+        Assert.That(Calls(result), Is.EqualTo(new[] { "builder.AddCommand<global::Ns.Plain>();" }));
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+    }
+
+    [Test]
+    public void UnwritableTypesAreNotRegistered()
+    {
+        // Types that cannot be a type argument, or that the generated code cannot name (here, in the delegate of HandlingMethod): nothing is registered and nothing is reported (the library makes their factory by reflection).
+        var source = Usings + $$"""
+            #pragma warning disable TEST0001
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            namespace Ns;
+            public sealed class Hidden : StarterCommand
+            {
+                private struct Private { }
+                protected struct Guarded { }
+                private protected struct Narrow { }
+                [Experimental("TEST0001")] public struct Lab { }
+                [Obsolete("old", DiagnosticId = "MY OLD")] public struct Spaced { }
+                public override Delegate HandlingMethod => (Func<Private, Guarded, Narrow, List<Private>, Lab, Spaced, int>)((a, b, c, d, e, f) => 0);
+            }
+            [Obsolete("gone", true)] public struct Gone { }
+            public sealed class UsesGone : StarterCommand { [Obsolete("The use of an obsolete type is not an error in an obsolete member.")] public Gone Value { get; set; } }
+            public sealed class Local : StarterCommand { public override Delegate HandlingMethod => (Func<FileOnly, int>)(a => 0); }
+            file struct FileOnly { }
+            public sealed class Spans : StarterCommand { public override Delegate HandlingMethod => (Func<int, int>)(a => 0); [Command] public int Run(Span<char> chars) => 0; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<int>();" }));
+        Assert.That(result.GeneratorDiagnostics.Select(diagnostic => diagnostic.Id), Is.Empty);
+        Assert.That(result.Errors, Is.Empty, string.Join("\n", result.Errors));
+        Assert.That(result.GeneratedWarnings, Is.Empty);
+    }
+
+    [Test]
+    public void TypesThatAreNotNamedTypesAreNotRegistered()
+    {
+        // A pointer, a function pointer, dynamic, a type parameter and an unknown type; an array of a type that can be named is registered by its array type.
+        var source = Usings + """
+            namespace Ns;
+            public unsafe class Odd : StarterCommand
+            {
+                public int* Pointer { get; set; }
+                public delegate*<int, void> Function { get; set; }
+                public dynamic Dynamic { get; set; } = null!;
+                public Unknown Missing { get; set; } = null!;
+                public int[] Numbers { get; set; } = null!;
+                public Outer<short>.Inner Nested { get; set; } = null!;
+                [Command] public int Run<T>(T value) => 0;
+            }
+            public class Outer<T> { public class Inner { } }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<global::Ns.Outer<short>.Inner>();", "builder.AddSymbolType<int[]>();" }));
+    }
+
+    [Test]
+    public void ObsoleteTypeWithItsOwnDiagnosticIdIsRegisteredWithoutWarnings()
+    {
+        var source = Usings + """
+            namespace Ns;
+            [Obsolete("old", DiagnosticId = "MYOLD003")] public struct OldValue { }
+            public sealed class Uses : StarterCommand { public OldValue Value { get; set; } }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(SymbolCalls(result), Is.EqualTo(new[] { "builder.AddSymbolType<global::Ns.OldValue>();" }));
+        Assert.That(result.Generated, Does.Contain("#pragma warning disable CS0612, CS0618, MYOLD003\n"));
+        Assert.That(result.GeneratedWarnings, Is.Empty);
+    }
+
+    // The calls that register a type of value.
+    private static string[] SymbolCalls(GeneratorResult result) =>
+        Calls(result).Where(call => call.StartsWith("builder.AddSymbolType<", StringComparison.Ordinal)).ToArray();
+
     // The calls that Describe makes, one per line, without their indentation.
     private static string[] Calls(GeneratorResult result) =>
         result.Generated!.Split('\n').Select(line => line.Trim()).Where(line => line.StartsWith("builder.", StringComparison.Ordinal)).ToArray();

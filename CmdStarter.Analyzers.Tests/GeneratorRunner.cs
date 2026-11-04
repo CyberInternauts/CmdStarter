@@ -25,7 +25,7 @@ internal static class GeneratorRunner
             assemblyName,
             new[] { CSharpSyntaxTree.ParseText(source, parseOptions) },
             AnalyzerRunner.CreateReferences(includeCmdStarter),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: nullable ? NullableContextOptions.Enable : NullableContextOptions.Disable));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: nullable ? NullableContextOptions.Enable : NullableContextOptions.Disable, allowUnsafe: true));
 
         // The same language version for the generated file as for the source: a compilation takes one.
         var driver = CSharpGeneratorDriver.Create(new[] { new CommandCatalogGenerator().AsSourceGenerator() }, parseOptions: parseOptions)
