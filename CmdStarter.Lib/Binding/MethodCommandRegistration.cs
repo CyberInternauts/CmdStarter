@@ -10,4 +10,5 @@ internal sealed class MethodCommandRegistration
     internal MethodInfo Method { get; }
     internal Command CliCommand { get; }
     internal IReadOnlyList<ParameterBinding> Parameters { get; }
+    internal bool IsAvailable { get; set; } = true;
 }

@@ -10,4 +10,5 @@ internal sealed class CommandRegistration
     internal Command CliCommand { get; init; } = null!;
     internal List<OptionBinding> OptionBindings { get; set; } = new();
     internal Argument?[] HandlerArguments { get; set; } = Array.Empty<Argument?>();
+    internal bool IsAvailable { get; set; } = true;
 }

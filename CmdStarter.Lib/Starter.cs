@@ -55,6 +55,7 @@ public class Starter
     private ImmutableList<Type> commandsTypes = ImmutableList<Type>.Empty;
     private ImmutableList<Type> methodCommandsTypes = ImmutableList<Type>.Empty;
     private readonly List<MethodCommandRegistration> methodRegistrations = new();
+    private readonly Dictionary<Command, CommandStateMetadata> commandStateMetadata = new(ReferenceEqualityComparer.Instance);
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
     private bool hasToInstantiate = true;
@@ -79,6 +80,10 @@ public class Starter
     /// <summary>Gets or sets the Microsoft.Extensions.DependencyInjection service provider used to create command instances.</summary>
     /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, IStarterCommand})"/>; a command type's own <see cref="IStarterCommand.GetInstance{TCommand}"/> takes precedence over both.</remarks>
     public IServiceProvider? ServiceProvider { get; set; }
+
+    /// <summary>Gets or sets the application state provider. When unset, CmdStarter resolves an <see cref="ICommandStateProvider"/> from <see cref="ServiceProvider"/>.</summary>
+    /// <remarks>When registered with dependency injection, the state provider should be a singleton so state changes remain visible across command scopes.</remarks>
+    public ICommandStateProvider? StateProvider { get; set; }
 
     /// <summary>
     /// Constructor without filters
@@ -238,6 +243,7 @@ public class Starter
     public async Task<int> Start(string[] args, CancellationToken cancellationToken)
     {
         InstantiateCommands();
+        UpdateCommandAvailability();
 
         return await RootCommand.Parse(args).InvokeAsync(CreateInvocationConfiguration(), cancellationToken);
     }
@@ -259,6 +265,7 @@ public class Starter
     public async Task<int> Start(string args, CancellationToken cancellationToken)
     {
         InstantiateCommands();
+        UpdateCommandAvailability();
 
         return await RootCommand.Parse(args).InvokeAsync(CreateInvocationConfiguration(), cancellationToken);
     }
@@ -427,6 +434,7 @@ public class Starter
             {
                 var registration = CreateCommand(CommandsTypes[0], activations);
                 registration.CliCommand.Hidden = true;
+                AddStateMetadata(registration.CliCommand, registration.DescriptionInstance.GetType(), canHide: false);
                 InitializeRegistration(registration, RootCommand);
                 registration.CliCommand.Hidden = true;
                 RootCommand.Add(registration.CliCommand);
@@ -455,6 +463,10 @@ public class Starter
             // Global options
             GlobalOptionsManager.FilterTypes();
             GlobalOptionsManager.LoadOptions(RootCommand);
+            if (commandStateMetadata.Values.Any(metadata => metadata.State is not null) && ResolveStateProvider() is null)
+            {
+                throw new InvalidAttributeException("Commands use [AvailableInState] but no ICommandStateProvider is configured: set Starter.StateProvider or register an ICommandStateProvider service.");
+            }
         }
         finally
         {
@@ -516,6 +528,7 @@ public class Starter
 
         registrationsByCommand.Add(cliCommand, registration);
         registrationsByType.Add(commandType, registration);
+        AddStateMetadata(cliCommand, commandType, canHide: true);
         if (instance is StarterCommand commandInstance)
         {
             commandInstance.CliCommand = cliCommand;
@@ -548,11 +561,17 @@ public class Starter
             receptacle.Description = starterCommand.Description;
         }
         Reflection.Loader.LoadAliases(registration.DescriptionInstance.GetType(), receptacle.Aliases);
-        command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
+        command.Hidden = registration.DescriptionInstance.GetType().IsDefined(typeof(HiddenAttribute), inherit: false);
     }
 
     private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
+        if (!registration.IsAvailable)
+        {
+            parseResult.InvocationConfiguration.Error.WriteLine($"Command '{GetCommandPath(registration.CliCommand)}' is not available in the current state.");
+            return 1;
+        }
+
         await using var activation = Activate(registration.CommandType);
         var instance = (IStarterCommand)activation.Instance!;
         instance.GlobalOptionsManager = GlobalOptionsManager;
@@ -574,6 +593,12 @@ public class Starter
 
     private async Task<int> HandleMethodCommandAsync(MethodCommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
+        if (!registration.IsAvailable)
+        {
+            parseResult.InvocationConfiguration.Error.WriteLine($"Command '{GetCommandPath(registration.CliCommand)}' is not available in the current state.");
+            return 1;
+        }
+
         await using var activation = ActivateMethodCommand(registration.Method);
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         var values = new object?[registration.Parameters.Count];
@@ -623,7 +648,8 @@ public class Starter
             group = new Command((groupAttribute.Name ?? type.Name).ToCommandName());
             Reflection.Loader.LoadDescription(type, group);
             Reflection.Loader.LoadAliases(type, group.Aliases);
-            group.Hidden = Attribute.IsDefined(type, typeof(HiddenAttribute));
+            group.Hidden = type.IsDefined(typeof(HiddenAttribute), inherit: false);
+            AddStateMetadata(group, type, canHide: true);
             EnsureUniqueName(RootCommand, group, type, "<group>");
             RootCommand.Subcommands.Add(group);
         }
@@ -636,7 +662,8 @@ public class Starter
             var command = new Command(name.ToCommandName());
             Reflection.Loader.LoadDescription(method, command);
             Reflection.Loader.LoadAliases(method, command.Aliases);
-            command.Hidden = Attribute.IsDefined(method, typeof(HiddenAttribute));
+            command.Hidden = method.IsDefined(typeof(HiddenAttribute), inherit: false);
+            AddStateMetadata(command, method, canHide: true);
             var parameters = new List<ParameterBinding>();
             foreach (var parameter in method.GetParameters())
             {
@@ -676,6 +703,41 @@ public class Starter
             throw new InvalidAttributeException($"Duplicate command name '{candidate.Name}' under '{parent.Name}'. Type '{type.FullName}', method '{methodName}'.");
     }
 
+    private void AddStateMetadata(Command command, MemberInfo member, bool canHide)
+    {
+        var state = member.GetCustomAttribute<AvailableInStateAttribute>(inherit: false);
+        var hidden = member.IsDefined(typeof(HiddenAttribute), inherit: false);
+        commandStateMetadata[command] = new CommandStateMetadata(state, hidden, canHide);
+    }
+
+    private ICommandStateProvider? ResolveStateProvider() =>
+        StateProvider ?? ServiceProvider?.GetService(typeof(ICommandStateProvider)) as ICommandStateProvider;
+
+    private void UpdateCommandAvailability()
+    {
+        var metadata = commandStateMetadata.Values;
+        if (!metadata.Any(item => item.State is not null)) return;
+
+        var currentState = ResolveStateProvider()!.CurrentState;
+        void Update(Command parent, bool parentAvailable)
+        {
+            foreach (var child in parent.Subcommands)
+            {
+                var item = commandStateMetadata[child];
+                var available = parentAvailable && (item.State is null || item.State.States.Any(state => Equals(state, currentState)));
+                child.Hidden = item.CanHide && (item.Hidden || !available);
+                if (registrationsByCommand.TryGetValue(child, out var commandRegistration)) commandRegistration.IsAvailable = available;
+                var methodRegistration = methodRegistrations.FirstOrDefault(registration => ReferenceEquals(registration.CliCommand, child));
+                if (methodRegistration is not null) methodRegistration.IsAvailable = available;
+                Update(child, available);
+            }
+        }
+
+        Update(RootCommand, parentAvailable: true);
+    }
+
+    private sealed record CommandStateMetadata(AvailableInStateAttribute? State, bool Hidden, bool CanHide);
+
     private CommandActivation ActivateMethodCommand(MethodInfo method)
     {
         if (ServiceProvider is not null) return ActivateFromServices(method.IsStatic ? null : method.DeclaringType);
@@ -706,6 +768,7 @@ public class Starter
         registrationsByCommand.Clear();
         registrationsByType.Clear();
         methodRegistrations.Clear();
+        commandStateMetadata.Clear();
         rootCommand = new();
     }
 

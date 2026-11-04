@@ -63,6 +63,7 @@ public static class TestsCommon
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Methods.UserCommands).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Cancellation.CancellableCommand).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.ReplApp.ReplAppCommands).Namespace!);
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.States.Enter).Namespace!);
     }
 
     public static void SetDefaultClasses(CmdStarter.Lib.Starter starter)
