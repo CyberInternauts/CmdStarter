@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Code coverage of the three assemblies that ship: CmdStarter.Lib, CmdStarter.Hosting and CmdStarter.Analyzers. Run it with measure-coverage.ps1. -->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>[CmdStarter.Lib]*,[CmdStarter.Hosting]*,[CmdStarter.Analyzers]*</Include>
+          <!-- The code that [GeneratedRegex] writes does not count. CompilerGeneratedAttribute is NOT excluded: lambdas and async state machines carry it and must stay in the measure. -->
+          <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
+          <ExcludeByFile>**/obj/**</ExcludeByFile>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
