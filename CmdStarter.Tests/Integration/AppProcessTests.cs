@@ -38,9 +38,23 @@ public sealed class AppProcessTests
     {
         var result = await AppRunner.RunAsync("CmdStarter.Tests.App", "users", "fail");
         Assert.That(result.ExitCode, Is.EqualTo(1));
-        Assert.That(result.StdErr, Does.Contain("InvalidOperationException"));
+        Assert.That(result.StdErr, Does.Contain("integration failure"));
+        Assert.That(result.StdErr, Does.Not.Contain("InvalidOperationException"));
     }
 
+    [Test]
+    public async Task ReportsHandlerExceptionDetailsWhenEnabled()
+    {
+        var result = await AppRunner.RunAsync(
+            "CmdStarter.Tests.App",
+            new Dictionary<string, string?> { ["CMDSTARTER_TESTAPP_DETAILS"] = "1" },
+            "users",
+            "fail");
+
+        Assert.That(result.ExitCode, Is.EqualTo(1));
+        Assert.That(result.StdErr, Does.Contain("InvalidOperationException"));
+        Assert.That(result.StdErr, Does.Contain("integration failure"));
+    }
     [Test]
     public async Task UsesOneScopePerExecution()
     {

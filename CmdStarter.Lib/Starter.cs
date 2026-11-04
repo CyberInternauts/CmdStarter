@@ -81,6 +81,10 @@ public class Starter
     /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, IStarterCommand})"/>; a command type's own <see cref="IStarterCommand.GetInstance{TCommand}"/> takes precedence over both.</remarks>
     public IServiceProvider? ServiceProvider { get; set; }
 
+    /// <summary>Gets or sets whether unhandled command exceptions include their full details.</summary>
+    /// <remarks>When <see langword="false"/>, an exception from command activation, binding, handling, or release writes only its message on one line to <c>parseResult.InvocationConfiguration.Error</c> and returns exit code 1. When <see langword="true"/>, System.CommandLine's default handler writes the full exception and returns exit code 1.</remarks>
+    public bool ShowExceptionDetails { get; set; }
+
     /// <summary>Gets or sets the application state provider. When unset, CmdStarter resolves an <see cref="ICommandStateProvider"/> from <see cref="ServiceProvider"/>.</summary>
     /// <remarks>When registered with dependency injection, the state provider should be a singleton so state changes remain visible across command scopes.</remarks>
     public ICommandStateProvider? StateProvider { get; set; }
@@ -566,6 +570,7 @@ public class Starter
         command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
     }
 
+    [SuppressMessage("Design", "CA1031", Justification = "Converts any command failure into a one-line message and exit code 1 unless ShowExceptionDetails is set.")]
     private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
         if (!registration.IsAvailable)
@@ -574,6 +579,23 @@ public class Starter
             return 1;
         }
 
+        try
+        {
+            return await HandleCommandCoreAsync(registration, parseResult, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return 130;
+        }
+        catch (Exception exception) when (!ShowExceptionDetails)
+        {
+            parseResult.InvocationConfiguration.Error.WriteLine(exception.Message.ReplaceLineEndings(" "));
+            return 1;
+        }
+    }
+
+    private async Task<int> HandleCommandCoreAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
+    {
         await using var activation = Activate(registration.CommandType);
         var instance = (IStarterCommand)activation.Instance!;
         instance.GlobalOptionsManager = GlobalOptionsManager;
@@ -593,6 +615,7 @@ public class Starter
         return exitCode;
     }
 
+    [SuppressMessage("Design", "CA1031", Justification = "Converts any command failure into a one-line message and exit code 1 unless ShowExceptionDetails is set.")]
     private async Task<int> HandleMethodCommandAsync(MethodCommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
         if (!registration.IsAvailable)
@@ -601,6 +624,23 @@ public class Starter
             return 1;
         }
 
+        try
+        {
+            return await HandleMethodCommandCoreAsync(registration, parseResult, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return 130;
+        }
+        catch (Exception exception) when (!ShowExceptionDetails)
+        {
+            parseResult.InvocationConfiguration.Error.WriteLine(exception.Message.ReplaceLineEndings(" "));
+            return 1;
+        }
+    }
+
+    private async Task<int> HandleMethodCommandCoreAsync(MethodCommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
+    {
         await using var activation = ActivateMethodCommand(registration.Method);
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         var values = new object?[registration.Parameters.Count];
@@ -630,7 +670,6 @@ public class Starter
         CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, activation.Instance, exitCode));
         return exitCode;
     }
-
     private static object? GetMethodOptionValue(ParseResult result, Option option, ParameterInfo parameter)
     {
         if (CommandBinder.TryGetOptionValue(result, option, out var value)) return value;
