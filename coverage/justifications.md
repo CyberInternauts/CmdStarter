@@ -287,9 +287,9 @@ Each entry is a level-3 heading `File:line`, then eight items:
   ```
 
 - **Reason**: `ParseResult` has three generic `GetValue` methods, listed by reflection in this order: `GetValue<T>(Argument<T>)`, `GetValue<T>(Option<T>)`, `GetValue<T>(string)` (probe on System.CommandLine 2.0.14). `First` stops at the match, so the lookup of `Argument<>` tests one method and the lookup of `Option<>` two; the `string` overload is never tested, and it is the only one that has a non-generic parameter. Every overload has exactly one parameter.
-- **Change needed**: Either the order of `GetMethods`, which the documentation leaves unspecified, or a different set of `GetValue` overloads in System.CommandLine would have to change.
-- **Why refused**: A test can choose neither. The pattern is what keeps the lookup correct whatever the order; replacing it by an explicit signature lookup (`GetMethod("GetValue", 1, new[] { typeof(Option<>).MakeGenericType(Type.MakeGenericMethodParameter(0)) })`) would remove the branches, but that is a change of the library for Main to decide.
-- **Proposal**: `keep (justified)`.
+- **Change needed**: `FindGetter` would have to look the two methods up by their exact signature instead of filtering all `GetValue` methods, so that no overload other than the wanted one is ever tested.
+- **Why refused**: No refusal holds. The probe `typeof(ParseResult).GetMethod("GetValue", 1, new[] { typeof(Option<>).MakeGenericType(Type.MakeGenericMethodParameter(0)) })` returns `T GetValue[T](Option<T>)`, and the same with `Argument<>` returns `T GetValue[T](Argument<T>)`: the lookup is equivalent, does not depend on the order of `GetMethods`, and is shorter. It is only not done here because this package does not change the library.
+- **Proposal**: `remove (impossible by construction)`: replace the filter by `typeof(ParseResult).GetMethod("GetValue", 1, new[] { symbolType.MakeGenericType(Type.MakeGenericMethodParameter(0)) })!` (`symbolType` being `typeof(Option<>)` or `typeof(Argument<>)`); the pattern and its branches go.
 - **Decision**:
 
 ### CmdStarter.Lib/Binding/CommandBinder.cs:69

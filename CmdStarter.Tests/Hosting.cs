@@ -35,6 +35,19 @@ public sealed class Hosting
     }
 
     [Test]
+    public async Task RunCmdStarterAsyncWithArgumentsRunsThatCommandThenTheRepl()
+    {
+        var builder = CreateBuilder(options => options.UseRepl(new ScriptedInputProvider("probe")));
+        using var host = builder.Build();
+
+        // The REPL ends with the input and the exit code is zero, whatever the commands returned.
+        Assert.That(await host.RunCmdStarterAsync(new[] { "probe" }), Is.Zero);
+        var ids = host.Services.GetRequiredService<ProbeLog>().Ids;
+        Assert.That(ids, Has.Count.EqualTo(2));
+        Assert.That(ids[0], Is.Not.EqualTo(ids[1]));
+    }
+
+    [Test]
     public async Task RunCmdStarterAsyncStartsAndStopsHostedServices()
     {
         var builder = CreateBuilder();

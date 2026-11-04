@@ -49,6 +49,31 @@ public class ReplApp
         Assert.Throws<InvalidOperationException>(() => app.RunReplAsync());
     }
 
+    [Test]
+    public async Task RunReplAsyncWithArgumentsRequiresUseRepl()
+    {
+        await using var app = CreateBuilder().Build();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => app.RunReplAsync(new[] { "probe" }));
+
+        Assert.That(exception!.Message, Does.Contain("UseRepl"));
+        Assert.That(app.Services.GetRequiredService<ProbeLog>().Ids, Is.Empty);
+    }
+
+    [Test]
+    public async Task RunReplAsyncWithArgumentsRunsThatCommandThenTheLoop()
+    {
+        var builder = CreateBuilder().UseRepl(new ScriptedInputProvider("probe"));
+        await using var app = builder.Build();
+
+        await app.RunReplAsync(new[] { "probe" }).WaitAsync(TimeSpan.FromSeconds(10));
+
+        // One execution for the arguments, one for the line of the loop, each in its own scope.
+        var ids = app.Services.GetRequiredService<ProbeLog>().Ids;
+        Assert.That(ids, Has.Count.EqualTo(2));
+        Assert.That(ids[0], Is.Not.EqualTo(ids[1]));
+    }
+
     private static CmdStarterBuilder CreateBuilder()
     {
         var builder = new CmdStarterBuilder()

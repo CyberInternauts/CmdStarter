@@ -73,6 +73,22 @@ public sealed class Filters
     }
 
     [Test]
+    public async Task FilterContextGivesTheCommandBeingExecuted()
+    {
+        CommandContext? captured = null;
+        var starter = CreateStarter().AddFilter(new ContextFilter(context => captured = context));
+
+        await starter.Start("probe");
+        var executed = captured!.Command;
+        await starter.Start("probe-method");
+
+        Assert.That(executed, Is.SameAs(starter.FindCommand<Probe>()));
+        Assert.That(executed.Name, Is.EqualTo("probe"));
+        Assert.That(captured.Command.Name, Is.EqualTo("probe-method"));
+        Assert.That(captured.Command, Is.SameAs(starter.RootCommand.Subcommands.Single(command => command.Name == "probe-method")));
+    }
+
+    [Test]
     public async Task FiltersApplyToMethodCommands()
     {
         CommandContext? captured = null;
