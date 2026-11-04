@@ -22,3 +22,4 @@
 | 0018 | [Roslyn Analyzers](0018-roslyn-analyzers.md) | Accepted |
 | 0019 | [Command Filters](0019-command-filters.md) | Accepted |
 | 0020 | [REPL Line Editing](0020-repl-line-editing.md) | Accepted |
+| 0021 | [Command Console](0021-command-console.md) | Accepted |
