@@ -165,7 +165,7 @@ BenchmarkDotNet reported: 1 outlier detected (156.76 ms), not removed.
 
 ### Reading the two series
 
-In each series, the error intervals of `DiscoverOneAssembly` and `DiscoverOneAssemblyByScan` overlap, and so do those of `DiscoverAllAssemblies` and `DiscoverAllAssembliesByScan`: no measurable gain. `FirstInstantiate` has no twin by scan. Its error interval in each of the two series overlaps that of the series before catalogs (137.3 ms, with an error of 2.96 ms): no measurable gain.
+In each series, the error intervals of `DiscoverOneAssembly` and `DiscoverOneAssemblyByScan` overlap, and so do those of `DiscoverAllAssemblies` and `DiscoverAllAssembliesByScan`: no measurable gain. `FirstInstantiate` gives 148.3 ± 9.24 ms and 147.5 ± 7.39 ms in the two series, against 137.3 ± 2.96 ms before catalogs. The intervals barely overlap: [140.1; 154.9] in the second series against [134.3; 140.3]. The measure has no twin by scan, so a cold start a dozen milliseconds slower is neither established nor excluded; a later series adds that twin.
 
 ## How to run
 

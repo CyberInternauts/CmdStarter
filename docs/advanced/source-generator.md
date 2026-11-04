@@ -81,7 +81,7 @@ An application that declares `CommandCatalogAttribute` itself replaces the gener
 | `Assemblies` reduced to the assembly of the measures | 538 | 702 | 602 | 681 |
 | every loaded assembly | 2,065 | 1,837 | 2,033 | 1,844 |
 
-In each series, the error intervals of the two variants overlap: no measurable gain. The cold start, `FirstInstantiate`, was 148.3 ms and 147.5 ms, against 137.3 ms before catalogs; its error intervals overlap those of the earlier series as well: no measurable gain.
+In each series, the error intervals of the two variants overlap: no measurable gain. The cold start, `FirstInstantiate`, was 148.3 ms and 147.5 ms, against 137.3 ms before catalogs; the intervals barely overlap and the measure has no twin by scan, so a cold start a dozen milliseconds slower is neither established nor excluded (see [Performance](performance.md)).
 
 Every searched assembly has its catalog attribute read. Without `Assemblies`, every loaded assembly pays that read, and only an assembly that has a catalog avoids its scan: the assemblies of the framework and the others are scanned as before, `GetReferencedAssemblies` included.
 
