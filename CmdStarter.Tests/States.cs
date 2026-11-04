@@ -73,6 +73,32 @@ public class States
     }
 
     [Test]
+    public async Task LonelyRootedCommandStaysHiddenAndIsRefused()
+    {
+        var provider = new TestStateProvider { CurrentState = TestState.Member };
+        var starter = CreateStarter(provider);
+        starter.Classes = System.Collections.Immutable.ImmutableList.Create(typeof(Enter).FullName!);
+
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(1));
+        Assert.That(starter.FindCommand<Enter>()!.Hidden, Is.True);
+        provider.CurrentState = TestState.Anonymous;
+        Assert.That(await starter.Start(Array.Empty<string>()), Is.EqualTo(10));
+        Assert.That(starter.FindCommand<Enter>()!.Hidden, Is.True);
+    }
+
+    [Test]
+    public async Task CommandAddedByApplicationIsLeftAsIs()
+    {
+        var starter = CreateStarter(new TestStateProvider { CurrentState = TestState.Anonymous });
+        starter.InstantiateCommands();
+        var manual = new System.CommandLine.Command("manual") { Hidden = true };
+        starter.RootCommand.Subcommands.Add(manual);
+
+        Assert.That(await starter.Start("always"), Is.EqualTo(30));
+        Assert.That(manual.Hidden, Is.True);
+    }
+
+    [Test]
     public void MissingStateProviderThrows()
     {
         var starter = CreateStarter(null);

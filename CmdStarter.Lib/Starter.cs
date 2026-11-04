@@ -561,7 +561,7 @@ public class Starter
             receptacle.Description = starterCommand.Description;
         }
         Reflection.Loader.LoadAliases(registration.DescriptionInstance.GetType(), receptacle.Aliases);
-        command.Hidden = registration.DescriptionInstance.GetType().IsDefined(typeof(HiddenAttribute), inherit: false);
+        command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
     }
 
     private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
@@ -648,7 +648,7 @@ public class Starter
             group = new Command((groupAttribute.Name ?? type.Name).ToCommandName());
             Reflection.Loader.LoadDescription(type, group);
             Reflection.Loader.LoadAliases(type, group.Aliases);
-            group.Hidden = type.IsDefined(typeof(HiddenAttribute), inherit: false);
+            group.Hidden = Attribute.IsDefined(type, typeof(HiddenAttribute));
             AddStateMetadata(group, type, canHide: true);
             EnsureUniqueName(RootCommand, group, type, "<group>");
             RootCommand.Subcommands.Add(group);
@@ -662,7 +662,7 @@ public class Starter
             var command = new Command(name.ToCommandName());
             Reflection.Loader.LoadDescription(method, command);
             Reflection.Loader.LoadAliases(method, command.Aliases);
-            command.Hidden = method.IsDefined(typeof(HiddenAttribute), inherit: false);
+            command.Hidden = Attribute.IsDefined(method, typeof(HiddenAttribute));
             AddStateMetadata(command, method, canHide: true);
             var parameters = new List<ParameterBinding>();
             foreach (var parameter in method.GetParameters())
@@ -706,7 +706,7 @@ public class Starter
     private void AddStateMetadata(Command command, MemberInfo member, bool canHide)
     {
         var state = member.GetCustomAttribute<AvailableInStateAttribute>(inherit: false);
-        var hidden = member.IsDefined(typeof(HiddenAttribute), inherit: false);
+        var hidden = Attribute.IsDefined(member, typeof(HiddenAttribute));
         commandStateMetadata[command] = new CommandStateMetadata(state, hidden, canHide);
     }
 
@@ -719,16 +719,22 @@ public class Starter
         if (!metadata.Any(item => item.State is not null)) return;
 
         var currentState = ResolveStateProvider()!.CurrentState;
+        var methodRegistrationsByCommand = methodRegistrations.ToDictionary<MethodCommandRegistration, Command>(registration => registration.CliCommand, ReferenceEqualityComparer.Instance);
         void Update(Command parent, bool parentAvailable)
         {
             foreach (var child in parent.Subcommands)
             {
-                var item = commandStateMetadata[child];
-                var available = parentAvailable && (item.State is null || item.State.States.Any(state => Equals(state, currentState)));
-                child.Hidden = item.CanHide && (item.Hidden || !available);
+                // A command CmdStarter did not create (added to RootCommand by the application) has no metadata and is left as it is.
+                var hasMetadata = commandStateMetadata.TryGetValue(child, out var item);
+                var available = parentAvailable && (item?.State is null || item.State.States.Any(state => Equals(state, currentState)));
+                // The rooted lonely command stays hidden: its symbols live on the root command.
+                if (hasMetadata && item!.CanHide)
+                {
+                    child.Hidden = item.Hidden || !available;
+                }
+
                 if (registrationsByCommand.TryGetValue(child, out var commandRegistration)) commandRegistration.IsAvailable = available;
-                var methodRegistration = methodRegistrations.FirstOrDefault(registration => ReferenceEquals(registration.CliCommand, child));
-                if (methodRegistration is not null) methodRegistration.IsAvailable = available;
+                if (methodRegistrationsByCommand.TryGetValue(child, out var methodRegistration)) methodRegistration.IsAvailable = available;
                 Update(child, available);
             }
         }
