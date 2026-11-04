@@ -151,6 +151,19 @@ public class CommandSequences
     }
 
     [Test]
+    public async Task CancelledStepStopsSequence()
+    {
+        var starter = CreateStarter();
+
+        Assert.That(await starter.StartSequence("cancelled; ok"), Is.EqualTo(130));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "cancelled" }));
+
+        SequenceLog.Entries.Clear();
+        Assert.That(await starter.StartSequence("ok && cancelled || ok"), Is.EqualTo(130));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok", "cancelled" }));
+    }
+
+    [Test]
     public async Task InvalidSequenceReturnsOneAndWritesError()
     {
         var starter = CreateStarter();

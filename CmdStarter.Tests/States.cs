@@ -49,6 +49,19 @@ public class States
     }
 
     [Test]
+    public async Task SeveralStatesInOneAttribute()
+    {
+        var provider = new TestStateProvider { CurrentState = TestState.Anonymous };
+        var starter = CreateStarter(provider);
+
+        Assert.That(await starter.Start("either"), Is.EqualTo(70));
+        provider.CurrentState = TestState.Member;
+        Assert.That(await starter.Start("either"), Is.EqualTo(70));
+        provider.CurrentState = "another state";
+        Assert.That(await starter.Start("either"), Is.EqualTo(1));
+    }
+
+    [Test]
     public async Task MethodCommandFollowsState()
     {
         var provider = new TestStateProvider { CurrentState = TestState.Anonymous };

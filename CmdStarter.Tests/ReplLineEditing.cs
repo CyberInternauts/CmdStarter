@@ -35,6 +35,14 @@ public class ReplLineEditing
     }
 
     [Test]
+    public void EscapeClearsTheLine()
+    {
+        var editor = CreateEditor('a', 'b', Key(ConsoleKey.Escape), 'c', Key(ConsoleKey.Enter));
+
+        Assert.That(editor.ReadLine("> "), Is.EqualTo("c"));
+    }
+
+    [Test]
     public void HistoryNavigation()
     {
         var editor = CreateEditor('o', 'n', 'e', Key(ConsoleKey.Enter), 't', 'w', 'o', Key(ConsoleKey.Enter), Key(ConsoleKey.UpArrow), Key(ConsoleKey.Enter), Key(ConsoleKey.UpArrow), Key(ConsoleKey.UpArrow), Key(ConsoleKey.DownArrow), Key(ConsoleKey.DownArrow), 'x', Key(ConsoleKey.UpArrow), Key(ConsoleKey.DownArrow), Key(ConsoleKey.Enter));

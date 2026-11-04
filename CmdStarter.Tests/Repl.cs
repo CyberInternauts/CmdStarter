@@ -270,6 +270,18 @@ public class Repl
     }
 
     [Test]
+    public async Task StopEndsTheLoop()
+    {
+        var codes = new List<int>();
+        var repl = CreateScriptedStarter(codes, "command-one", "command-two");
+        repl.OnCommandExecuted += (_, _) => repl.Stop();
+
+        await repl.Launch().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.That(codes, Is.EqualTo(new[] { CommandOne.EXPECTED_RETURN }));
+    }
+
+    [Test]
     public async Task CancelCurrentCommandCancelsRunningCommand()
     {
         var codes = new List<int>();

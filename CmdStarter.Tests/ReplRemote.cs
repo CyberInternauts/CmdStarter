@@ -77,6 +77,26 @@ public class ReplRemote
     }
 
     [Test]
+    public async Task InvalidLinesAnswerOne()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+
+        var invalid = await ExecuteAsync(client, "hello &&");
+        Assert.That(invalid.Code, Is.EqualTo(1));
+        Assert.That(invalid.Error, Is.Not.Empty);
+        Assert.That(invalid.Output, Is.Empty);
+
+        var piped = await ExecuteAsync(client, "hello | exit");
+        Assert.That(piped.Code, Is.EqualTo(1));
+        Assert.That(piped.Error, Does.Contain("cannot be piped"));
+        Assert.That(piped.Output, Is.Empty);
+
+        // The session goes on after both lines.
+        Assert.That((await ExecuteAsync(client, "hello")).Code, Is.EqualTo(0));
+    }
+
+    [Test]
     public async Task SequencesAndPipesWorkRemotely()
     {
         await using var server = new RunningServer();

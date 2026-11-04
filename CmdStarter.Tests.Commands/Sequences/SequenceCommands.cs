@@ -23,6 +23,16 @@ public sealed class Fail : StarterCommand
     });
 }
 
+// Returns the code of a cancelled command (130): the sequence stops on it.
+public sealed class Cancelled : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<int>)(() =>
+    {
+        SequenceLog.Entries.Add("cancelled");
+        return 130;
+    });
+}
+
 public sealed class Other : StarterCommand
 {
     public override Delegate HandlingMethod => (Func<int>)(() =>

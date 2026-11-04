@@ -50,6 +50,12 @@ public sealed class AccountSettings : StarterCommand
     public override Delegate HandlingMethod => () => 50;
 }
 
+[AvailableInState(TestState.Anonymous, TestState.Member)]
+public sealed class Either : StarterCommand
+{
+    public override Delegate HandlingMethod => () => 70;
+}
+
 public sealed class StateMethods
 {
     [Command]
