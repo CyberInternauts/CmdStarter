@@ -151,6 +151,9 @@ coverage*.info
 coverage/results/
 coverage/report/
 
+# Output of measure-trimming.ps1
+coverage/trimming/
+
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml
