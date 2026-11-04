@@ -14,15 +14,15 @@ public abstract class StarterCommand : IStarterCommand
     /// <summary>
     /// Options prefix.
     /// </summary>
-    public const string OPTION_PREFIX = "--";
+    public const string OptionPrefix = "--";
 
     /// <summary>
     /// Description joiner upon multiple attributes.
     /// </summary>
-    public const string DESCRIPTION_JOINER = "\n";
+    public const string DescriptionJoiner = "\n";
 
     /// <inheritdoc cref="IStarterCommand.HandlingMethod"/>
-    public virtual Delegate HandlingMethod { get; } = IStarterCommand.EMPTY_EXECUTION;
+    public virtual Delegate HandlingMethod { get; } = IStarterCommand.EmptyExecution;
 
     /// <inheritdoc cref="IStarterCommand.GlobalOptionsManager"/>
     public virtual GlobalOptionsManager? GlobalOptionsManager { get; set; }

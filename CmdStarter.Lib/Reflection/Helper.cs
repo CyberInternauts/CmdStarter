@@ -107,9 +107,9 @@ public static partial class Helper
         var nbCommands = commandsTypes.Count();
         if (nbCommands == 0 || namespaces.Count == 0) return commandsTypes;
 
-        var namespacesIncluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal));
+        var namespacesIncluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && !n.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal));
         var hasIncluded = namespacesIncluded.Any();
-        var namespacesExcluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal));
+        var namespacesExcluded = namespaces.Where(n => !string.IsNullOrWhiteSpace(n) && n.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal));
 
         commandsTypes = commandsTypes.Where(c =>
         {
@@ -133,18 +133,18 @@ public static partial class Helper
         var nbCommands = commandsTypes.Count();
         if (nbCommands == 0 || classes.Count == 0) return commandsTypes;
 
-        bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal));
+        bool onlyExclude = classes.All(filter => filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal));
 
         Regex dotRegex = DotMatcher();
 
-        Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal))
+        Regex[] excludes = classes.Where(filter => filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter[1..]);
                 return new Regex(pattern, RegexOptions.RightToLeft);
             }).ToArray();
 
-        Regex[] filters = classes.Where(filter => !filter.StartsWith(Starter.EXCLUSION_SYMBOL, StringComparison.Ordinal))
+        Regex[] filters = classes.Where(filter => !filter.StartsWith(Starter.ExclusionSymbol, StringComparison.Ordinal))
             .Select(filter =>
             {
                 var pattern = WildcardsToRegex(filter);
@@ -169,10 +169,10 @@ public static partial class Helper
 
         return @$"(.|^){wildcard}$"
             .Replace(".", @"\.")
-            .Replace(Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS, ".")
-            .Replace(Starter.ANY_CHAR_SYMBOL, @"\w")
-            .Replace(Starter.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS, @$".{STAR_PLACEHOLDER}")
-            .Replace(Starter.MULTI_ANY_CHAR_SYMBOL, @"\w*")
+            .Replace(Starter.AnyCharSymbolIncludeDots, ".")
+            .Replace(Starter.AnyCharSymbol, @"\w")
+            .Replace(Starter.MultiAnyCharSymbolIncludeDots, @$".{STAR_PLACEHOLDER}")
+            .Replace(Starter.MultiAnyCharSymbol, @"\w*")
             .Replace(STAR_PLACEHOLDER, "*");
     }
 

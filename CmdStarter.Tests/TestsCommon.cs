@@ -15,11 +15,11 @@ public static class TestsCommon
         command.Options.FirstOrDefault(option => option.Name.TrimStart('-') == nameWithoutPrefix);
 
     public const int NUMBER_OF_COMMANDS_IN_DEMO = 3; // Using a hardcoded value otherwise the test would be about the same code as the tested one.
-    public const string ANY_CHAR_SYMBOL = CmdStarter.Starter.ANY_CHAR_SYMBOL;
-    public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Starter.ANY_CHAR_SYMBOL_INCLUDE_DOTS;
-    public const string MULTI_ANY_CHAR_SYMBOL = CmdStarter.Starter.MULTI_ANY_CHAR_SYMBOL;
-    public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Starter.MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS;
-    public const string EXCLUSION_SYMBOL = CmdStarter.Starter.EXCLUSION_SYMBOL;
+    public const string ANY_CHAR_SYMBOL = CmdStarter.Starter.AnyCharSymbol;
+    public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Starter.AnyCharSymbolIncludeDots;
+    public const string MULTI_ANY_CHAR_SYMBOL = CmdStarter.Starter.MultiAnyCharSymbol;
+    public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = CmdStarter.Starter.MultiAnyCharSymbolIncludeDots;
+    public const string EXCLUSION_SYMBOL = CmdStarter.Starter.ExclusionSymbol;
     public readonly static string ERRONEOUS_NAMESPACE = typeof(Commands.Erroneous.Boggus).Namespace ?? string.Empty;
 
     public readonly static IList<Type> CLASS_FILTERING_TYPES = new List<Type>
@@ -137,7 +137,7 @@ public static class TestsCommon
         switch (Type.GetTypeCode(expectedValue.GetType()))
         {
             case TypeCode.Boolean:
-                args.Add(OptHandling.OPTION_PREFIX + optionName);
+                args.Add(OptHandling.OptionPrefix + optionName);
                 break;
 
             default:
@@ -148,7 +148,7 @@ public static class TestsCommon
                         var value = curValue.ToString() ?? string.Empty;
                         if (string.IsNullOrWhiteSpace(value)) continue;
 
-                        args.Add(OptHandling.OPTION_PREFIX + optionName);
+                        args.Add(OptHandling.OptionPrefix + optionName);
                         args.Add(value);
                     }
                 }
@@ -157,7 +157,7 @@ public static class TestsCommon
                     var value = expectedValue.ToString() ?? string.Empty;
                     if (!string.IsNullOrWhiteSpace(value))
                     {
-                        args.Add(OptHandling.OPTION_PREFIX + optionName);
+                        args.Add(OptHandling.OptionPrefix + optionName);
                         args.Add(value);
                     }
                 }
@@ -193,7 +193,7 @@ public static class TestsCommon
         Assert.That(options, Has.Count.EqualTo(properties.Count));
         for (var index = 0; index < properties.Count; index++)
         {
-            Assert.That(options[index].Name, Is.EqualTo(StarterCommand.OPTION_PREFIX + properties[index].Name.PascalToKebabCase()));
+            Assert.That(options[index].Name, Is.EqualTo(StarterCommand.OptionPrefix + properties[index].Name.PascalToKebabCase()));
         }
     }
 

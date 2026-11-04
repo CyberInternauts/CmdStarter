@@ -18,10 +18,10 @@ public sealed class MultiAlias : StarterCommand, IHasAliases
 
     public string[] ExpectedOptionAliases => new string[]
     {
-        OPTION_PREFIX + OPTION_NAME,
-        AliasAttribute.DEFAULT_PREFIX + OPTION_ALIAS_1,
-        AliasAttribute.DEFAULT_PREFIX + OPTION_ALIAS_2,
-        AliasAttribute.DEFAULT_PREFIX + OPTION_ALIAS_3
+        OptionPrefix + OPTION_NAME,
+        AliasAttribute.DefaultPrefix + OPTION_ALIAS_1,
+        AliasAttribute.DefaultPrefix + OPTION_ALIAS_2,
+        AliasAttribute.DefaultPrefix + OPTION_ALIAS_3
     };
 
     public string[] ExpectedCommandAliases => new string[]

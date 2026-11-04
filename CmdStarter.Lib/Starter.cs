@@ -24,27 +24,27 @@ public class Starter
     /// <summary>
     /// Exclusion symbol
     /// </summary>
-    public const string EXCLUSION_SYMBOL = "~";
+    public const string ExclusionSymbol = "~";
 
     /// <summary>
     /// Any one character except dots
     /// </summary>
-    public const string ANY_CHAR_SYMBOL = "?";
+    public const string AnyCharSymbol = "?";
 
     /// <summary>
     /// Any one character including dots
     /// </summary>
-    public const string ANY_CHAR_SYMBOL_INCLUDE_DOTS = "??";
+    public const string AnyCharSymbolIncludeDots = "??";
 
     /// <summary>
     /// Any multi characters except dots
     /// </summary>
-    public const string MULTI_ANY_CHAR_SYMBOL = "*";
+    public const string MultiAnyCharSymbol = "*";
 
     /// <summary>
     /// Any multi characters including dots
     /// </summary>
-    public const string MULTI_ANY_CHAR_SYMBOL_INCLUDE_DOTS = "**";
+    public const string MultiAnyCharSymbolIncludeDots = "**";
 
     private RootCommand rootCommand = new();
     private readonly Dictionary<Command, CommandRegistration> registrationsByCommand = new(ReferenceEqualityComparer.Instance);
@@ -488,7 +488,7 @@ public class Starter
     /// </summary>
     /// <param name="currentParent">Starting command</param>
     /// <param name="action">Action to execute</param>
-    public void VisitCommands(Command currentParent, Action<Command> action)
+    public static void VisitCommands(Command currentParent, Action<Command> action)
     {
         Command? loopBody(Command command)
         {
@@ -784,7 +784,7 @@ public class Starter
     /// <param name="currentParent">Command where to start visiting</param>
     /// <param name="func">Function that is applied a command</param>
     /// <returns>A command if func returned one, otherwise null</returns>
-    private Command? VisitCommands(Command currentParent, Func<Command, Command?> func)
+    private static Command? VisitCommands(Command currentParent, Func<Command, Command?> func)
     {
         if (currentParent == null) return null;
 

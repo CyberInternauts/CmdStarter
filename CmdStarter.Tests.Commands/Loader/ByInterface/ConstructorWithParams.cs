@@ -4,7 +4,7 @@ public class ConstructorWithParams : IStarterCommand
 {
     public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-    public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
+    public Delegate HandlingMethod => IStarterCommand.EmptyExecution;
 
     public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
     {

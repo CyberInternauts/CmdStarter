@@ -8,7 +8,7 @@ public interface IStarterCommand
     /// <summary>
     /// Empty body method
     /// </summary>
-    public readonly static Action EMPTY_EXECUTION = () => { };
+    public readonly static Action EmptyExecution = () => { };
 
     /// <summary>
     /// Get/set the global options manager

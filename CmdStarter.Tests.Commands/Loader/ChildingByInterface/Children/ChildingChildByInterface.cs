@@ -5,5 +5,5 @@ public class ChildingChildByInterface : IStarterCommand
 {
     public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-    public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
+    public Delegate HandlingMethod => IStarterCommand.EmptyExecution;
 }

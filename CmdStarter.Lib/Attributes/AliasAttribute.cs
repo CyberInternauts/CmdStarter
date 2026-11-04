@@ -14,7 +14,7 @@ public sealed class AliasAttribute : Attribute, IEnumerable<string>
     /// <summary>
     /// The default prefix used if none was given.
     /// </summary>
-    public const string DEFAULT_PREFIX = "-";
+    public const string DefaultPrefix = "-";
 
     private readonly string[] _aliases;
     private readonly bool _usePrefix;
@@ -39,7 +39,7 @@ public sealed class AliasAttribute : Attribute, IEnumerable<string>
     /// </summary>
     public string Prefix
     {
-        get => _prefix ?? DEFAULT_PREFIX;
+        get => _prefix ?? DefaultPrefix;
         init => _prefix = value;
     }
 

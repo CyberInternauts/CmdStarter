@@ -359,7 +359,7 @@ public class CommandsBasics
 
     [TestCase<NoDesc>("")]
     [TestCase<SingleDesc>(SingleDesc.DESC)]
-    [TestCase<MultipleDesc>(MultipleDesc.FIRST_DESC + StarterCommand.DESCRIPTION_JOINER + MultipleDesc.SECOND_DESC)]
+    [TestCase<MultipleDesc>(MultipleDesc.FIRST_DESC + StarterCommand.DescriptionJoiner + MultipleDesc.SECOND_DESC)]
     [TestCase<SingleDescByInterface>(SingleDescByInterface.DESC)]
     [TestCase<ConstructorDesc>(ConstructorDesc.DESC)]
     [TestCase<ConstructorAndAttributeDesc>(ConstructorAndAttributeDesc.ATTRIBUTE_DESC)]

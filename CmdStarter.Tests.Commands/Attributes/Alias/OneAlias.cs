@@ -10,7 +10,7 @@ public sealed class OneAlias : StarterCommand, IHasAliases
     private const string COMMAND_ALIAS = "oa";
     private const string OPTION_ALIAS = "o";
 
-    public string[] ExpectedOptionAliases => new string[] { OPTION_PREFIX + OPTION_NAME, AliasAttribute.DEFAULT_PREFIX + OPTION_ALIAS };
+    public string[] ExpectedOptionAliases => new string[] { OptionPrefix + OPTION_NAME, AliasAttribute.DefaultPrefix + OPTION_ALIAS };
     public string[] ExpectedCommandAliases => new string[] { COMMAND_NAME, COMMAND_ALIAS };
 
     [Alias(true, OPTION_ALIAS)]

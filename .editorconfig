@@ -14,10 +14,3 @@ indent_size = 2
 [*.{yml,yaml}]
 indent_size = 2
 
-[CmdStarter.Lib/**.cs]
-# Kept disabled: fixing would rename public constants and members that contain underscores, breaking the public API; decision pending.
-dotnet_diagnostic.CA1707.severity = none
-# Kept disabled: fixing would rename the public namespaces com.cyberinternauts.csharp.CmdStarter.Lib and its child namespaces, breaking the public API.
-dotnet_diagnostic.CA1716.severity = none
-# Kept disabled: fixing would make public instance methods static, breaking the public API; decision pending.
-dotnet_diagnostic.CA1822.severity = none

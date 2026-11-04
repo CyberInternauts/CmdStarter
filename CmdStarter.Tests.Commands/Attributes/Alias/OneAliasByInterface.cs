@@ -10,7 +10,7 @@ public sealed class OneAliasByInterface : IStarterCommand, IHasAliases
     private const string COMMAND_ALIAS = "oabi";
     private const string OPTION_ALIAS = "obi";
 
-    public string[] ExpectedOptionAliases => new string[] { StarterCommand.OPTION_PREFIX + OPTION_NAME, AliasAttribute.DEFAULT_PREFIX + OPTION_ALIAS };
+    public string[] ExpectedOptionAliases => new string[] { StarterCommand.OptionPrefix + OPTION_NAME, AliasAttribute.DefaultPrefix + OPTION_ALIAS };
     public string[] ExpectedCommandAliases => new string[] { COMMAND_NAME, COMMAND_ALIAS };
 
     [Alias(true, OPTION_ALIAS)]
@@ -19,5 +19,5 @@ public sealed class OneAliasByInterface : IStarterCommand, IHasAliases
 
     public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-    public Delegate HandlingMethod => IStarterCommand.EMPTY_EXECUTION;
+    public Delegate HandlingMethod => IStarterCommand.EmptyExecution;
 }

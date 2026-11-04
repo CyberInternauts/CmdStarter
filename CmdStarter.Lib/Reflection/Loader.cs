@@ -27,7 +27,7 @@ internal static class Loader
 
             var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
             var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string[]) });
-            var optionName = StarterCommand.OPTION_PREFIX + property.Name.PascalToKebabCase();
+            var optionName = StarterCommand.OptionPrefix + property.Name.PascalToKebabCase();
             var option = (Option)constructor!.Invoke(new object[] { optionName, Array.Empty<string>() });
             option.Required = Attribute.IsDefined(property, typeof(RequiredAttribute));
             option.Hidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
@@ -86,7 +86,7 @@ internal static class Loader
     {
         var optionType = typeof(Option<>).MakeGenericType(parameter.ParameterType);
         var constructor = optionType.GetConstructor(new[] { typeof(string), typeof(string[]) });
-        var option = (Option)constructor!.Invoke(new object[] { StarterCommand.OPTION_PREFIX + parameter.Name!.PascalToKebabCase(), Array.Empty<string>() });
+        var option = (Option)constructor!.Invoke(new object[] { StarterCommand.OptionPrefix + parameter.Name!.PascalToKebabCase(), Array.Empty<string>() });
         option.Required = Attribute.IsDefined(parameter, typeof(RequiredAttribute));
         option.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
         option.AllowMultipleArgumentsPerToken = parameter.ParameterType.GetInterfaces()
@@ -109,7 +109,7 @@ internal static class Loader
             .Select(a => ((DescriptionAttribute)a).Description);
         var description = descriptions?.Aggregate(
                 new StringBuilder(),
-                (current, next) => current.Append(current.Length == 0 ? "" : StarterCommand.DESCRIPTION_JOINER).Append(next)
+                (current, next) => current.Append(current.Length == 0 ? "" : StarterCommand.DescriptionJoiner).Append(next)
             ).ToString() ?? string.Empty;
 
         receptacle.Description = description;
