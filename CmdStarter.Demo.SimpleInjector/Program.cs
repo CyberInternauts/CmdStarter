@@ -1,4 +1,4 @@
-﻿using CmdStarter.Demo.SimpleInjector.Commands;
+using CmdStarter.Demo.SimpleInjector.Commands;
 using CmdStarter.Demo.SimpleInjector.Services;
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
@@ -33,7 +33,7 @@ internal class Program : IServiceManager
         {
             return container.GetInstance(commandType) as IStarterCommand;
         };
-        Starter.SetFactory(creationMethod);
+        starter.SetFactory(creationMethod);
 
         // Find commands
         starter.FindCommandsTypes();

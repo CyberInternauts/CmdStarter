@@ -25,6 +25,7 @@
     <ProjectReference Include="..\CmdStarter.Tests.Common\CmdStarter.Tests.Common.csproj" />
     <!-- Build order only: the app must not be copied here, or DirectoryCatalog(".") loads its commands into every test -->
     <ProjectReference Include="..\CmdStarter.Tests.App\CmdStarter.Tests.App.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\CmdStarter.Demo.SimpleInjector\CmdStarter.Demo.SimpleInjector.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.HelloWorld\CmdStarter.Samples.HelloWorld.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.TwoCommands\CmdStarter.Samples.TwoCommands.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.NestedCommands\CmdStarter.Samples.NestedCommands.csproj" ReferenceOutputAssembly="false" />
