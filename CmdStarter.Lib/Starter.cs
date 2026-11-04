@@ -199,7 +199,8 @@ public class Starter
     public void SetDefaultFactory() => factory = null;
 
     /// <summary>
-    /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
+    /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
+    /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
     /// </summary>
     public async Task<int> Start(string[] args)
     {
@@ -209,7 +210,8 @@ public class Starter
     }
 
     /// <summary>
-    /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
+    /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
+    /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
     /// </summary>
     public async Task<int> Start(string args)
     {
@@ -219,7 +221,8 @@ public class Starter
     }
 
     /// <summary>
-    /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
+    /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
+    /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
     /// </summary>
     public async Task<int> Start(IServiceManager serviceManager, string[] args)
     {
@@ -229,7 +232,8 @@ public class Starter
     }
 
     /// <summary>
-    /// Find all classes implementing <see cref="IStarterCommand"/>, build a tree based on their namespaces and try to execute a command
+    /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
+    /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
     /// </summary>
     public async Task<int> Start(IServiceManager serviceManager, string args)
     {
@@ -251,14 +255,14 @@ public class Starter
     }
 
     /// <summary>
-    /// Find the command instance used to handle executions.
+    /// Find the description instance created to read command metadata. It is never executed and is disposed when the tree is built when CmdStarter owns it.
     /// </summary>
     /// <typeparam name="CommandType">Command type to find.</typeparam>
-    /// <returns>The command instance, or <see langword="null"/> when no matching command exists.</returns>
+    /// <returns>The description instance, or <see langword="null"/> when no matching command exists.</returns>
     public CommandType? FindCommandInstance<CommandType>() where CommandType : class, IStarterCommand
     {
         return registrationsByType.TryGetValue(typeof(CommandType), out var registration)
-            ? registration.Instance as CommandType
+            ? registration.DescriptionInstance as CommandType
             : null;
     }
 
@@ -270,7 +274,7 @@ public class Starter
     public IStarterCommand? FindCommandInstance(Command command)
     {
         return registrationsByCommand.TryGetValue(command, out var registration)
-            ? registration.Instance
+            ? registration.DescriptionInstance
             : null;
     }
 
@@ -357,36 +361,43 @@ public class Starter
     {
         if (!hasToInstantiate) return;
         hasToInstantiate = false;
-
-        BuildTree();
-
-        // Lonely command
-        if (IsRootingLonelyCommand && CommandsTypes.Count == 1)
+        var activations = new List<CommandActivation>();
+        try
         {
-            var registration = CreateCommand(CommandsTypes[0]);
-            registration.CliCommand.Hidden = true;
-            InitializeRegistration(registration, RootCommand);
-            registration.CliCommand.Hidden = true;
-            RootCommand.Add(registration.CliCommand);
-            RootCommand.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult));
-        }
-        else
-        {
-            AddLevel(RootCommand, CommandsTypesTree);
+            BuildTree();
 
-            // Doing Initialize after having created all because a command may act differently if it has children or not
-            VisitCommands(RootCommand, (child) =>
+            // Lonely command
+            if (IsRootingLonelyCommand && CommandsTypes.Count == 1)
             {
-                if (registrationsByCommand.TryGetValue(child, out var registration))
-                {
-                    InitializeRegistration(registration);
-                }
-            });
-        }
+                var registration = CreateCommand(CommandsTypes[0], activations);
+                registration.CliCommand.Hidden = true;
+                InitializeRegistration(registration, RootCommand);
+                registration.CliCommand.Hidden = true;
+                RootCommand.Add(registration.CliCommand);
+                RootCommand.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult));
+            }
+            else
+            {
+                AddLevel(RootCommand, CommandsTypesTree, activations);
 
-        // Global options
-        GlobalOptionsManager.FilterTypes();
-        GlobalOptionsManager.LoadOptions(RootCommand);
+                // Doing Initialize after having created all because a command may act differently if it has children or not
+                VisitCommands(RootCommand, (child) =>
+                {
+                    if (registrationsByCommand.TryGetValue(child, out var registration))
+                    {
+                        InitializeRegistration(registration);
+                    }
+                });
+            }
+
+            // Global options
+            GlobalOptionsManager.FilterTypes();
+            GlobalOptionsManager.LoadOptions(RootCommand);
+        }
+        finally
+        {
+            foreach (var activation in activations) activation.Dispose();
+        }
     }
 
     /// <summary>
@@ -413,19 +424,21 @@ public class Starter
         VisitCommands(currentParent, loopBody);
     }
 
-    private void AddLevel(Command currentParent, TreeNode<Type> currentNode)
+    private void AddLevel(Command currentParent, TreeNode<Type> currentNode, List<CommandActivation> activations)
     {
         foreach (var childNode in currentNode.Children)
         {
-            var registration = CreateCommand(childNode.Value!); // childNode.Value can't be null, because only the root has a null Value
+            var registration = CreateCommand(childNode.Value!, activations); // childNode.Value can't be null, because only the root has a null Value
             currentParent.Subcommands.Add(registration.CliCommand);
-            AddLevel(registration.CliCommand, childNode);
+            AddLevel(registration.CliCommand, childNode, activations);
         }
     }
 
-    private CommandRegistration CreateCommand(Type commandType)
+    private CommandRegistration CreateCommand(Type commandType, List<CommandActivation> activations)
     {
-        var instance = Activate(commandType).Instance;
+        var activation = Activate(commandType);
+        activations.Add(activation);
+        var instance = activation.Instance;
         instance.GlobalOptionsManager = GlobalOptionsManager;
 
         var name = instance is StarterCommand starterCommand
@@ -435,7 +448,7 @@ public class Starter
         var registration = new CommandRegistration
         {
             CommandType = commandType,
-            Instance = instance,
+            DescriptionInstance = instance,
             CliCommand = cliCommand
         };
 
@@ -456,26 +469,30 @@ public class Starter
 
         if (command.Subcommands.Count == 0)
         {
-            registration.HandlerArguments = Reflection.Loader.LoadArguments(registration.Instance.HandlingMethod.Method, receptacle);
+            registration.HandlerArguments = Reflection.Loader.LoadArguments(registration.DescriptionInstance.HandlingMethod.Method, receptacle);
             command.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult));
         }
 
-        registration.OptionBindings = Reflection.Loader.LoadOptions(registration.Instance.GetType(), receptacle);
+        registration.OptionBindings = Reflection.Loader.LoadOptions(registration.DescriptionInstance.GetType(), receptacle);
         foreach (var binding in registration.OptionBindings)
         {
-            binding.InitialValue = binding.Property.GetValue(registration.Instance);
+            binding.InitialValue = binding.Property.GetValue(registration.DescriptionInstance);
         }
-        Reflection.Loader.LoadDescription(registration.Instance.GetType(), receptacle);
-        Reflection.Loader.LoadAliases(registration.Instance.GetType(), receptacle.Aliases);
-        command.Hidden = Attribute.IsDefined(registration.Instance.GetType(), typeof(HiddenAttribute));
+        Reflection.Loader.LoadDescription(registration.DescriptionInstance.GetType(), receptacle);
+        Reflection.Loader.LoadAliases(registration.DescriptionInstance.GetType(), receptacle.Aliases);
+        command.Hidden = Attribute.IsDefined(registration.DescriptionInstance.GetType(), typeof(HiddenAttribute));
     }
 
     private async Task<int> HandleCommandAsync(CommandRegistration registration, ParseResult parseResult)
     {
+        await using var activation = Activate(registration.CommandType);
+        var instance = activation.Instance;
+        instance.GlobalOptionsManager = GlobalOptionsManager;
+        if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
         GlobalOptionsManager.BindGlobalOptions(parseResult);
-        CommandBinder.BindOptions(parseResult, registration.Instance, registration.OptionBindings);
-        var exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, registration.Instance.HandlingMethod, registration.HandlerArguments);
-        CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, registration.Instance, exitCode));
+        CommandBinder.BindOptions(parseResult, instance, registration.OptionBindings);
+        var exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments);
+        CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, instance, exitCode));
         return exitCode;
     }
 

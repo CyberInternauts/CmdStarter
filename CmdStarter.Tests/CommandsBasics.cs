@@ -343,12 +343,15 @@ public class CommandsBasics
 
         // Ensure handle
         var optionValue = command.MyOpt + 1;
+        FullArgs? executed = null;
+        starter.CommandHandled += (_, e) => executed = e.Instance as FullArgs;
         var commandName = isRootingLonelyCommand ? string.Empty : typeof(FullArgs).Name.PascalToKebabCase();
         var successArgs = commandName + (isRootingLonelyCommand ? string.Empty : " ") // Command name
             + "--my-opt " + optionValue // Options
             + " my 222"; // Arguments  ==> FROM FullArgs: private void HandleExecution([Description("First param")] string param1, int param2, bool param3 = true)
         Assert.DoesNotThrowAsync(async () => await starter.Start(successArgs.Split(" ")));
-        Assert.That(command.MyOpt, Is.EqualTo(optionValue));
+        Assert.That(executed, Is.Not.Null);
+        Assert.That(executed!.MyOpt, Is.EqualTo(optionValue));
 
         var failingArgs = (isRootingLonelyCommand ? Array.Empty<string>() : new string[] { commandName });
         Assert.That(await starter.Start(failingArgs), Is.Not.EqualTo(0));
