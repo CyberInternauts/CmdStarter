@@ -11,11 +11,11 @@ public static class IStarterCommandExtensions
     /// Shortcut to retrieve the proper global options object
     /// </summary>
     /// <remarks>Defined as an extension method so the <see cref="IStarterCommand.HandlingMethod"/> can access it without casting itself to <see cref="IStarterCommand"/> </remarks>
-    /// <typeparam name="GlobalOptionsType"></typeparam>
+    /// <typeparam name="TGlobalOptions"></typeparam>
     /// <param name="obj"></param>
     /// <returns></returns>
-    public static GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>(this IStarterCommand obj) where GlobalOptionsType : class, IGlobalOptionsContainer
+    public static TGlobalOptions? GetGlobalOptions<TGlobalOptions>(this IStarterCommand obj) where TGlobalOptions : class, IGlobalOptionsContainer
     {
-        return obj.GlobalOptionsManager?.GetGlobalOptions<GlobalOptionsType>();
+        return obj.GlobalOptionsManager?.GetGlobalOptions<TGlobalOptions>();
     }
 }

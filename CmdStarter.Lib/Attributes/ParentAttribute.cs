@@ -25,10 +25,10 @@ public class ParentAttribute : Attribute
 
 /// <inheritdoc cref="ParentAttribute"/>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class ParentAttribute<ParentClass> : ParentAttribute where ParentClass : IStarterCommand
+public class ParentAttribute<TParentClass> : ParentAttribute where TParentClass : IStarterCommand
 {
     /// <inheritdoc cref="ParentAttribute.ParentAttribute(Type?)"/>
-    public ParentAttribute() : base(typeof(ParentClass))
+    public ParentAttribute() : base(typeof(TParentClass))
     {
     }
 }

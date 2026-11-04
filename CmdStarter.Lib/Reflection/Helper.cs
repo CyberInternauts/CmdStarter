@@ -15,9 +15,9 @@ public static partial class Helper
     private static List<string>? interfacePropertiesNames;
 
     /// <summary>
-    /// Find the most derived <see cref="IStarterCommand.GetInstance{CommandType}"/> or use default implementation
+    /// Find the most derived <see cref="IStarterCommand.GetInstance{TCommand}"/> or use default implementation
     /// </summary>
-    /// <param name="commandType">Command type to look for <see cref="IStarterCommand.GetInstance{CommandType}"/></param>
+    /// <param name="commandType">Command type to look for <see cref="IStarterCommand.GetInstance{TCommand}"/></param>
     /// <returns>A method info object of the method to execute</returns>
     public static MethodInfo FindGetInstanceMethod(Type commandType)
     {

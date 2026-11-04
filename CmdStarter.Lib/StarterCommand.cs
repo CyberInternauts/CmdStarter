@@ -65,13 +65,13 @@ public abstract class StarterCommand : IStarterCommand
     }
 
     /// <summary>
-    /// Shortcut method for <see cref="IStarterCommandExtensions.GetGlobalOptions{GlobalOptionsType}(IStarterCommand)"/>.
+    /// Shortcut method for <see cref="IStarterCommandExtensions.GetGlobalOptions{TGlobalOptions}(IStarterCommand)"/>.
     /// </summary>
-    /// <typeparam name="GlobalOptionsType">Global options type.</typeparam>
+    /// <typeparam name="TGlobalOptions">Global options type.</typeparam>
     /// <returns>The global options object, or <see langword="null"/> when unavailable.</returns>
-    public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
+    public TGlobalOptions? GetGlobalOptions<TGlobalOptions>() where TGlobalOptions : class, IGlobalOptionsContainer
     {
-        return ((IStarterCommand)this).GetGlobalOptions<GlobalOptionsType>();
+        return ((IStarterCommand)this).GetGlobalOptions<TGlobalOptions>();
     }
 
     /// <summary>
@@ -86,11 +86,11 @@ public abstract class StarterCommand : IStarterCommand
     /// <summary>
     /// Gets an instance of a type implementing <see cref="IStarterCommand"/>.
     /// </summary>
-    /// <typeparam name="CommandType">Command type to instantiate.</typeparam>
+    /// <typeparam name="TCommand">Command type to instantiate.</typeparam>
     /// <returns>An instance of the requested command type.</returns>
-    public static IStarterCommand GetInstance<CommandType>() where CommandType : IStarterCommand
+    public static IStarterCommand GetInstance<TCommand>() where TCommand : IStarterCommand
     {
-        var method = FindGetInstanceMethod(typeof(CommandType));
+        var method = FindGetInstanceMethod(typeof(TCommand));
         return (IStarterCommand)method.Invoke(null, null)!;
     }
 }

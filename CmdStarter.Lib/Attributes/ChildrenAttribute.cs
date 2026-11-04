@@ -35,14 +35,14 @@ public class ChildrenAttribute : Attribute
 /// <summary>
 /// Set children to a class using the namespace of the generic type
 /// </summary>
-/// <typeparam name="ClassForNamespace"></typeparam>
+/// <typeparam name="TClassForNamespace"></typeparam>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public sealed class ChildrenAttribute<ClassForNamespace> : ChildrenAttribute where ClassForNamespace : class
+public sealed class ChildrenAttribute<TClassForNamespace> : ChildrenAttribute where TClassForNamespace : class
 {
     /// <summary>
     /// <see cref="ChildrenAttribute.ChildrenAttribute(Type)"/>
     /// </summary>
-    public ChildrenAttribute() : base(typeof(ClassForNamespace))
+    public ChildrenAttribute() : base(typeof(TClassForNamespace))
     {
     }
 }

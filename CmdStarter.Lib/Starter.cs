@@ -77,7 +77,7 @@ public class Starter
     }
 
     /// <summary>Gets or sets the Microsoft.Extensions.DependencyInjection service provider used to create command instances.</summary>
-    /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, IStarterCommand})"/>; a command type's own <see cref="IStarterCommand.GetInstance{CommandType}"/> takes precedence over both.</remarks>
+    /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, IStarterCommand})"/>; a command type's own <see cref="IStarterCommand.GetInstance{TCommand}"/> takes precedence over both.</remarks>
     public IServiceProvider? ServiceProvider { get; set; }
 
     /// <summary>
@@ -268,11 +268,11 @@ public class Starter
     /// <summary>
     /// Find a command using an <see cref="IStarterCommand"/> type
     /// </summary>
-    /// <typeparam name="CommandType">Command type to find</typeparam>
+    /// <typeparam name="TCommand">Command type to find</typeparam>
     /// <returns>a <see cref="StarterCommand"/> derived class</returns>
-    public Command? FindCommand<CommandType>() where CommandType : IStarterCommand
+    public Command? FindCommand<TCommand>() where TCommand : IStarterCommand
     {
-        return registrationsByType.TryGetValue(typeof(CommandType), out var registration)
+        return registrationsByType.TryGetValue(typeof(TCommand), out var registration)
             ? registration.CliCommand
             : null;
     }
@@ -280,12 +280,12 @@ public class Starter
     /// <summary>
     /// Find the description instance created to read command metadata. It is never executed and is disposed when the tree is built when CmdStarter owns it.
     /// </summary>
-    /// <typeparam name="CommandType">Command type to find.</typeparam>
+    /// <typeparam name="TCommand">Command type to find.</typeparam>
     /// <returns>The description instance, or <see langword="null"/> when no matching command exists.</returns>
-    public CommandType? FindCommandInstance<CommandType>() where CommandType : class, IStarterCommand
+    public TCommand? FindCommandInstance<TCommand>() where TCommand : class, IStarterCommand
     {
-        return registrationsByType.TryGetValue(typeof(CommandType), out var registration)
-            ? registration.DescriptionInstance as CommandType
+        return registrationsByType.TryGetValue(typeof(TCommand), out var registration)
+            ? registration.DescriptionInstance as TCommand
             : null;
     }
 
@@ -305,11 +305,11 @@ public class Starter
     /// Gets the full command path of a command type: its name preceded by all its parents names, excluding the root command.
     /// </summary>
     /// <remarks>Works for every command type, including those that only implement <see cref="IStarterCommand"/>.</remarks>
-    /// <typeparam name="CommandType">Command type to look for.</typeparam>
+    /// <typeparam name="TCommand">Command type to look for.</typeparam>
     /// <returns>The command path, or <see langword="null"/> when no matching command exists.</returns>
-    public string? GetFullCommandString<CommandType>() where CommandType : IStarterCommand
+    public string? GetFullCommandString<TCommand>() where TCommand : IStarterCommand
     {
-        var command = FindCommand<CommandType>();
+        var command = FindCommand<TCommand>();
         return command is null ? null : GetCommandPath(command);
     }
 

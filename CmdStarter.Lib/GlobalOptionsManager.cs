@@ -31,13 +31,13 @@ public sealed class GlobalOptionsManager
     /// <summary>
     /// Retrieve a global options container of a specific type
     /// </summary>
-    /// <typeparam name="GlobalOptionsType">Global options container type to look for</typeparam>
+    /// <typeparam name="TGlobalOptions">Global options container type to look for</typeparam>
     /// <returns>An <see cref="IGlobalOptionsContainer"/> or null if nothing found</returns>
-    public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
+    public TGlobalOptions? GetGlobalOptions<TGlobalOptions>() where TGlobalOptions : class, IGlobalOptionsContainer
     {
-        var type = typeof(GlobalOptionsType);
+        var type = typeof(TGlobalOptions);
 
-        return globalOptions.TryGetValue(type, out object? value) ? (GlobalOptionsType)value : null;
+        return globalOptions.TryGetValue(type, out object? value) ? (TGlobalOptions)value : null;
     }
 
     internal object? GetGlobalOptions(Type type) => globalOptions.TryGetValue(type, out var value) ? value : null;
@@ -45,11 +45,11 @@ public sealed class GlobalOptionsManager
     /// <summary>
     /// Add/change a global options container object based on its type
     /// </summary>
-    /// <typeparam name="GlobalOptionsType">Global options container type to use as key</typeparam>
+    /// <typeparam name="TGlobalOptions">Global options container type to use as key</typeparam>
     /// <param name="globalOption"></param>
-    internal void SetGlobalOptions<GlobalOptionsType>(GlobalOptionsType globalOption) where GlobalOptionsType : class, IGlobalOptionsContainer
+    internal void SetGlobalOptions<TGlobalOptions>(TGlobalOptions globalOption) where TGlobalOptions : class, IGlobalOptionsContainer
     {
-        var type = typeof(GlobalOptionsType);
+        var type = typeof(TGlobalOptions);
 
         if (globalOptions.ContainsKey(type))
         {
