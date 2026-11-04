@@ -58,6 +58,7 @@ The measures use 12 class commands on three levels placed with `[Parent<T>]`, ea
 - `ExecuteCommand`: a `Starter` built once in a `GlobalSetup` method, then `Start("beta beta-two --count 1 value")` for each invocation.
 - `ExecuteCommandWithDependencyInjection`: a `CmdStarterBuilder` application built once in a `GlobalSetup` method, with a transient service injected into the `beta-two` command, then `RunAsync("beta beta-two --count 1 value")` for each invocation.
 - `FirstInstantiate`: the first `InstantiateCommands()` of a new process, JIT and assembly loading included, searching every loaded assembly.
+- `FirstInstantiateByScan` (fourth series): the same, with `Starter.UseCommandCatalogs` set to `false`.
 
 Global options containers are found by `GlobalOptionsManager` through a static cache shared by every `Starter` of the process, so the warm measures pay that search once per process, while `FirstInstantiate` includes it.
 
@@ -166,6 +167,64 @@ BenchmarkDotNet reported: 1 outlier detected (156.76 ms), not removed.
 ### Reading the two series
 
 In each series, the error intervals of `DiscoverOneAssembly` and `DiscoverOneAssemblyByScan` overlap, and so do those of `DiscoverAllAssemblies` and `DiscoverAllAssembliesByScan`: no measurable gain. `FirstInstantiate` gives 148.3 ± 9.24 ms and 147.5 ± 7.39 ms in the two series, against 137.3 ± 2.96 ms before catalogs. The intervals barely overlap: [140.1; 154.9] in the second series against [134.3; 140.3]. The measure has no twin by scan, so a cold start a dozen milliseconds slower is neither established nor excluded; a later series adds that twin.
+
+## After the dynamic code switch and the annotations
+
+This series was taken on 2026-11-04, from 13:07:58 to 13:09:27, with the same machine, the same jobs and the same conditions as in [Conditions](#conditions). BenchmarkDotNet ran alone: no other `dotnet` process was running. Three things changed in the library since the series with catalogs:
+
+- The typed factories of symbols ([ADR 0028](../adr/0028-typed-symbol-factories.md)) create the options and the arguments, set their default values and read their values.
+- When the runtime supports dynamic code, which is the case on CoreCLR, the catalog attribute of an assembly is read only if the assembly is the library or references it, and the references of each searched assembly are asked once. Before, the attribute was read on every searched assembly and the references were asked only for an assembly without a catalog. See [Source generator](source-generator.md).
+- The library carries annotations and suppressions for trimming and Native AOT, and the validation context of the validation attributes is built with the constructor that takes a display name. They change nothing that a test can observe.
+
+One measure was added, `FirstInstantiateByScan`, the twin of `FirstInstantiate` with `Starter.UseCommandCatalogs` set to `false`. It answers the reserve of the series with catalogs, which had no twin for the cold start.
+
+### Startup and execution
+
+| Method                                | Mean         | Error       | StdDev      | Gen0    | Gen1    | Gen2    | Allocated |
+|-------------------------------------- |-------------:|------------:|------------:|--------:|--------:|--------:|----------:|
+| DiscoverAllAssemblies                 | 1,865.580 μs | 200.5459 μs | 119.3416 μs | 85.9375 | 85.9375 | 85.9375 | 851.02 KB |
+| DiscoverOneAssembly                   |   595.514 μs | 235.4603 μs | 155.7424 μs | 25.3906 |  3.9063 |       - | 212.12 KB |
+| DiscoverAllAssembliesByScan           | 1,861.391 μs | 317.4781 μs | 209.9921 μs | 85.9375 | 85.9375 | 85.9375 |  852.6 KB |
+| DiscoverOneAssemblyByScan             |   591.646 μs | 279.9392 μs | 185.1624 μs | 25.3906 |  3.9063 |       - | 213.84 KB |
+| DefinedTree                           |   775.084 μs |  92.3305 μs |  54.9444 μs | 44.9219 |  5.8594 |       - | 374.14 KB |
+| ExecuteCommand                        |     4.498 μs |   0.2254 μs |   0.1491 μs |  1.1978 |  0.0076 |       - |   9.84 KB |
+| ExecuteCommandWithDependencyInjection |     4.747 μs |   0.1274 μs |   0.0843 μs |  1.2207 |  0.0153 |       - |   9.99 KB |
+
+BenchmarkDotNet reported:
+
+- `DiscoverAllAssemblies`: 1 outlier removed (2.24 ms).
+- `DefinedTree`: 1 outlier removed (1.04 ms).
+- `ExecuteCommandWithDependencyInjection`: 2 outliers detected (4.58 μs, 4.63 μs), not removed.
+- None for the other measures.
+
+### Cold start
+
+| Method                 | Mean     | Error   | StdDev  |
+|----------------------- |---------:|--------:|--------:|
+| FirstInstantiate       | 147.6 ms | 9.05 ms | 5.99 ms |
+| FirstInstantiateByScan | 143.9 ms | 7.09 ms | 4.69 ms |
+
+BenchmarkDotNet reported: `FirstInstantiate`, 1 outlier detected (160.66 ms), not removed.
+
+### Reading the series
+
+**Cold start.** `FirstInstantiate` gives 147.6 ± 9.05 ms, that is [138.55; 156.65], and `FirstInstantiateByScan` gives 143.9 ± 7.09 ms, that is [136.81; 150.99]. The intervals overlap largely, and the means differ by 3.7 ms. There is no measurable gain and no measurable cost from the catalogs on the cold start. The 137.3 ms taken before the catalogs was not found again in any series since, and it was taken at another time.
+
+**Discovery.** `DiscoverOneAssembly` gives 595.514 ± 235.4603 μs, [360.1; 831.0], and `DiscoverOneAssemblyByScan` gives 591.646 ± 279.9392 μs, [311.7; 871.6]. `DiscoverAllAssemblies` gives 1,865.580 ± 200.5459 μs, [1,665.0; 2,066.1], and `DiscoverAllAssembliesByScan` gives 1,861.391 ± 317.4781 μs, [1,543.9; 2,178.9]. In both pairs the intervals overlap: no measurable gain. `DiscoverAllAssemblies` is no longer above its twin: the means differ by 4.2 μs, while they differed by 228.1 μs and 188.7 μs in the two series with catalogs.
+
+**Allocations.** The `Allocated` column is lower than in the series with catalogs for every measure of the warm job. The series does not say which change did it.
+
+| Method                                | Series with catalogs | This series |
+|-------------------------------------- |---------------------:|------------:|
+| DiscoverAllAssemblies                 |            890.43 KB |   851.02 KB |
+| DiscoverOneAssembly                   |            220.07 KB |   212.12 KB |
+| DiscoverAllAssembliesByScan           |            862.64 KB |    852.6 KB |
+| DiscoverOneAssemblyByScan             |            224.17 KB |   213.84 KB |
+| DefinedTree                           |            410.53 KB |   374.14 KB |
+| ExecuteCommand                        |               9.9 KB |     9.84 KB |
+| ExecuteCommandWithDependencyInjection |             10.05 KB |     9.99 KB |
+
+The series with catalogs gives 410.52 KB for `DefinedTree` in its second series.
 
 ## How to run
 
