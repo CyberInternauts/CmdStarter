@@ -1,5 +1,6 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions.Options;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions.Commands;
 
 public sealed class InfoCommands
@@ -11,3 +12,4 @@ public sealed class InfoCommands
         if (options.Verbose) Console.Out.WriteLine("details: build 42");
     }
 }
+

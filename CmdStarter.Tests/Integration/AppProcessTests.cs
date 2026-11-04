@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace com.cyberinternauts.csharp.CmdStarter.Tests.Integration;
 
 [Category("* All *")]
@@ -88,7 +86,5 @@ public sealed class AppProcessTests
         var result = await AppRunner.RunAsync("CmdStarter.Tests.App", "unknown-command");
         Assert.That(result.ExitCode, Is.Not.Zero);
     }
-
 }
-
 

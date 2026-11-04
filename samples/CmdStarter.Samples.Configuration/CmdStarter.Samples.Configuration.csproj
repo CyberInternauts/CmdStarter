@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\ProjectsCommon.props" />
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.14" />
   </ItemGroup>
 </Project>
+

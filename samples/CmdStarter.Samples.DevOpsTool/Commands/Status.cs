@@ -1,6 +1,7 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Options;
 using com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Services;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.DevOpsTool.Commands;
 
 public sealed class Status(IDeploymentClient client) : StarterCommand
@@ -12,3 +13,4 @@ public sealed class Status(IDeploymentClient client) : StarterCommand
         return 0;
     });
 }
+

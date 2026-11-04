@@ -1,8 +1,13 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.Validation.Commands;
 
 public sealed class Ping : StarterCommand
 {
     public int Count { get; set; } = 4;
-    public override Delegate HandlingMethod => (Action<string>)(host => Console.Out.WriteLine($"Pinging {host} {Count} times"));
+    public override Delegate HandlingMethod
+    {
+        get => (Action<string>)(host => Console.Out.WriteLine($"Pinging {host} {Count} times"));
+    }
 }
+

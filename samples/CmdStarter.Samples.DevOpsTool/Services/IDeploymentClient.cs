@@ -6,3 +6,4 @@ public interface IDeploymentClient
     Task DeployAsync(string service, string version, string environment, bool dryRun);
     void Rollback(string service, string environment, bool dryRun);
 }
+

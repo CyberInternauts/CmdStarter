@@ -1,6 +1,9 @@
+// Sample: a service injected into a class command (constructor) and a method command (parameter).
+
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Samples.DependencyInjection.Services;
 using Microsoft.Extensions.DependencyInjection;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.DependencyInjection;
 
 public static class Program
@@ -13,3 +16,4 @@ public static class Program
         return await app.RunAsync(args);
     }
 }
+

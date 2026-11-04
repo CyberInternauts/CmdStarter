@@ -1,4 +1,7 @@
+// Sample: parse errors handled by System.CommandLine, plus a custom validator on a built option.
+
 using com.cyberinternauts.csharp.CmdStarter.Lib;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.Validation;
 
 public static class Program
@@ -15,3 +18,4 @@ public static class Program
         return await starter.Start(args);
     }
 }
+

@@ -21,3 +21,4 @@ public sealed class DemosTests
         Assert.That(result.StdOut, Does.Contain("MyInt=5"));
     }
 }
+

@@ -12,9 +12,15 @@ internal static class AppRunner
 {
     private static readonly TimeSpan ProcessTimeout = TimeSpan.FromSeconds(60);
 
-    internal static Task<AppResult> RunAsync(string projectPath, params string[] args) => RunAsync(projectPath, null, args);
+    internal static Task<AppResult> RunAsync(string projectPath, params string[] args)
+    {
+        return RunAsync(projectPath, null, args);
+    }
 
-    internal static async Task<AppResult> RunAsync(string projectPath, IReadOnlyDictionary<string, string?>? environment, params string[] args)
+    internal static async Task<AppResult> RunAsync(
+        string projectPath,
+        IReadOnlyDictionary<string, string?>? environment,
+        params string[] args)
     {
         var projectName = projectPath.Split('/').Last();
         var baseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -23,7 +29,13 @@ internal static class AppRunner
         var root = baseDirectory;
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "CmdStarter.sln"))) root = root.Parent;
         Assert.That(root, Is.Not.Null, "Could not find the repository root containing CmdStarter.sln.");
-        var assemblyPath = Path.GetFullPath(Path.Combine(root!.FullName, projectPath.Replace('/', Path.DirectorySeparatorChar), "bin", configuration, targetFramework, $"{projectName}.dll"));
+        var assemblyPath = Path.GetFullPath(Path.Combine(
+            root!.FullName,
+            projectPath.Replace('/', Path.DirectorySeparatorChar),
+            "bin",
+            configuration,
+            targetFramework,
+            $"{projectName}.dll"));
         var runtimeConfigPath = Path.ChangeExtension(assemblyPath, ".runtimeconfig.json");
         if (!File.Exists(assemblyPath) || !File.Exists(runtimeConfigPath))
             Assert.Fail($"Could not find application files. Paths tried:\n{assemblyPath}\n{runtimeConfigPath}");
@@ -52,8 +64,11 @@ internal static class AppRunner
         {
             process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync();
-            Assert.Fail($"The application process exceeded the {ProcessTimeout.TotalSeconds:0}-second timeout. Runtime config: {runtimeConfigPath}");
+            Assert.Fail(
+                $"The application process exceeded the {ProcessTimeout.TotalSeconds:0}-second timeout. " +
+                $"Runtime config: {runtimeConfigPath}");
         }
         return new AppResult(process.ExitCode, await standardOutputTask, await standardErrorTask);
     }
 }
+

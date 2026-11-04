@@ -1,6 +1,9 @@
+// Sample: one dependency injection scope per execution; scoped services are shared, then disposed.
+
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Samples.ScopedServices.Services;
 using Microsoft.Extensions.DependencyInjection;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.ScopedServices;
 
 public static class Program
@@ -15,3 +18,4 @@ public static class Program
         return await app.RunAsync(args);
     }
 }
+

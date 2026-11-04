@@ -1,7 +1,7 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Attributes;
 using com.cyberinternauts.csharp.CmdStarter.Samples.ScopedServices.Services;
-using Microsoft.Extensions.DependencyInjection;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.ScopedServices.Commands;
 
 public sealed class WorkCommands
@@ -15,3 +15,4 @@ public sealed class WorkCommands
         return 0;
     }
 }
+

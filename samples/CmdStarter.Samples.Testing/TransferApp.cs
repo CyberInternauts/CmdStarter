@@ -1,6 +1,7 @@
 using com.cyberinternauts.csharp.CmdStarter.Lib;
 using com.cyberinternauts.csharp.CmdStarter.Samples.Testing.Services;
 using Microsoft.Extensions.DependencyInjection;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.Testing;
 
 public static class TransferApp
@@ -12,3 +13,4 @@ public static class TransferApp
         return builder;
     }
 }
+

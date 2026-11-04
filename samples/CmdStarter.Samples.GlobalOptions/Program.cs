@@ -1,4 +1,11 @@
+// Sample: a global option read by a class command and by a method command.
+
 using com.cyberinternauts.csharp.CmdStarter.Lib;
+
 namespace com.cyberinternauts.csharp.CmdStarter.Samples.GlobalOptions;
 
-public static class Program { public static Task<int> Main(string[] args) => new Starter().Start(args); }
+public static class Program
+{
+    public static Task<int> Main(string[] args) => new Starter().Start(args);
+}
+
