@@ -1,7 +1,5 @@
 // Sample: nested commands, from the namespace hierarchy (remote) and from [Parent<T>] (config).
 
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.NestedCommands;
 
 public static class Program

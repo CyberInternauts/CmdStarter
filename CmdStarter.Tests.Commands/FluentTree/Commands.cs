@@ -1,6 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-using CyberInternauts.CmdStarter.Tests.Commands.FluentTree;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.FluentTree;
 
 public class Users : StarterCommand

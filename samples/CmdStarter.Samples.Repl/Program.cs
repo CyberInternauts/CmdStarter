@@ -1,6 +1,5 @@
 // Sample: an interactive REPL with dependency injection; each command runs in its own scope.
 
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Repl;
 using CyberInternauts.CmdStarter.Samples.Repl.Services;
 using Microsoft.Extensions.DependencyInjection;

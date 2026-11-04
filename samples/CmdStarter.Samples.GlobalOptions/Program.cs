@@ -1,7 +1,5 @@
 // Sample: a global option read by a class command and by a method command.
 
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.GlobalOptions;
 
 public static class Program

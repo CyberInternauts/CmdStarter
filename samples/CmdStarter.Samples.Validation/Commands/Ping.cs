@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.Validation.Commands;
 
 public sealed class Ping : StarterCommand

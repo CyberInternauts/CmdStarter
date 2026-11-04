@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using CyberInternauts.CmdStarter.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 

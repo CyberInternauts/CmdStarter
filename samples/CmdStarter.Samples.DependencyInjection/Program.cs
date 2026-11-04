@@ -1,6 +1,5 @@
 // Sample: a service injected into a class command (constructor) and a method command (parameter).
 
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Samples.DependencyInjection.Services;
 using Microsoft.Extensions.DependencyInjection;
 

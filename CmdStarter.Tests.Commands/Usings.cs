@@ -1,4 +1,3 @@
-global using CyberInternauts.CmdStarter;
 global using CyberInternauts.CmdStarter.Interfaces;
 global using CyberInternauts.CmdStarter.Attributes;
 global using CyberInternauts.CmdStarter.Loader;

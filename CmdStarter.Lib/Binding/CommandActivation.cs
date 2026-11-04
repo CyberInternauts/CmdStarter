@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CyberInternauts.CmdStarter.Binding;

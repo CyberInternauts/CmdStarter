@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.ExecutionPaths;
 
 // Method commands that exercise the execution paths of Starter: errors, missing option values, services and groups.

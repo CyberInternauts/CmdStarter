@@ -1,6 +1,3 @@
-using CyberInternauts.CmdStarter;
-using CyberInternauts.CmdStarter.Attributes;
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Tests.Commands.Methods;
 using CyberInternauts.CmdStarter.Tests.Commands.Methods.Erroneous;
 using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;

@@ -1,5 +1,4 @@
 using System.CommandLine;
-using CyberInternauts.CmdStarter.Interfaces;
 
 namespace CyberInternauts.CmdStarter;
 

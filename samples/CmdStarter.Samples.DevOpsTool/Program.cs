@@ -1,6 +1,5 @@
 // Sample: a small DevOps tool with global options, a command group, services and exit codes.
 
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Samples.DevOpsTool.Services;
 using Microsoft.Extensions.DependencyInjection;
 

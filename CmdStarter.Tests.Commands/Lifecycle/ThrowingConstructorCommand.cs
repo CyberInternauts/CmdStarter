@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
 // Takes a scoped service, then fails: the scope that created it must still be released.

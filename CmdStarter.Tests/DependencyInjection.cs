@@ -1,6 +1,3 @@
-using CyberInternauts.CmdStarter;
-using CyberInternauts.CmdStarter.Exceptions;
-using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 using Microsoft.Extensions.DependencyInjection;
 

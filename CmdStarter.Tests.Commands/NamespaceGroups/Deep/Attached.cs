@@ -1,6 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-using CyberInternauts.CmdStarter.Tests.Commands.NamespaceGroups;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.NamespaceGroups.Deep;
 
 [Parent<Host>]

@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Analyzers;
 using CyberInternauts.CmdStarter.Extensions;
 using NUnit.Framework;
 

@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Tests.Commands.MethodGroups;
 
 namespace CyberInternauts.CmdStarter.Tests;

@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-using CyberInternauts.CmdStarter.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
 namespace CyberInternauts.CmdStarter.Tests.Commands.Validation;

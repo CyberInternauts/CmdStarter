@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter;
 using System.ComponentModel.DataAnnotations;
 
 namespace CyberInternauts.CmdStarter.Demo.Repl.Commands.Account;

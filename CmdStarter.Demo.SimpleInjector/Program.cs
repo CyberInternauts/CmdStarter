@@ -1,5 +1,4 @@
 // Demo: an alternative container (SimpleInjector) plugged in through Starter.SetFactory.
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Demo.SimpleInjector.Services;
 using CyberInternauts.CmdStarter.Interfaces;
 using SimpleInjector;

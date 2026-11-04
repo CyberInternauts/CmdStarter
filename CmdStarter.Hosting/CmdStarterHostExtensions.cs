@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Repl;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

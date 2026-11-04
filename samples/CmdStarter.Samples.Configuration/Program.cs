@@ -1,7 +1,5 @@
 // Sample: configuration from environment variables, injected and overridden by an option.
 
-using CyberInternauts.CmdStarter;
-using CyberInternauts.CmdStarter.Samples.Configuration.Commands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,5 +1,4 @@
 using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
-using System.CommandLine;
 using System.CommandLine.Completions;
 
 namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete;

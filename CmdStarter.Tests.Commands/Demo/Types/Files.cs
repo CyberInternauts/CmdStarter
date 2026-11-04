@@ -1,7 +1,3 @@
-using CyberInternauts.CmdStarter.Loader;
-using CyberInternauts.CmdStarter.Tests.Commands.Demo;
-using System.ComponentModel;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
 
 [Description("List only the files of a folder")]

@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
 namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.AutoComplete;

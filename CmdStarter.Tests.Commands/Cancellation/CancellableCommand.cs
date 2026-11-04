@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Cancellation;
 
 public sealed class CancellableCommand : StarterCommand

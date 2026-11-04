@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
 
 public class SecondaryGlobalOptions : IGlobalOptionsContainer

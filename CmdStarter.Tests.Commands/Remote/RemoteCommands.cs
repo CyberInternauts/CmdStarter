@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Remote;
 
 public sealed class Hello : StarterCommand

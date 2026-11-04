@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
 // Like AsyncDisposableDescription, but its DisposeAsync waits for a signal that the test gives: only an asynchronous wait lets the caller go on before that.

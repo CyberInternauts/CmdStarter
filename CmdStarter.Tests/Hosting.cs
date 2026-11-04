@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using CyberInternauts.CmdStarter.Hosting;
-using CyberInternauts.CmdStarter.Repl;
 using CyberInternauts.CmdStarter.Tests.Commands.Hosting;
 using CyberInternauts.CmdStarter.Tests.Commands.Repl;
 using CyberInternauts.CmdStarter.Tests.Commands.ReplApp;

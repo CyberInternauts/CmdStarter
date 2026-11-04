@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Tests.Commands.Options;
 using CyberInternauts.CmdStarter.Tests.Commands.Options.Filters;

@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.GlobalOptions.Commands;
 
 public sealed class Status : StarterCommand

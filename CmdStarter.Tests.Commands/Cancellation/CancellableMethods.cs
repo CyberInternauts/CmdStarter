@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Cancellation;
 
 public sealed class CancellableMethods

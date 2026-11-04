@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using NUnit.Framework;
 
 namespace CyberInternauts.CmdStarter.Tests.Integration;
 

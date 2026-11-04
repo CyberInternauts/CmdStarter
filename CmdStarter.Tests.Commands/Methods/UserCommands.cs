@@ -1,6 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-using System.ComponentModel;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
 
 [Command("users")]

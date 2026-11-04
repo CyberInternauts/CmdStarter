@@ -1,5 +1,4 @@
 using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
-using NUnit.Framework;
 
 namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
 

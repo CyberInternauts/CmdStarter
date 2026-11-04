@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.NamespaceGroups.Methods;
 
 public static class NamespaceGroupMethods

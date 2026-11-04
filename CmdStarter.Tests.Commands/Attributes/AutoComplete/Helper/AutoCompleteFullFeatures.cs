@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
 
 internal class AutoCompleteOptionFullFeatures : IAutoCompleteFactory, IAutoCompleteProvider

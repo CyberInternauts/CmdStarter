@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Samples.DevOpsTool.Options;
 using CyberInternauts.CmdStarter.Samples.DevOpsTool.Services;
 

@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Tests.Commands.Cancellation;
 using CyberInternauts.CmdStarter.Tests.Commands.Filters;
 using CyberInternauts.CmdStarter.Tests.Commands.States;

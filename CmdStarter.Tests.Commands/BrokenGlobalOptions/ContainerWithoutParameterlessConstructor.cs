@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.BrokenGlobalOptions;
 
 // Only found when this namespace is asked for: it is excluded from the default discoveries of the tests.

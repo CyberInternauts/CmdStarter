@@ -1,6 +1,5 @@
 using System.Collections;
 using CyberInternauts.CmdStarter.Attributes;
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Tests.Commands.ExecutionPaths;
 using CyberInternauts.CmdStarter.Tests.Commands.FluentTree;

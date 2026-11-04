@@ -1,5 +1,4 @@
 using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
-using CyberInternauts.CmdStarter.Tests.Commands.Loader.ByInterface;
 using CyberInternauts.CmdStarter.Tests.Common;
 using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 

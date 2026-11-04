@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using CyberInternauts.CmdStarter.Catalog;
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Loader;
 using CyberInternauts.CmdStarter.Tests.Commands.Catalog;
 using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;

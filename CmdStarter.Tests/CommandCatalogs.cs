@@ -2,8 +2,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Catalog;
-using CyberInternauts.CmdStarter.Exceptions;
-using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Tests.Commands.Catalog;
 
 namespace CyberInternauts.CmdStarter.Tests;

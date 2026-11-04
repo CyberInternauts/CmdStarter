@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
 // A service that no test registers: the long constructors below ask for it.

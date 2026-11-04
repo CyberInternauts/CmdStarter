@@ -1,6 +1,5 @@
 // Sample: one dependency injection scope per execution; scoped services are shared, then disposed.
 
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Samples.ScopedServices.Services;
 using Microsoft.Extensions.DependencyInjection;
 

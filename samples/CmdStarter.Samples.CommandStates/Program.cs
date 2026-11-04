@@ -1,6 +1,5 @@
 // Sample: commands available only in some application states; help follows the current state.
 
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Repl;
 using CyberInternauts.CmdStarter.Samples.CommandStates.Services;

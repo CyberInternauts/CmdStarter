@@ -1,5 +1,4 @@
 using CyberInternauts.CmdStarter.Demo.SimpleInjector.Services;
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Interfaces;
 
 namespace CyberInternauts.CmdStarter.Demo.SimpleInjector.Commands;

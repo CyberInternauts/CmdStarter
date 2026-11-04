@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Tests.Commands.States;
 using System.Collections.Immutable;
 using Erroneous = CyberInternauts.CmdStarter.Tests.Commands.Erroneous;

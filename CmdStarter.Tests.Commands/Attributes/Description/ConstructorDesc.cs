@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Description;
 
 public sealed class ConstructorDesc : StarterCommand

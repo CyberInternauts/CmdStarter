@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Loader;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.ChildingNamespace;
 
 [TestParent(ClassesBuildingMode.OnlyNamespaces, typeof(Main))]

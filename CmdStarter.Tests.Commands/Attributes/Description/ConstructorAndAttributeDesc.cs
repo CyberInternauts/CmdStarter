@@ -1,6 +1,3 @@
-using CyberInternauts.CmdStarter;
-using System.ComponentModel;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Description;
 
 [Description(ATTRIBUTE_DESC)]

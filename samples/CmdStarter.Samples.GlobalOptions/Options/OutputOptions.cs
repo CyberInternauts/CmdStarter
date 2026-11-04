@@ -1,5 +1,4 @@
 using CyberInternauts.CmdStarter.Interfaces;
-using CyberInternauts.CmdStarter;
 
 namespace CyberInternauts.CmdStarter.Samples.GlobalOptions.Options;
 

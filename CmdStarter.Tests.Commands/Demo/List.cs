@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Loader;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Demo;
 
 [TestParent(ClassesBuildingMode.Both, null)]

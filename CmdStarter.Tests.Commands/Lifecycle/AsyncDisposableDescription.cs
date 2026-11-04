@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
 // Only IAsyncDisposable, and it really yields: releasing it synchronously has to block on DisposeAsync.

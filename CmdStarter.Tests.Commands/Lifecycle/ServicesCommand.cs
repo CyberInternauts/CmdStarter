@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
 
 public sealed class ServicesCommand : StarterCommand, IDisposable

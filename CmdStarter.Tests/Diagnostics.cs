@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Tests.Commands.Methods.Erroneous;
 
 namespace CyberInternauts.CmdStarter.Tests;

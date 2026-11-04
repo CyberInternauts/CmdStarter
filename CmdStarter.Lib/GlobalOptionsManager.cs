@@ -2,7 +2,6 @@ using CyberInternauts.CmdStarter.Catalog;
 using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
-using System.CommandLine.Parsing;
 using static CyberInternauts.CmdStarter.Reflection.Helper;
 using CyberInternauts.CmdStarter.Binding;
 using CyberInternauts.CmdStarter.Reflection;

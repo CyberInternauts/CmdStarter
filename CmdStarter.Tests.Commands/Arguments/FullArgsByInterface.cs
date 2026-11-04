@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Tests.Commands.Attributes.Alias;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Arguments;
 
 public class FullArgsByInterface : IStarterCommand

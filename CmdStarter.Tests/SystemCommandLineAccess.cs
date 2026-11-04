@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Collections.Immutable;
 using CyberInternauts.CmdStarter.Tests.Commands.Sequences;
 

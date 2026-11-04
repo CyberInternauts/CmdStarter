@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Loader;
 using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
 
 namespace CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;

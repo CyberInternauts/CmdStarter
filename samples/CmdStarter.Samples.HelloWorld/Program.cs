@@ -1,7 +1,5 @@
 // Sample: the smallest CmdStarter app. One class command, rooted because it is the only one.
 
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.HelloWorld;
 
 public static class Program

@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Tests.Commands.Arguments.Child;
 using CyberInternauts.CmdStarter.Tests.Commands.Arguments;
 using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;

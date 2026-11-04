@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Tests.Commands.States;
 using Microsoft.Extensions.DependencyInjection;
 

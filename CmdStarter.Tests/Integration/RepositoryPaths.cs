@@ -1,5 +1,3 @@
-using NUnit.Framework;
-
 namespace CyberInternauts.CmdStarter.Tests.Integration;
 
 internal static class RepositoryPaths

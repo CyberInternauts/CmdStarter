@@ -4,7 +4,6 @@ using System.Text;
 using CyberInternauts.CmdStarter.Repl;
 using CyberInternauts.CmdStarter.Repl.Remote;
 using CyberInternauts.CmdStarter.Tests.Commands.Remote;
-using CyberInternauts.CmdStarter.Tests.Commands.Repl;
 using static CyberInternauts.CmdStarter.Tests.RemoteTesting;
 
 namespace CyberInternauts.CmdStarter.Tests;

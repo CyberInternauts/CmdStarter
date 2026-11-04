@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Interfaces;
 

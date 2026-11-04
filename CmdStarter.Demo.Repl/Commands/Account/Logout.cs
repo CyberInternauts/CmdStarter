@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Demo.Repl.Commands.Account;
 
 [CyberInternauts.CmdStarter.Attributes.AvailableInState(DemoState.LoggedIn)]

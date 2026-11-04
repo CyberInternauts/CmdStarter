@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.HelloWorld.Commands;
 
 public sealed class Hello : StarterCommand

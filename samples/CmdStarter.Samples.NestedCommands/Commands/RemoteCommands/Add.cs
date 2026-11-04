@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.NestedCommands.Commands.RemoteCommands;
 
 public sealed class Add : StarterCommand

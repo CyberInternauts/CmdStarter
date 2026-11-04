@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Arguments;
 
 public class FullArgs : StarterCommand

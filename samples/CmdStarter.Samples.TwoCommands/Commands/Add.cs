@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter;
-
 namespace CyberInternauts.CmdStarter.Samples.TwoCommands.Commands;
 
 public sealed class Add : StarterCommand

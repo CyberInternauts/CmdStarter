@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Analyzers;
 using NUnit.Framework;
 
 namespace CyberInternauts.CmdStarter.Analyzers.Tests;

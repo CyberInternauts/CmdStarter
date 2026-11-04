@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Repl;
 using CyberInternauts.CmdStarter.Sequences;
 using CyberInternauts.CmdStarter.Tests.Commands.Repl;

@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
-
 namespace CyberInternauts.CmdStarter.Tests.Commands.Options;
 
 public class OptByInterface : IStarterCommand

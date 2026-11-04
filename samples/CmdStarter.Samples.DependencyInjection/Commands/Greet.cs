@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter;
 using CyberInternauts.CmdStarter.Samples.DependencyInjection.Services;
 
 namespace CyberInternauts.CmdStarter.Samples.DependencyInjection.Commands;

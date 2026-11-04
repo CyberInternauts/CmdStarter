@@ -1,5 +1,4 @@
 using CyberInternauts.CmdStarter.Tests.App.Services;
-using CyberInternauts.CmdStarter;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CyberInternauts.CmdStarter.Tests.App;

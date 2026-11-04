@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using CyberInternauts.CmdStarter.Exceptions;
 using CyberInternauts.CmdStarter.Loader;
 using CyberInternauts.CmdStarter.Tests.Commands.TreeBuilding.ChildrenLoop.First;
 using CyberInternauts.CmdStarter.Tests.Commands.TreeBuilding.ChildrenLoop.Second;

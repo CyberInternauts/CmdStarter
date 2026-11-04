@@ -1,4 +1,3 @@
-using CyberInternauts.CmdStarter.Attributes;
 using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
 
 namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
