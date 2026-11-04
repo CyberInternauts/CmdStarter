@@ -1,4 +1,5 @@
 using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Catalog;
 using CyberInternauts.CmdStarter.Extensions;
 using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
@@ -27,10 +28,8 @@ internal static class Loader
             var isList = property.PropertyType.GetInterfaces()
                 .Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
 
-            var optionType = typeof(Option<>).MakeGenericType(property.PropertyType);
-            var constructor = optionType.GetConstructor(new Type[] { typeof(string), typeof(string[]) });
             var optionName = StarterCommand.OptionPrefix + property.Name.PascalToKebabCase();
-            var option = (Option)constructor!.Invoke(new object[] { optionName, Array.Empty<string>() });
+            var option = SymbolFactories.For(property.PropertyType).CreateOption(optionName);
             option.Required = Attribute.IsDefined(property, typeof(RequiredAttribute));
             AddValidationAttributes(property, option, optionName.TrimStart('-'));
             option.Hidden = Attribute.IsDefined(property, typeof(HiddenAttribute));
@@ -67,15 +66,13 @@ internal static class Loader
 
     internal static Argument CreateArgument(ParameterInfo parameter)
     {
-        var argumentType = typeof(Argument<>).MakeGenericType(parameter.ParameterType);
-        var constructor = argumentType.GetConstructor(new[] { typeof(string) });
-        var argument = (Argument)constructor!.Invoke(new object[] { parameter.Name! });
+        var factory = SymbolFactories.For(parameter.ParameterType);
+        var argument = factory.CreateArgument(parameter.Name!);
         argument.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
         AddValidationAttributes(parameter, argument, parameter.Name!);
         if (parameter.HasDefaultValue)
         {
-            typeof(Loader).GetMethod(nameof(SetDefaultValue), BindingFlags.NonPublic | BindingFlags.Static)!
-                .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { argument, parameter.DefaultValue });
+            factory.SetDefault(argument, parameter.DefaultValue);
         }
         LoadDescription(parameter, argument);
         LoadAutoCompletes(parameter, completion => argument.CompletionSources.Add(completion));
@@ -84,9 +81,8 @@ internal static class Loader
 
     internal static Option CreateParameterOption(ParameterInfo parameter)
     {
-        var optionType = typeof(Option<>).MakeGenericType(parameter.ParameterType);
-        var constructor = optionType.GetConstructor(new[] { typeof(string), typeof(string[]) });
-        var option = (Option)constructor!.Invoke(new object[] { StarterCommand.OptionPrefix + parameter.Name!.PascalToKebabCase(), Array.Empty<string>() });
+        var factory = SymbolFactories.For(parameter.ParameterType);
+        var option = factory.CreateOption(StarterCommand.OptionPrefix + parameter.Name!.PascalToKebabCase());
         option.Required = Attribute.IsDefined(parameter, typeof(RequiredAttribute));
         AddValidationAttributes(parameter, option, parameter.Name!.PascalToKebabCase());
         option.Hidden = Attribute.IsDefined(parameter, typeof(HiddenAttribute));
@@ -97,8 +93,7 @@ internal static class Loader
         LoadAutoCompletes(parameter, completion => option.CompletionSources.Add(completion));
         if (parameter.HasDefaultValue && parameter.DefaultValue is not DBNull)
         {
-            typeof(Loader).GetMethod(nameof(SetDefaultOptionValue), BindingFlags.NonPublic | BindingFlags.Static)!
-                .MakeGenericMethod(parameter.ParameterType).Invoke(null, new[] { option, parameter.DefaultValue });
+            factory.SetDefault(option, parameter.DefaultValue);
         }
         return option;
     }
@@ -121,16 +116,15 @@ internal static class Loader
         }
 
         var valueType = option.ValueType;
+        var factory = SymbolFactories.For(valueType);
         if (valueType.IsValueType
             && Nullable.GetUnderlyingType(valueType) is null
-            && Equals(value, Activator.CreateInstance(valueType)))
+            && Equals(value, factory.DefaultValue))
         {
             return;
         }
 
-        typeof(Loader).GetMethod(nameof(SetDefaultOptionValue), BindingFlags.NonPublic | BindingFlags.Static)!
-            .MakeGenericMethod(valueType)
-            .Invoke(null, new[] { option, value });
+        factory.SetDefault(option, value);
     }
 
     internal static void LoadDescription(ICustomAttributeProvider provider, Symbol receptacle)
@@ -169,12 +163,6 @@ internal static class Loader
             action(completion);
         }
     }
-
-    private static void SetDefaultValue<T>(Argument<T> argument, object? value) =>
-        argument.DefaultValueFactory = _ => (T)value!;
-
-    private static void SetDefaultOptionValue<T>(Option<T> option, object? value) =>
-        option.DefaultValueFactory = _ => (T)value!;
 
     private static IEnumerable<AutoCompleteAttribute> GetAutoCompleteAttributes(ICustomAttributeProvider provider)
     {

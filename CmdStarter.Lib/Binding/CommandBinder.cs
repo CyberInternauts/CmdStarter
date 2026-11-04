@@ -2,15 +2,12 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Collections.Concurrent;
+using CyberInternauts.CmdStarter.Catalog;
 
 namespace CyberInternauts.CmdStarter.Binding;
 
 internal static class CommandBinder
 {
-    private static readonly ConcurrentDictionary<Type, MethodInfo> optionGetters = new();
-    private static readonly ConcurrentDictionary<Type, MethodInfo> argumentGetters = new();
-
     internal static bool TryGetOptionValue(ParseResult parseResult, Option option, out object? value)
     {
         if (parseResult.GetResult(option) is null)
@@ -19,21 +16,12 @@ internal static class CommandBinder
             return false;
         }
 
-        var getter = optionGetters.GetOrAdd(option.ValueType, valueType => FindGetter(typeof(Option<>)).MakeGenericMethod(valueType));
-        value = getter.Invoke(parseResult, new object[] { option });
+        value = SymbolFactories.For(option.ValueType).GetValue(parseResult, option);
         return true;
     }
 
-    internal static object? GetArgumentValue(ParseResult parseResult, Argument argument)
-    {
-        var getter = argumentGetters.GetOrAdd(argument.ValueType, valueType => FindGetter(typeof(Argument<>)).MakeGenericMethod(valueType));
-        return getter.Invoke(parseResult, new object[] { argument });
-    }
-
-    // symbolType is Option<> or Argument<>: the lookup is by exact signature, whatever the order of the methods of ParseResult.
-    private static MethodInfo FindGetter(Type symbolType) => typeof(ParseResult)
-        .GetMethod("GetValue", 1, new[] { symbolType.MakeGenericType(Type.MakeGenericMethodParameter(0)) })
-        ?? throw new InvalidOperationException($"{typeof(ParseResult).FullName}.GetValue<T>({symbolType.Name}) was not found: this version of System.CommandLine is not supported.");
+    internal static object? GetArgumentValue(ParseResult parseResult, Argument argument) =>
+        SymbolFactories.For(argument.ValueType).GetValue(parseResult, argument);
 
     internal static void BindOptions(ParseResult parseResult, object target, IEnumerable<OptionBinding> bindings)
     {
@@ -81,7 +69,7 @@ internal static class CommandBinder
             else
             {
                 var parameterType = parameters[i].ParameterType;
-                values[i] = parameterType.IsValueType ? Activator.CreateInstance(parameterType) : null;
+                values[i] = parameterType.IsValueType ? SymbolFactories.For(parameterType).DefaultValue : null;
             }
         }
 

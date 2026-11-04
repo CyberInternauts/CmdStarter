@@ -1240,7 +1240,7 @@ public class Starter
     private static object? GetMethodOptionValue(ParseResult result, Option option, ParameterInfo parameter)
     {
         if (CommandBinder.TryGetOptionValue(result, option, out var value)) return value;
-        return parameter.ParameterType.IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null;
+        return parameter.ParameterType.IsValueType ? SymbolFactories.For(parameter.ParameterType).DefaultValue : null;
     }
 
     private void AddMethodCommands(Type type)

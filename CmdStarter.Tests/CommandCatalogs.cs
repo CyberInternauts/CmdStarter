@@ -162,10 +162,14 @@ public class CommandCatalogs
 
         internal List<Type> GlobalOptions { get; } = new();
 
+        internal List<Type> SymbolTypes { get; } = new();
+
         public void AddCommand<TCommand>() where TCommand : class, IStarterCommand => Commands.Add(typeof(TCommand));
 
         public void AddMethodCommands(Type declaringType) => MethodClasses.Add(declaringType);
 
         public void AddGlobalOptions<TContainer>() where TContainer : class, IGlobalOptionsContainer => GlobalOptions.Add(typeof(TContainer));
+
+        public void AddSymbolType<T>() => SymbolTypes.Add(typeof(T));
     }
 }

@@ -23,4 +23,11 @@ public interface ICommandCatalogBuilder
     /// <summary>Declares a global options container.</summary>
     /// <typeparam name="TContainer">The container class.</typeparam>
     void AddGlobalOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TContainer>() where TContainer : class, IGlobalOptionsContainer;
+
+    /// <summary>
+    /// Declares a type of value that options and arguments use, so that CmdStarter has a typed factory of symbols for it (<see cref="ISymbolFactory"/>)
+    /// that exists in the assembly of the catalog. The first declaration of a type is kept for the whole process; a later one is ignored.
+    /// </summary>
+    /// <typeparam name="T">The type of the values.</typeparam>
+    void AddSymbolType<T>();
 }

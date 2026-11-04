@@ -75,5 +75,7 @@ internal static class CatalogReader
         }
 
         public void AddGlobalOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TContainer>() where TContainer : class, IGlobalOptionsContainer => GlobalOptionsTypes.Add(typeof(TContainer));
+
+        public void AddSymbolType<T>() => SymbolFactories.Register(new SymbolFactory<T>());
     }
 }

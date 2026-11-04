@@ -275,10 +275,10 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`: contract of IDisposable.
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Lib/Binding/CommandBinder.cs:98
+### CmdStarter.Lib/Binding/CommandBinder.cs:86
 
 - **File**: `CmdStarter.Lib/Binding/CommandBinder.cs`
-- **Line**: 98, the statement after `ExceptionDispatchInfo.Throw()`.
+- **Line**: 86, the statement after `ExceptionDispatchInfo.Throw()`.
 - **Code**:
 
   ```csharp
@@ -291,22 +291,6 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`.
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-
-### CmdStarter.Lib/Binding/CommandBinder.cs:34
-
-- **File**: `CmdStarter.Lib/Binding/CommandBinder.cs`
-- **Line**: 34 to 36, the branch of `FindGetter` where `GetMethod` returns `null` (1 of 2 branches is covered; the `throw` is on line 36).
-- **Code**:
-
-  ```csharp
-  ?? throw new InvalidOperationException($"{typeof(ParseResult).FullName}.GetValue<T>({symbolType.Name}) was not found: this version of System.CommandLine is not supported.");
-  ```
-
-- **Reason**: `ParseResult.GetValue<T>(Option<T>)` and `GetValue<T>(Argument<T>)` exist in System.CommandLine 2.0.14, the version the library is built against (probe: `GetMethod("GetValue", 1, signature)` finds both). The `throw` only runs with another version of System.CommandLine that lacks one of them.
-- **Change needed**: The library would have to run against a System.CommandLine without these overloads.
-- **Why refused**: The package depends on 2.0.14 exactly; a test cannot load another version of the assembly in the same process. It depends on another version of System.CommandLine.
-- **Proposal**: `keep (justified)`: depends on another version of System.CommandLine.
-- **Decision**: kept, accepted by Main on 2026-11-04.
 
 ### CmdStarter.Lib/Repl/ConsoleReplProvider.cs:46
 
