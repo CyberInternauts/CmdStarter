@@ -101,40 +101,49 @@ public sealed class ReplStarter : Starter
                     break;
                 }
 
-                var line = input.Trim();
-                if (line.Length == 0)
-                {
-                    continue;
-                }
-
-                if (!CommandSequence.TryParse(line, out var sequence, out var error))
-                {
-                    if (CommandSequence.HasOperator(line))
-                    {
-                        (DefaultConsole?.Error ?? Console.Error).WriteLine(error);
-                    }
-                    else
-                    {
-                        // A line without operator behaves as before (an unclosed quote is left to System.CommandLine).
-                        await RunReplStepAsync(line, null, cancellationToken);
-                    }
-
-                    continue;
-                }
-
-                if (sequence.Steps.Count == 0)
-                {
-                    await Start(line, cancellationToken);
-                    continue;
-                }
-
-                await sequence.ExecuteAsync(step => RunReplPipelineAsync(step, cancellationToken));
+                await ExecuteLineAsync(input, cancellationToken);
             }
         }
         finally
         {
             Console.CancelKeyPress -= cancelHandler;
         }
+    }
+
+    // Executes one line of the REPL: trimming, blank line, sequence, pipes, built-in words. The loop of Launch and the remote sessions share it.
+    // ExitCode is null when there is nothing to answer (a blank line); EndsSession tells that an exit word (or Stop) ended the session.
+    internal async Task<ReplLineResult> ExecuteLineAsync(string input, CancellationToken cancellationToken)
+    {
+        var line = input.Trim();
+        if (line.Length == 0)
+        {
+            return new ReplLineResult(null, !allowReplLoop);
+        }
+
+        int? exitCode;
+        if (!CommandSequence.TryParse(line, out var sequence, out var error))
+        {
+            if (CommandSequence.HasOperator(line))
+            {
+                (DefaultConsole?.Error ?? Console.Error).WriteLine(error);
+                exitCode = 1;
+            }
+            else
+            {
+                // A line without operator behaves as before (an unclosed quote is left to System.CommandLine).
+                exitCode = await RunReplStepAsync(line, null, cancellationToken) ?? 0;
+            }
+        }
+        else if (sequence.Steps.Count == 0)
+        {
+            exitCode = await Start(line, cancellationToken);
+        }
+        else
+        {
+            exitCode = await sequence.ExecuteAsync(step => RunReplPipelineAsync(step, cancellationToken));
+        }
+
+        return new ReplLineResult(exitCode, !allowReplLoop);
     }
 
     // Runs one step of a REPL line, a pipeline of commands. A built-in exit word cannot be part of a pipeline of several commands:
@@ -385,3 +394,6 @@ public sealed class ReplStarter : Starter
         return -1;
     }
 }
+
+// The result of one REPL line: its exit code (null when a blank line has nothing to answer) and whether the session ended.
+internal readonly record struct ReplLineResult(int? ExitCode, bool EndsSession);

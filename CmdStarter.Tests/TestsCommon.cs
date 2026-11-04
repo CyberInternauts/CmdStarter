@@ -76,6 +76,7 @@ public static class TestsCommon
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + "CyberInternauts.CmdStarter.Tests.Commands.Filters");
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Consoles.Write).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Sequences.Ok).Namespace!);
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Remote.Hello).Namespace!);
     }
 
     public static void SetDefaultClasses(CmdStarter.Starter starter)
