@@ -27,7 +27,7 @@ repl.ExitCommands = [];
 
 ## Stopping the loop
 
-After each command, `ReplStarter.OnCommandExecuted` is raised with the exit code, in `ReplCommandEventArgs.ReturnCode`.
+After each command, `ReplStarter.OnCommandExecuted` is raised with the exit code, in `ReplCommandEventArgs.ReturnCode`. It is raised for every command that runs through this `ReplStarter`, whichever `Start` overload or reference type calls it, nested calls included.
 
 `ReplStarter.Stop()` ends the loop from code: called from an `OnCommandExecuted` handler, it ends the loop after the current command, before the next line is read.
 

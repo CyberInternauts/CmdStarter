@@ -62,6 +62,26 @@ public class ReplStartOverloads
     }
 
     [Test]
+    public async Task OnCommandExecutedIsRaisedThroughAStarterReference()
+    {
+        var codes = new List<int>();
+        var repl = CreateRepl();
+        repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
+        Starter starter = repl;
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var console = ConsoleWith(output, error);
+
+        Assert.That(await starter.Start(["ok"]), Is.EqualTo(0));
+        Assert.That(await starter.Start("fail"), Is.EqualTo(3));
+        Assert.That(await starter.Start(["ok"], console, CancellationToken.None), Is.EqualTo(0));
+        Assert.That(await starter.Start("fail", console, CancellationToken.None), Is.EqualTo(3));
+        Assert.That(await starter.StartSequence("fail; ok"), Is.EqualTo(0));
+
+        Assert.That(codes, Is.EqualTo(new[] { 0, 3, 0, 3, 3, 0 }), "one event per executed command, as through a ReplStarter reference");
+    }
+
+    [Test]
     public async Task StartWithConsoleRaisesTheEventForArraysAndStrings()
     {
         var codes = new List<int>();

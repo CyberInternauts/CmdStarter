@@ -493,12 +493,12 @@ public class Starter
     }
 
     // True when the sequence option is set and the arguments are exactly that option followed by the line to run.
-    private protected bool IsSequenceInvocation(string[]? args) =>
+    private bool IsSequenceInvocation(string[]? args) =>
         SequenceOption is not null && args is { Length: 2 } && string.Equals(args[0], SequenceOption, StringComparison.Ordinal);
 
     // The semantics of a sequence live in CommandSequence.ExecuteAsync and those of a pipeline in RunPipelineAsync;
     // runCommand runs one command with the console it is given (null: the console of the process or DefaultConsole, as a plain Start).
-    private protected async Task<int> RunSequenceAsync(string commandLine, CommandConsole? console, Func<string, CommandConsole?, Task<int>> runCommand)
+    private async Task<int> RunSequenceAsync(string commandLine, CommandConsole? console, Func<string, CommandConsole?, Task<int>> runCommand)
     {
         if (!CommandSequence.TryParse(commandLine, out var sequence, out var error))
         {
@@ -553,9 +553,18 @@ public class Starter
         return code;
     }
 
+    // Every Start ends here, whichever overload or reference type was called.
+    private Task<int> StartCoreAsync(Func<RootCommand, ParseResult> parse, CommandConsole? console, CancellationToken cancellationToken) =>
+        InvokeCommandAsync(token => StartInvocationAsync(parse, console, token), cancellationToken);
+
+    // The single point every Start goes through; ReplStarter wraps it to track the current command and raise OnCommandExecuted.
+    // invoke receives the token to use for the execution (the one given here, or one linked to it).
+    private protected virtual Task<int> InvokeCommandAsync(Func<CancellationToken, Task<int>> invoke, CancellationToken cancellationToken) =>
+        invoke(cancellationToken);
+
     // The single implementation of every Start. The console of the execution is attached to the invocation configuration itself,
     // so concurrent executions and nested Start calls on the same Starter each keep their own console.
-    private async Task<int> StartCoreAsync(Func<RootCommand, ParseResult> parse, CommandConsole? console, CancellationToken cancellationToken)
+    private async Task<int> StartInvocationAsync(Func<RootCommand, ParseResult> parse, CommandConsole? console, CancellationToken cancellationToken)
     {
         await InstantiateCommandsAsync();
         UpdateCommandAvailability();
@@ -1172,7 +1181,7 @@ public class Starter
         });
     }
 
-    // The console attached to this invocation by StartCoreAsync, else the console of the process read now.
+    // The console attached to this invocation by StartInvocationAsync, else the console of the process read now.
     private CommandConsole GetExecutionConsole(ParseResult parseResult) =>
         consoles.TryGetValue(parseResult.InvocationConfiguration, out var console) ? console : CommandConsole.Standard;
 

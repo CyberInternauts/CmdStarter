@@ -305,6 +305,72 @@ public class Repl
     }
 
     [Test]
+    public async Task CancelCurrentCommandAfterANestedStartCancelsTheOuterCommand()
+    {
+        var codes = new List<int>();
+        using var cts = new CancellationTokenSource();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var repl = new ReplStarter(new ScriptedInputProvider())
+        {
+            Namespaces = [typeof(Commands.Cancellation.NestingCommand).Namespace!],
+            Classes = [typeof(Commands.Cancellation.NestingCommand).FullName!]
+        };
+        repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
+        Commands.Cancellation.NestingCommand.Reset();
+        // The nested Start ends before the outer command signals that it is running.
+        Commands.Cancellation.NestingCommand.Inner = () => repl.Start(["--version"], new CommandConsole(TextReader.Null, output, error));
+
+        try
+        {
+            var run = repl.Start([], cts.Token);
+            await Commands.Cancellation.NestingCommand.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+            Assert.That(repl.CancelCurrentCommand(), Is.True);
+            Assert.That(await run.WaitAsync(TimeSpan.FromSeconds(10)), Is.EqualTo(130));
+            Assert.That(codes, Is.EqualTo(new[] { 0, 130 }), "the nested command first, then the outer one at 130");
+        }
+        finally
+        {
+            cts.Cancel();
+            Commands.Cancellation.NestingCommand.Reset();
+        }
+    }
+
+    [Test]
+    public async Task CancelCurrentCommandAfterAnOverlappingStartEndsCancelsTheOtherCommand()
+    {
+        using var ctsA = new CancellationTokenSource();
+        using var ctsB = new CancellationTokenSource();
+        var repl = new ReplStarter(new ScriptedInputProvider())
+        {
+            Namespaces = [typeof(Commands.Cancellation.CancellableCommand).Namespace!],
+            Classes = [typeof(Commands.Cancellation.CancellableCommand).FullName!]
+        };
+
+        try
+        {
+            Commands.Cancellation.CancellableCommand.Reset();
+            var runA = repl.Start([], ctsA.Token);
+            await Commands.Cancellation.CancellableCommand.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Commands.Cancellation.CancellableCommand.Reset();
+            var runB = repl.Start([], ctsB.Token);
+            await Commands.Cancellation.CancellableCommand.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+            ctsA.Cancel();
+            Assert.That(await runA.WaitAsync(TimeSpan.FromSeconds(10)), Is.EqualTo(130));
+
+            Assert.That(repl.CancelCurrentCommand(), Is.True, "the second command is still the current one");
+            Assert.That(await runB.WaitAsync(TimeSpan.FromSeconds(10)), Is.EqualTo(130));
+        }
+        finally
+        {
+            ctsA.Cancel();
+            ctsB.Cancel();
+        }
+    }
+
+    [Test]
     public void CancelCurrentCommandReturnsFalseWhenIdle()
     {
         var repl = new ReplStarter(new ScriptedInputProvider());

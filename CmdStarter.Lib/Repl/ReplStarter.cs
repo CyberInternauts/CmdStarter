@@ -12,7 +12,7 @@ public sealed class ReplStarter : Starter
 {
     private readonly IReplInputProvider inputProvider;
     private readonly Lock commandLock = new();
-    private CancellationTokenSource? currentCommand;
+    private readonly List<CancellationTokenSource> activeCommands = [];
     private bool allowReplLoop = true;
     private volatile bool isLaunched;
 
@@ -247,89 +247,15 @@ public sealed class ReplStarter : Starter
     {
         lock (commandLock)
         {
-            if (currentCommand is null || currentCommand.IsCancellationRequested)
+            var current = activeCommands.Count == 0 ? null : activeCommands[^1];
+            if (current is null || current.IsCancellationRequested)
             {
                 return false;
             }
 
-            currentCommand.Cancel();
+            current.Cancel();
             return true;
         }
-    }
-
-    /// <inheritdoc cref="Starter.Start(string[])"/>
-    /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
-    public new Task<int> Start(string[] args) => Start(args, CancellationToken.None);
-
-    /// <inheritdoc cref="Starter.Start(string)"/>
-    /// <remarks>This raises the <see cref="OnCommandExecuted"/> event.</remarks>
-    public new Task<int> Start(string args) => Start(args, CancellationToken.None);
-
-    /// <summary>Executes arguments and raises <see cref="OnCommandExecuted"/>.</summary>
-    /// <param name="args">Command line arguments.</param>
-    /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    /// <returns>The command exit code.</returns>
-    public new Task<int> Start(string[] args, CancellationToken cancellationToken) =>
-        IsSequenceInvocation(args)
-            ? StartSequence(args[1], cancellationToken)
-            : ExecuteAndRaiseAsync(token => base.Start(args, token), cancellationToken);
-
-    /// <summary>Executes arguments and raises <see cref="OnCommandExecuted"/>.</summary>
-    /// <param name="args">Command line arguments.</param>
-    /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    /// <returns>The command exit code.</returns>
-    public new Task<int> Start(string args, CancellationToken cancellationToken) =>
-        ExecuteAndRaiseAsync(token => base.Start(args, token), cancellationToken);
-
-    /// <summary>Executes arguments with the console of this execution and raises <see cref="OnCommandExecuted"/>.</summary>
-    /// <param name="args">Command line arguments.</param>
-    /// <param name="console">The input, output and error of this execution.</param>
-    /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    /// <returns>The command exit code.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="console"/> is null.</exception>
-    public new Task<int> Start(string[] args, CommandConsole console, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(console);
-        return IsSequenceInvocation(args)
-            ? StartSequence(args[1], console, cancellationToken)
-            : ExecuteAndRaiseAsync(token => base.Start(args, console, token), cancellationToken);
-    }
-
-    /// <summary>Executes arguments with the console of this execution and raises <see cref="OnCommandExecuted"/>.</summary>
-    /// <param name="args">Command line arguments.</param>
-    /// <param name="console">The input, output and error of this execution.</param>
-    /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    /// <returns>The command exit code.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="console"/> is null.</exception>
-    public new Task<int> Start(string args, CommandConsole console, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(console);
-        return ExecuteAndRaiseAsync(token => base.Start(args, console, token), cancellationToken);
-    }
-
-    /// <summary>Runs a sequence of commands (see <see cref="Starter.StartSequence(string, CancellationToken)"/>); each executed command raises <see cref="OnCommandExecuted"/>.</summary>
-    /// <param name="commandLine">The line to run.</param>
-    /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    /// <returns>The exit code of the last executed command; 1 when the line is not a valid sequence.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="commandLine"/> is null.</exception>
-    public new Task<int> StartSequence(string commandLine, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(commandLine);
-        return RunSequenceAsync(commandLine, null, (command, commandConsole) => commandConsole is null ? Start(command, cancellationToken) : Start(command, commandConsole, cancellationToken));
-    }
-
-    /// <summary>Runs a sequence of commands with the given console (see <see cref="Starter.StartSequence(string, CommandConsole, CancellationToken)"/>); each executed command raises <see cref="OnCommandExecuted"/>.</summary>
-    /// <param name="commandLine">The line to run.</param>
-    /// <param name="console">The input, output and error of this execution, also used to report an invalid line.</param>
-    /// <param name="cancellationToken">Token used to cancel command execution.</param>
-    /// <returns>The exit code of the last executed command; 1 when the line is not a valid sequence.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="commandLine"/> or <paramref name="console"/> is null.</exception>
-    public new Task<int> StartSequence(string commandLine, CommandConsole console, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(commandLine);
-        ArgumentNullException.ThrowIfNull(console);
-        // commandConsole is never null: RunSequenceAsync and RunPipelineAsync pass the console of this overload
-        return RunSequenceAsync(commandLine, console, (command, commandConsole) => Start(command, commandConsole!, cancellationToken));
     }
 
     /// <inheritdoc/>
@@ -338,29 +264,27 @@ public sealed class ReplStarter : Starter
         ProcessTerminationTimeout = null
     };
 
-    // Runs one command as the current command (so Ctrl+C can cancel it), then raises OnCommandExecuted.
-    private async Task<int> ExecuteAndRaiseAsync(Func<CancellationToken, Task<int>> start, CancellationToken cancellationToken)
+    // The single point every Start goes through: runs one command as an active command (so Ctrl+C can cancel it), then raises OnCommandExecuted.
+    // The commands that run at the same time, nested or overlapping, are kept in a list; cancelling acts on the last one.
+    private protected override async Task<int> InvokeCommandAsync(Func<CancellationToken, Task<int>> invoke, CancellationToken cancellationToken)
     {
         int returnCode;
         using (var commandCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
         {
             lock (commandLock)
             {
-                currentCommand = commandCancellation;
+                activeCommands.Add(commandCancellation);
             }
 
             try
             {
-                returnCode = await start(commandCancellation.Token);
+                returnCode = await invoke(commandCancellation.Token);
             }
             finally
             {
                 lock (commandLock)
                 {
-                    if (ReferenceEquals(currentCommand, commandCancellation))
-                    {
-                        currentCommand = null;
-                    }
+                    activeCommands.Remove(commandCancellation);
                 }
             }
         }
