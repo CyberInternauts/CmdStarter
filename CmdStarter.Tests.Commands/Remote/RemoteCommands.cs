@@ -11,6 +11,16 @@ public sealed class Hello : StarterCommand
     });
 }
 
+// Writes its argument as it received it, so a test sees what a line became after the splitting of the REPL and of System.CommandLine.
+public sealed class Echo : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<CommandConsole, string, int>)((console, text) =>
+    {
+        console.Out.WriteLine(text);
+        return 0;
+    });
+}
+
 public sealed class Oops : StarterCommand
 {
     public override Delegate HandlingMethod => (Func<CommandConsole, int>)(console =>

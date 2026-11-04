@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Text;
@@ -116,6 +117,91 @@ public sealed class ReplPipeClient : IAsyncDisposable
             }
         }
     }
+
+    /// <summary>
+    /// Writes the arguments of a process as one line of REPL, sends it, copies the lines of output and of errors that the server sends back,
+    /// and returns the exit code of the line. See <see cref="JoinArguments(IReadOnlyList{string})"/> for how the line is written.
+    /// The caller passes the arguments without quotes: the ones that need quotes get them here, so an operator in an argument is never read as one
+    /// and the arguments never form a sequence or a pipe. The line is still a line of REPL for the server: a first argument that is a built-in word
+    /// of the session (<see cref="ReplStarter.ExitCommands"/>, <see cref="ReplStarter.HelpCommands"/>) keeps its meaning in the REPL.
+    /// An empty list gives a blank line, which is not sent and gives 0.
+    /// </summary>
+    /// <param name="arguments">The arguments, as a process receives them.</param>
+    /// <param name="output">Receives the output of the line.</param>
+    /// <param name="error">Receives the errors of the line.</param>
+    /// <param name="cancellationToken">Token that cancels the wait for the answer.</param>
+    /// <returns>The exit code of the line.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="arguments"/>, <paramref name="output"/> or <paramref name="error"/> is null.</exception>
+    /// <exception cref="ArgumentException">An argument is null, or contains a double quote or a line break, which a line cannot hold.</exception>
+    /// <exception cref="InvalidOperationException">The client is not connected.</exception>
+    /// <exception cref="IOException">The session was closed before the answer ended.</exception>
+    /// <exception cref="InvalidDataException">The server sent a line that the protocol does not know.</exception>
+    public Task<int> ExecuteAsync(IReadOnlyList<string> arguments, TextWriter output, TextWriter error, CancellationToken cancellationToken = default)
+        => ExecuteAsync(JoinArguments(arguments), output, error, cancellationToken);
+
+    /// <summary>
+    /// Writes the arguments of a process as one line of REPL: the arguments are joined by one space, and an argument is surrounded by double quotes
+    /// when it is empty, when one of its characters is white space (<see cref="char.IsWhiteSpace(char)"/>), or when it contains <c>;</c>, <c>&amp;</c> or <c>|</c>.
+    /// Any other argument is written as it is. An empty list gives an empty line.
+    /// </summary>
+    /// <param name="arguments">The arguments, as a process receives them.</param>
+    /// <returns>The line.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="arguments"/> is null.</exception>
+    /// <exception cref="ArgumentException">
+    /// An argument is null, or contains a double quote or a line break: neither the reading of the sequences nor the splitting of the line has an escape,
+    /// so such an argument cannot be written on a line.
+    /// </exception>
+    public static string JoinArguments(IReadOnlyList<string> arguments)
+    {
+        if (!TryJoinArguments(arguments, out var line))
+        {
+            throw new ArgumentException("An argument that contains a double quote or a line break cannot be written on a line.", nameof(arguments));
+        }
+
+        return line;
+    }
+
+    // False when an argument cannot be written on a line (a double quote or a line break); a null list or a null argument is a mistake of the caller and throws.
+    internal static bool TryJoinArguments(IReadOnlyList<string> arguments, [NotNullWhen(true)] out string? line)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        for (var index = 0; index < arguments.Count; index++)
+        {
+            if (arguments[index] is null)
+            {
+                throw new ArgumentException($"The argument at index {index} is null.", nameof(arguments));
+            }
+        }
+
+        var builder = new StringBuilder();
+        foreach (var argument in arguments)
+        {
+            if (argument.AsSpan().IndexOfAny('"', '\r', '\n') >= 0)
+            {
+                line = null;
+                return false;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append(' ');
+            }
+
+            if (NeedsQuotes(argument))
+            {
+                builder.Append('"').Append(argument).Append('"');
+            }
+            else
+            {
+                builder.Append(argument);
+            }
+        }
+
+        line = builder.ToString();
+        return true;
+    }
+
+    private static bool NeedsQuotes(string argument) => argument.Length == 0 || argument.Any(c => char.IsWhiteSpace(c) || c is ';' or '&' or '|');
 
     /// <summary>
     /// Writes a prompt, reads a line from the input, runs it on the server and starts again, until the end of the input, until the server closes the session

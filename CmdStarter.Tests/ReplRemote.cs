@@ -5,7 +5,7 @@ using CyberInternauts.CmdStarter.Repl;
 using CyberInternauts.CmdStarter.Repl.Remote;
 using CyberInternauts.CmdStarter.Tests.Commands.Remote;
 using CyberInternauts.CmdStarter.Tests.Commands.Repl;
-using Microsoft.Extensions.DependencyInjection;
+using static CyberInternauts.CmdStarter.Tests.RemoteTesting;
 
 namespace CyberInternauts.CmdStarter.Tests;
 
@@ -13,8 +13,6 @@ namespace CyberInternauts.CmdStarter.Tests;
 [Category("Remote")]
 public class ReplRemote
 {
-    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
-
     [OneTimeSetUp]
     public void GlobalSetup() => TestsCommon.GlobalSetup();
 
@@ -451,60 +449,12 @@ public class ReplRemote
         Assert.That(output, Is.EqualTo("utf-8\n"));
     }
 
-    private static ReplStarter CreateSession(params string?[] lines) => new(new ScriptedInputProvider(lines))
-    {
-        // Namespaces and the service provider are set before the session is used: method parameters are classified when the tree is built.
-        Namespaces = ImmutableList.Create(typeof(Hello).Namespace!),
-        ServiceProvider = new ServiceCollection().AddSingleton<SessionUser>().BuildServiceProvider()
-    };
-
     private static async Task<(int Code, string Output, string Error)> ExecuteAsync(ReplPipeClient client, string line)
     {
         using var output = new StringWriter { NewLine = "\n" };
         using var error = new StringWriter { NewLine = "\n" };
         var code = await client.ExecuteAsync(line, output, error).WaitAsync(Limit);
         return (code, output.ToString(), error.ToString());
-    }
-
-    // A server running in the background on a pipe name of its own; disposing stops it and waits for its end.
-    private sealed class RunningServer : IAsyncDisposable
-    {
-        private readonly CancellationTokenSource cancellation = new();
-        private readonly Task run;
-
-        internal RunningServer(Func<ReplStarter>? createSession = null)
-        {
-            PipeName = "cmdstarter-test-" + Guid.NewGuid().ToString("N");
-            run = new ReplPipeServer(PipeName, createSession ?? (() => CreateSession())).RunAsync(cancellation.Token);
-        }
-
-        internal string PipeName { get; }
-
-        internal Task Run => run;
-
-        internal async Task<ReplPipeClient> ConnectAsync()
-        {
-            var client = new ReplPipeClient(PipeName);
-            await client.ConnectAsync(Limit);
-            return client;
-        }
-
-        internal async Task StopAsync()
-        {
-            await cancellation.CancelAsync();
-            await run.WaitAsync(Limit);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            // A server that already failed (a test that expects it) has nothing left to stop.
-            if (!run.IsFaulted)
-            {
-                await StopAsync();
-            }
-
-            cancellation.Dispose();
-        }
     }
 
     // A server that is not a ReplPipeServer: it reads and writes the lines of the protocol by hand, on a pipe name of its own.
