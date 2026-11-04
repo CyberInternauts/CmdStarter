@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Account;
 
+[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedOut)]
 public sealed class Login : StarterCommand
 {
     public override Delegate HandlingMethod => Execute;
@@ -12,12 +13,6 @@ public sealed class Login : StarterCommand
         [Required] string password
         )
     {
-        if (Authenticator.IsCurrentlyLoggedIn)
-        {
-            Console.WriteLine("You are already logged in.");
-            return -1;
-        }
-
         var loginStatus = Authenticator.Authenticate(username, password);
 
         switch (loginStatus)
@@ -29,7 +24,6 @@ public sealed class Login : StarterCommand
                 Console.WriteLine("Incorrect password.");
                 return -1;
             case Authenticator.LoginStatus.LoggedIn:
-                Program.starter.Classes = Program.starter.Classes.Clear();
                 Console.WriteLine($"You are now logged in as {username}.");
                 return 0;
             default:

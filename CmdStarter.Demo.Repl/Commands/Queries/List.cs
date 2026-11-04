@@ -4,6 +4,7 @@ using System.ComponentModel;
 namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Queries;
 
 [Description("Lists all the books in the database.")]
+[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedIn)]
 public sealed class List : StarterCommand
 {
 
@@ -11,12 +12,6 @@ public sealed class List : StarterCommand
 
     public int Execute()
     {
-        if (!Authenticator.IsCurrentlyLoggedIn)
-        {
-            Console.WriteLine("You are not logged in.");
-            return -1;
-        }
-
         foreach (var book in DemoDb.Books)
         {
             Console.WriteLine(book);

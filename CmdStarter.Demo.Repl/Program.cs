@@ -1,5 +1,6 @@
 ﻿using com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Account;
 using com.cyberinternauts.csharp.CmdStarter.Lib.Repl;
+using com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands;
 using System.ComponentModel.Composition.Hosting;
 using System.Threading.Channels;
 
@@ -16,9 +17,8 @@ internal class Program
     {
         _ = new DirectoryCatalog("."); // This is needed to ensure Tests.Commands assembly is loaded even if no class referenced
 
-        starter.IsRootingLonelyCommand = false;
+        starter.StateProvider = new AuthenticatorStateProvider();
 
-        starter.Classes = starter.Classes.Clear().Add(typeof(Login).FullName!);
 
         starter.OnCommandExecuted += (sender, eventArgs) => Console.WriteLine();
 

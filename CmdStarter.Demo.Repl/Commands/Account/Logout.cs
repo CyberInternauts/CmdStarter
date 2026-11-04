@@ -2,18 +2,13 @@
 
 namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Account;
 
+[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedIn)]
 public sealed class Logout : StarterCommand
 {
     public override Delegate HandlingMethod => Execute;
 
     public int Execute()
     {
-        if (!Authenticator.IsCurrentlyLoggedIn)
-        {
-            Console.WriteLine("You are not logged in.");
-            return -1;
-        }
-
         Authenticator.LogOut();
         Console.WriteLine("You are now logged out.");
         return 0;

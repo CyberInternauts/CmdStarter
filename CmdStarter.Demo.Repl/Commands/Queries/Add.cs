@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Queries;
 
 [Description("Adds a book from the database.\nCan only be used when logged in.")]
+[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedIn)]
 public sealed class Add : StarterCommand
 {
 
@@ -14,12 +15,6 @@ public sealed class Add : StarterCommand
         [Required][Description("The names of the book to be added.")]
         string[] books)
     {
-        if (!Authenticator.IsCurrentlyLoggedIn)
-        {
-            Console.WriteLine("You are not logged in.");
-            return -1;
-        }
-
         foreach (var book in books)
         {
             if (DemoDb.Books.Add(book))

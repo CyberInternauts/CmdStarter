@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace com.cyberinternauts.csharp.CmdStarter.Demo.Repl.Commands.Queries;
 
 [Description("Removes a book from the database.\nCan only be used when logged in.")]
+[com.cyberinternauts.csharp.CmdStarter.Lib.Attributes.AvailableInState(DemoState.LoggedIn)]
 public sealed class Remove : StarterCommand
 {
 
@@ -14,12 +15,6 @@ public sealed class Remove : StarterCommand
         [Required][Description("The name of the book to be removed.")]
         string name)
     {
-        if (!Authenticator.IsCurrentlyLoggedIn)
-        {
-            Console.WriteLine("You are not logged in.");
-            return -1;
-        }
-
         if (DemoDb.Books.Remove(name))
         {
             Console.WriteLine($"Book: {name} removed");

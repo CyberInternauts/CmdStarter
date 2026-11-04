@@ -283,4 +283,20 @@ public sealed class SamplesTests
         Assert.That(result.ExitCode, Is.Zero);
         Assert.That(result.StdOut, Does.Contain("anonymous (scope 1)"));
     }
+
+    [Test]
+    public async Task CommandStatesSampleFollowsSession()
+    {
+        var result = await AppRunner.RunWithInputAsync(
+            "samples/CmdStarter.Samples.CommandStates",
+            "whoami\nlogin ann\nwhoami\nlogin bob\nlogout\nexit\n");
+
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Welcome, ann."));
+        Assert.That(result.StdOut, Does.Contain("You are ann."));
+        Assert.That(result.StdOut, Does.Contain("Goodbye, ann."));
+        Assert.That(result.StdOut, Does.Not.Contain("Welcome, bob."));
+        Assert.That(result.StdErr, Does.Contain("Command 'whoami' is not available in the current state."));
+        Assert.That(result.StdErr, Does.Contain("Command 'login' is not available in the current state."));
+    }
 }
