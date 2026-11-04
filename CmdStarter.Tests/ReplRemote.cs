@@ -259,6 +259,170 @@ public class ReplRemote
         Assert.That(input.ReadLine(), Is.EqualTo("hello"));
     }
 
+    [Test]
+    public async Task ConnectingTwiceIsRefused()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await client.ConnectAsync(Limit));
+
+        Assert.That(exception!.Message, Does.Contain("already connected"));
+        Assert.That((await ExecuteAsync(client, "hello")).Output, Is.EqualTo("hello\n"), "the first session still works");
+    }
+
+    [Test]
+    public async Task ExecutingBeforeConnectingIsRefused()
+    {
+        await using var client = new ReplPipeClient("cmdstarter-test-" + Guid.NewGuid().ToString("N"));
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await ExecuteAsync(client, "hello"));
+
+        Assert.That(exception!.Message, Does.Contain("not connected"));
+    }
+
+    [Test]
+    public async Task LineWithALineBreakIsRefusedAndNothingIsSent()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+
+        foreach (var line in new[] { "hello\nhello", "hello\rhello" })
+        {
+            var exception = Assert.ThrowsAsync<ArgumentException>(async () => await ExecuteAsync(client, line));
+            Assert.That(exception!.ParamName, Is.EqualTo("line"));
+        }
+
+        // Nothing was sent: the answer to the next line is the answer of that line alone.
+        Assert.That((await ExecuteAsync(client, "hello")).Output, Is.EqualTo("hello\n"));
+    }
+
+    [Test]
+    public async Task BlankLineAnswersZeroAndIsNotSent()
+    {
+        await using var raw = new RawServer();
+        await using var client = new ReplPipeClient(raw.PipeName);
+        await raw.ConnectAsync(client);
+
+        Assert.That((await ExecuteAsync(client, "   ")).Code, Is.EqualTo(0));
+
+        // The first line the server receives is the one that follows the blank line.
+        var execution = ExecuteAsync(client, "hello");
+        Assert.That(await raw.ReadLineAsync(), Is.EqualTo("hello"));
+        await raw.WriteLineAsync("X 4");
+        Assert.That((await execution.WaitAsync(Limit)).Code, Is.EqualTo(4));
+    }
+
+    [Test]
+    public async Task InfiniteTimeoutStillConnects()
+    {
+        await using var server = new RunningServer();
+        using var cancellation = new CancellationTokenSource(Limit);
+        await using var client = new ReplPipeClient(server.PipeName);
+
+        await client.ConnectAsync(Timeout.InfiniteTimeSpan, cancellation.Token);
+
+        Assert.That((await ExecuteAsync(client, "hello")).Code, Is.EqualTo(0));
+    }
+
+    [Test]
+    public async Task UnexpectedLinesFromTheServerAreRejectedWithTheLine()
+    {
+        // A server that does not follow the protocol: a prefix nobody knows, then an exit code that is not a number.
+        foreach (var unexpected in new[] { "Z what", "X notanumber" })
+        {
+            await using var raw = new RawServer();
+            await using var client = new ReplPipeClient(raw.PipeName);
+            await raw.ConnectAsync(client);
+
+            var execution = ExecuteAsync(client, "hello");
+            Assert.That(await raw.ReadLineAsync(), Is.EqualTo("hello"));
+            await raw.WriteLineAsync(unexpected);
+
+            var exception = Assert.ThrowsAsync<InvalidDataException>(async () => await execution.WaitAsync(Limit));
+            Assert.That(exception!.Message, Does.Contain(unexpected));
+        }
+    }
+
+    [Test]
+    public async Task InteractiveLoopStopsAtTheEndOfTheInput()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+        using var input = new StringReader("hello");
+        using var output = new StringWriter { NewLine = "\n" };
+        using var error = new StringWriter { NewLine = "\n" };
+
+        var code = await client.RunInteractiveAsync(input, output, error).WaitAsync(Limit);
+
+        Assert.That(code, Is.EqualTo(0));
+        Assert.That(output.ToString(), Is.EqualTo("> hello\n> "));
+    }
+
+    [Test]
+    public async Task InteractiveLoopSkipsBlankLines()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+        using var input = new StringReader("\n   \nhello\n");
+        using var output = new StringWriter { NewLine = "\n" };
+        using var error = new StringWriter { NewLine = "\n" };
+
+        var code = await client.RunInteractiveAsync(input, output, error).WaitAsync(Limit);
+
+        Assert.That(code, Is.EqualTo(0));
+        Assert.That(output.ToString(), Is.EqualTo("> > > hello\n> "), "one prompt per line read, and only the last line is run");
+    }
+
+    [Test]
+    public async Task InteractiveLoopEndsWhenTheServerClosesTheSession()
+    {
+        await using var raw = new RawServer();
+        await using var client = new ReplPipeClient(raw.PipeName);
+        await raw.ConnectAsync(client);
+        using var input = new StringReader("a\nb\nc");
+        using var output = new StringWriter { NewLine = "\n" };
+        using var error = new StringWriter { NewLine = "\n" };
+
+        var run = client.RunInteractiveAsync(input, output, error);
+        Assert.That(await raw.ReadLineAsync(), Is.EqualTo("a"));
+        await raw.WriteLineAsync("O hi");
+        await raw.WriteLineAsync("X 5");
+        Assert.That(await raw.ReadLineAsync(), Is.EqualTo("b"));
+        await raw.CloseAsync();
+
+        // No exception: the loop ends and gives the code of the last line that was answered.
+        Assert.That(await run.WaitAsync(Limit), Is.EqualTo(5));
+        Assert.That(output.ToString(), Is.EqualTo("> hi\n> "));
+        Assert.That(input.ReadLine(), Is.EqualTo("c"), "the line after the closing was never read");
+    }
+
+    [Test]
+    public async Task CharactersAndUnfinishedLinesBecomeProtocolLines()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+
+        var (code, output, error) = await ExecuteAsync(client, "fragments");
+
+        Assert.That(code, Is.EqualTo(0));
+        // 'x' 'y' '\n' is one line, a second '\n' is an empty line, a null string writes nothing, CR LF ends a line without the CR, and an unfinished line ends when the answer does.
+        Assert.That(output, Is.EqualTo("xy\n\ncrlf\ntail\n"));
+        Assert.That(error, Is.EqualTo("etail\n"));
+    }
+
+    [Test]
+    public async Task ConsoleWritersOfASessionHaveTheEncodingOfThePipe()
+    {
+        await using var server = new RunningServer();
+        await using var client = await server.ConnectAsync();
+
+        var (code, output, _) = await ExecuteAsync(client, "encoding-name");
+
+        Assert.That(code, Is.EqualTo(0));
+        Assert.That(output, Is.EqualTo("utf-8\n"));
+    }
+
     private static ReplStarter CreateSession(params string?[] lines) => new(new ScriptedInputProvider(lines))
     {
         // Namespaces and the service provider are set before the session is used: method parameters are classified when the tree is built.
@@ -312,6 +476,51 @@ public class ReplRemote
             }
 
             cancellation.Dispose();
+        }
+    }
+
+    // A server that is not a ReplPipeServer: it reads and writes the lines of the protocol by hand, on a pipe name of its own.
+    private sealed class RawServer : IAsyncDisposable
+    {
+        private readonly NamedPipeServerStream pipe;
+        private StreamReader? reader;
+        private StreamWriter? writer;
+
+        internal RawServer()
+        {
+            PipeName = "cmdstarter-test-" + Guid.NewGuid().ToString("N");
+            pipe = new NamedPipeServerStream(PipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        }
+
+        internal string PipeName { get; }
+
+        internal async Task ConnectAsync(ReplPipeClient client)
+        {
+            using var cancellation = new CancellationTokenSource(Limit);
+            var waiting = pipe.WaitForConnectionAsync(cancellation.Token);
+            await client.ConnectAsync(Limit);
+            await waiting;
+            var encoding = new UTF8Encoding(false);
+            reader = new StreamReader(pipe, encoding, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
+            writer = new StreamWriter(pipe, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
+        }
+
+        internal async Task<string?> ReadLineAsync() => await reader!.ReadLineAsync().WaitAsync(Limit);
+
+        internal async Task WriteLineAsync(string line)
+        {
+            await writer!.WriteLineAsync(line);
+            await writer.FlushAsync();
+        }
+
+        // Closes the session from the server side, as a server that stops does.
+        internal async Task CloseAsync() => await pipe.DisposeAsync();
+
+        public async ValueTask DisposeAsync()
+        {
+            // The writer is not disposed: it would flush into a pipe that the client may have closed.
+            reader?.Dispose();
+            await pipe.DisposeAsync();
         }
     }
 
