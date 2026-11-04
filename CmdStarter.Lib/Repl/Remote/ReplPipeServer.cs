@@ -79,10 +79,6 @@ public sealed class ReplPipeServer
         {
             // The client left in the middle of an exchange: this session ends, the server goes on.
         }
-        catch (ObjectDisposedException)
-        {
-            // Same: the pipe was closed under the session.
-        }
     }
 
     private async Task ServeAsync(NamedPipeServerStream pipe, CancellationToken cancellationToken)

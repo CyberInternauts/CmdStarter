@@ -178,6 +178,20 @@ public class ReplRemote
     }
 
     [Test]
+    public async Task ExceptionOfTheSessionFactoryLeavesRunAsync()
+    {
+        // A factory that fails (here, a container that is being disposed) is a configuration error: it is not swallowed with the errors of the pipe.
+        var server = new RunningServer(() => throw new ObjectDisposedException("container"));
+        await using var client = await server.ConnectAsync();
+
+        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(client, "hello"));
+
+        var exception = Assert.ThrowsAsync<ObjectDisposedException>(async () => await server.Run.WaitAsync(Limit));
+        Assert.That(exception!.ObjectName, Is.EqualTo("container"));
+        await server.DisposeAsync();
+    }
+
+    [Test]
     public async Task FactoryMustNotReturnRunningLocalRepl()
     {
         // The local REPL is running: serving it would let a remote exit stop it and would take over its console.

@@ -19,7 +19,7 @@ await new ReplPipeServer(pipeName, CreateSession).RunAsync(cancellation.Token);
 
 ## The session factory
 
-The factory must create a new `ReplStarter` for each session. Returning the instance of a previous session, or a `ReplStarter` whose own `Launch` loop is running, makes `RunAsync` throw `InvalidOperationException`, with the message that the factory must create a new `ReplStarter` for each session. The client that was connected then sees an `IOException`. A shared instance would carry one session's state into the next, and a remote `exit` would stop the local REPL.
+The factory must create a new `ReplStarter` for each session. Returning the instance of a previous session, or a `ReplStarter` whose own `Launch` loop is running, makes `RunAsync` throw `InvalidOperationException`, with the message that the factory must create a new `ReplStarter` for each session. The client that was connected then sees an `IOException`. A shared instance would carry one session's state into the next, and a remote `exit` would stop the local REPL. An `ObjectDisposedException` thrown by the factory itself, for example by a container that is being disposed, also leaves `RunAsync`, and the connected client sees an `IOException`.
 
 The sample builds each session by hand, and sets the `Namespaces` of its `ReplStarter`:
 
