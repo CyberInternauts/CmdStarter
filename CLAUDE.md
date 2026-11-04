@@ -52,17 +52,23 @@ Each command type gets one **description instance**, created when the tree is bu
 - **Execution**: each run gets a fresh declaring-class instance (none for static methods) and, with Microsoft DI, its own scope (`ActivateMethodCommand`). `SetFactory` and `GetInstance` do not apply to this model.
 - **Lonely rooting** only happens when there is no method command.
 
-`Repl/ReplStarter` derives from `Starter` and loops over `IReplInputProvider` input, raising `OnCommandExecuted` after each `Start`.
+`Repl/ReplStarter` derives from `Starter` and loops over `IReplInputProvider.GetInputAsync` (`docs/adr/0011`):
+- `null` ends the loop, and blank lines are skipped.
+- The built-in words `ExitCommands` (`exit`, `quit`) and `HelpCommands` (`help [command]` → `--help`) take precedence over application commands.
+- Every other line goes through `Start(line, token)`, which raises `OnCommandExecuted`.
+- Each command runs with its own linked token, so Ctrl+C (`Console.CancelKeyPress`, with System.CommandLine's own handling switched off through `CreateInvocationConfiguration`) or `CancelCurrentCommand()` cancels that command only.
+- A cancelled command returns 130. Class-model handlers can take a `CancellationToken` parameter, which is not turned into an argument.
+- `CmdStarterBuilder.UseRepl` plus `CmdStarterApp.RunReplAsync` give the REPL Microsoft DI with one scope per command. The builder registers the `Starter` (and the `ReplStarter`) as singleton services.
 
 ## Tests
 
 - `CmdStarter.Tests` (NUnit) exercises commands defined in `CmdStarter.Tests.Commands`; `CmdStarter.Tests.Common` holds the shared interfaces and the generic `[TestCase<T>]` attributes.
 - **The namespaces and attributes of the test commands are test data.** Tree-building tests depend on where a command class lives, so moving or adding a class in `CmdStarter.Tests.Commands` can change other tests' trees.
-- Each test isolates its commands by setting `Namespaces`/`Classes` on a fresh `Starter`. `TestsCommon.CreateCmdStarter()` excludes the `Erroneous`, `DepencendyInjection`, `Lifecycle` and `Methods` namespaces by default (exclusions also repeated in `Repl.SetDefaultNamespaces`). The lifecycle and DI tests instead isolate one command type with a `Classes` filter, which makes it a lonely, rooted command.
+- Each test isolates its commands by setting `Namespaces`/`Classes` on a fresh `Starter`. `TestsCommon.CreateCmdStarter()` excludes the `Erroneous`, `DepencendyInjection`, `Lifecycle`, `Methods`, `Cancellation` and `ReplApp` namespaces by default (a new namespace of special-purpose test commands is added to both lists) (exclusions also repeated in `Repl.SetDefaultNamespaces`). The lifecycle and DI tests instead isolate one command type with a `Classes` filter, which makes it a lonely, rooted command.
 - Command test classes must expose read-only public properties unless the property is meant to be an option: any setter, even a private one, makes `Helper.GetProperties` turn the property into an option.
 - Discovery only sees loaded assemblies, so fixtures call `TestsCommon.GlobalSetup()`, which forces `CmdStarter.Tests.Commands` to load (`DirectoryCatalog`). That catalog loads every DLL in the test output folder, so any command assembly copied there joins every default discovery.
 - `CmdStarter.Tests.App` is a real CLI app (class and method commands, Microsoft DI) that `Integration/AppProcessTests` runs as a separate process (`dotnet <dll>`) to check exit codes, stdout and stderr. The test project references it with `ReferenceOutputAssembly="false"` (build order only), for the reason above.
-- `samples/` holds the documented examples, one runnable project each (`samples/README.md`). `Integration/SamplesTests` and `Integration/DemosTests` run them the same way through `Integration/AppRunner` (project path relative to the repository root, optional environment variables), so every new sample or demo needs a `ReferenceOutputAssembly="false"` reference in `CmdStarter.Tests.csproj`. `samples/CmdStarter.Samples.Testing.Tests` is a second NUnit project, run by the same `dotnet test CmdStarter.sln`.
+- `samples/` holds the documented examples, one runnable project each (`samples/README.md`). `Integration/SamplesTests` and `Integration/DemosTests` run them the same way through `Integration/AppRunner` (project path relative to the repository root, optional environment variables; `RunWithInputAsync` writes stdin, then closes it, for REPL apps), so every new sample or demo needs a `ReferenceOutputAssembly="false"` reference in `CmdStarter.Tests.csproj`. `samples/CmdStarter.Samples.Testing.Tests` is a second NUnit project, run by the same `dotnet test CmdStarter.sln`.
 
 ## Conventions
 
