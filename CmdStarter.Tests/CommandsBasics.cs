@@ -190,37 +190,12 @@ public class CommandsBasics
             }
             commandNames.Reverse();
             var cmdString = string.Join(" ", commandNames.Skip(1));
-            Assert.DoesNotThrowAsync(
-                async () =>
-                {
-                    try
-                    {
-                        await starter.Start(cmdString.Split(" "));
-                    }
-                    catch (Exception ex)
-                    {
-                        // Missing required argument, normal as the cmdString doesn't include those
-                        var parent = ex;
-                        var isMissingArgumentException = false;
-                        while (!isMissingArgumentException && parent != null)
-                        {
-                            isMissingArgumentException = parent is InvalidOperationException;
-                            parent = parent.InnerException;
-                        }
-                        if (!isMissingArgumentException)
-                        {
-                            throw new Exception("Command: " + commandInstance.GetType().FullName, ex);
-                        }
-                    }
-                }
-            );
+            Assert.DoesNotThrowAsync(async () => await starter.Start(cmdString.Split(" ")));
         });
 
         // Error case
         starter.Namespaces = starter.Namespaces.Clear().Add(typeof(Commands.Erroneous.DuplicateNames.Same1).Namespace ?? string.Empty);
-        Assert.ThrowsAsync<ArgumentException>(
-            async () => await starter.Start(Array.Empty<string>())
-        );
+        Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
     }
 
     [Test]

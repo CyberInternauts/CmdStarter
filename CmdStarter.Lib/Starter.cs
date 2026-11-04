@@ -474,6 +474,8 @@ public class Starter
             {
                 throw new InvalidAttributeException("Commands use [AvailableInState] but no ICommandStateProvider is configured: set Starter.StateProvider or register an ICommandStateProvider service.");
             }
+
+            SymbolNamesValidator.Validate(RootCommand);
         }
         finally
         {
