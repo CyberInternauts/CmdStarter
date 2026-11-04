@@ -41,26 +41,8 @@ public sealed class GlobalOptionsManager
         return globalOptions.TryGetValue(type, out object? value) ? (TGlobalOptions)value : null;
     }
 
-    internal object? GetGlobalOptions(Type type) => globalOptions.TryGetValue(type, out var value) ? value : null;
-
-    /// <summary>
-    /// Add/change a global options container object based on its type
-    /// </summary>
-    /// <typeparam name="TGlobalOptions">Global options container type to use as key</typeparam>
-    /// <param name="globalOption"></param>
-    internal void SetGlobalOptions<TGlobalOptions>(TGlobalOptions globalOption) where TGlobalOptions : class, IGlobalOptionsContainer
-    {
-        var type = typeof(TGlobalOptions);
-
-        if (globalOptions.ContainsKey(type))
-        {
-            globalOptions[type] = globalOption;
-        }
-        else
-        {
-            globalOptions.Add(type, globalOption);
-        }
-    }
+    // Only called for a container that the filters admit: it is rebuilt by BindGlobalOptions at each parse.
+    internal object GetGlobalOptions(Type type) => globalOptions[type];
 
     internal void FilterTypes()
     {

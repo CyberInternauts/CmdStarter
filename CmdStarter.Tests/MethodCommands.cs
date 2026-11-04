@@ -98,7 +98,7 @@ public class MethodCommands
     [Test]
     public async Task AddsTopLevelMethodCommands()
     {
-        var starter = CreateMethodsStarter(typeof(ToolCommands)); starter.InstantiateCommands();
+        var starter = CreateMethodsStarter(typeof(ToolCommands), typeof(MainGlobalOptions)); starter.InstantiateCommands();
         Assert.That(await starter.Start("ping"), Is.EqualTo(7));
         Assert.That(starter.RootCommand.Subcommands.Select(command => command.Name), Is.EquivalentTo(new[] { "ping", "status", "wait" }));
     }
@@ -114,14 +114,14 @@ public class MethodCommands
     [Test]
     public void AppliesMethodAlias()
     {
-        var starter = CreateMethodsStarter(typeof(ToolCommands)); starter.InstantiateCommands();
+        var starter = CreateMethodsStarter(typeof(ToolCommands), typeof(MainGlobalOptions)); starter.InstantiateCommands();
         Assert.That(Find(starter.RootCommand, "status").Aliases, Does.Contain("st"));
     }
 
     [Test]
     public async Task AwaitsValueTaskResult()
     {
-        var starter = CreateMethodsStarter(typeof(ToolCommands)); Assert.That(await starter.Start("wait"), Is.EqualTo(3));
+        var starter = CreateMethodsStarter(typeof(ToolCommands), typeof(MainGlobalOptions)); Assert.That(await starter.Start("wait"), Is.EqualTo(3));
     }
 
     [Test]

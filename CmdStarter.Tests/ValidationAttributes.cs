@@ -109,6 +109,26 @@ public sealed class ValidationAttributes
         Assert.That(await starter.Start("fit --size 7"), Is.Not.Zero.And.Not.EqualTo(7));
     }
 
+    [TestCase("amount-command")]
+    [TestCase("fit-argument")]
+    public async Task ImplicitArgumentValueIsNotValidated(string command)
+    {
+        // The default 7 of the argument is outside the allowed range: it is used as it is, like the default of an option.
+        var starter = CreateStarter();
+        using var error = new StringWriter();
+        var console = new CommandConsole(new StringReader(string.Empty), new StringWriter(), error);
+
+        var absent = await starter.Start(command, console);
+        Assert.That(absent, Is.EqualTo(7), error.ToString());
+
+        // The same value given on the command line is validated.
+        var seven = await starter.Start(command + " 7", console);
+        Assert.That(seven, Is.EqualTo(1));
+        Assert.That(error.ToString(), Does.Contain("amount").And.Contain("between 1 and 3"));
+
+        Assert.That(await starter.Start(command + " 2", console), Is.EqualTo(2));
+    }
+
     [Test]
     public async Task ValidationWithoutAnyMessageStillExplainsTheError()
     {

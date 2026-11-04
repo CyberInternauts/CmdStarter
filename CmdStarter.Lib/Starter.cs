@@ -816,14 +816,15 @@ public class Starter
             });
         }
 
+        // Global options: the filters are applied before the method commands, which check their container parameters against them
+        GlobalOptionsManager.FilterTypes();
+
         foreach (var type in MethodCommandsTypes)
         {
             MethodCommandsLoader.Validate(type);
             AddMethodCommands(type);
         }
 
-        // Global options
-        GlobalOptionsManager.FilterTypes();
         GlobalOptionsManager.LoadOptions(RootCommand);
         if (commandStateMetadata.Values.Any(metadata => metadata.State is not null) && ResolveStateProvider() is null)
         {
@@ -1249,7 +1250,16 @@ public class Starter
                 var parameterType = parameter.ParameterType;
                 if (parameterType == typeof(CancellationToken)) { parameters.Add(new(parameter, ParameterBindingKind.CancellationToken, null)); continue; }
                 if (parameterType == typeof(CommandConsole)) { parameters.Add(new(parameter, ParameterBindingKind.Console, null)); continue; }
-                if (typeof(IGlobalOptionsContainer).IsAssignableFrom(parameterType)) { parameters.Add(new(parameter, ParameterBindingKind.GlobalOptions, null)); continue; }
+                if (typeof(IGlobalOptionsContainer).IsAssignableFrom(parameterType))
+                {
+                    if (!GlobalOptionsManager.GlobalOptionsTypes.Contains(parameterType))
+                    {
+                        throw new InvalidAttributeException($"Parameter '{parameter.Name}' of method '{method.Name}' (type '{type.FullName}') is the global options container '{parameterType.FullName}', which the filters exclude.");
+                    }
+
+                    parameters.Add(new(parameter, ParameterBindingKind.GlobalOptions, null));
+                    continue;
+                }
                 if (Attribute.IsDefined(parameter, typeof(FromServicesAttribute)))
                 {
                     if (ServiceProvider is null) throw new InvalidAttributeException($"[FromServices] requires ServiceProvider. Type '{type.FullName}', method '{method.Name}'.");

@@ -50,6 +50,16 @@ public class PublicSurfaces
     }
 
     [Test]
+    public void ChildrenAttributeConstructorsRejectNull()
+    {
+        var byName = Assert.Throws<ArgumentNullException>(() => _ = new ChildrenAttribute((string)null!));
+        var byType = Assert.Throws<ArgumentNullException>(() => _ = new ChildrenAttribute((Type)null!));
+
+        Assert.That(byName!.ParamName, Is.EqualTo("namespaceForChildren"));
+        Assert.That(byType!.ParamName, Is.EqualTo("namespaceForChildren"));
+    }
+
+    [Test]
     public void ConfigurationExceptionsKeepTheirMessageAndTheirCause()
     {
         var cause = new InvalidOperationException("cause");

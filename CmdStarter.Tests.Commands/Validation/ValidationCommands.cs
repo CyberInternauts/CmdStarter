@@ -54,6 +54,20 @@ public sealed class ImplicitDefaultCommands
     public static int Fit([Option][Range(1, 3)] int size = 7) => size;
 }
 
+public sealed class AmountCommand : StarterCommand
+{
+    public override Delegate HandlingMethod => (Func<int, int>)Handle;
+
+    // The default of the argument is outside the allowed range.
+    private static int Handle([Range(1, 3)] int amount = 7) => amount;
+}
+
+public sealed class ImplicitArgumentCommands
+{
+    [Command]
+    public static int FitArgument([Range(1, 3)] int amount = 7) => amount;
+}
+
 // A validation that refuses every value and gives no message at all, not even the default one.
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class MessagelessAttribute : ValidationAttribute

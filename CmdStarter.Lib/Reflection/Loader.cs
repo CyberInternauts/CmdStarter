@@ -189,13 +189,12 @@ internal static class Loader
         {
             option.Validators.Add(result =>
             {
-                var optionResult = result.GetResult(option);
-                if (optionResult is null || optionResult.Implicit)
+                if (result.Implicit)
                 {
                     return;
                 }
 
-                Validate(result, attribute, displayName, optionResult.GetValueOrDefault<object?>);
+                Validate(result, attribute, displayName, result.GetValueOrDefault<object?>);
             });
         }
     }
@@ -206,13 +205,13 @@ internal static class Loader
         {
             argument.Validators.Add(result =>
             {
-                var argumentResult = result.GetResult(argument);
-                if (argumentResult is null || argumentResult.Implicit)
+                // Absence is read from the tokens: System.CommandLine marks an argument result implicit only once its default value is materialized.
+                if (result.Tokens.Count == 0)
                 {
                     return;
                 }
 
-                Validate(result, attribute, displayName, argumentResult.GetValueOrDefault<object?>);
+                Validate(result, attribute, displayName, result.GetValueOrDefault<object?>);
             });
         }
     }
@@ -239,7 +238,7 @@ internal static class Loader
         var validationResult = attribute.GetValidationResult(value, context);
         if (validationResult != ValidationResult.Success)
         {
-            result.AddError(validationResult?.ErrorMessage ?? $"The value of '{displayName}' is invalid.");
+            result.AddError(validationResult!.ErrorMessage ?? $"The value of '{displayName}' is invalid.");
         }
     }
 

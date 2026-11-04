@@ -74,10 +74,10 @@ public static class Helper
                 p.CanWrite && p.CanRead
                 &&
                 (
-                  (p.DeclaringType?.IsAssignableTo(typeof(IStarterCommand)) ?? false)
+                  p.DeclaringType!.IsAssignableTo(typeof(IStarterCommand))
                   && !interfacePropertiesNames!.Contains(p.Name) // Can't be null because already loaded
                 ||
-                (p.DeclaringType?.IsAssignableTo(typeof(IGlobalOptionsContainer)) ?? false))
+                p.DeclaringType!.IsAssignableTo(typeof(IGlobalOptionsContainer)))
                 &&
                 !Attribute.IsDefined(p.DeclaringType, typeof(AllOptionsExcludedAttribute))
             );

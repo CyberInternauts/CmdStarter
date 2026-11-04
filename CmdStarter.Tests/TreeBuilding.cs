@@ -28,14 +28,14 @@ public class TreeBuilding
     }
 
     [Test]
-    public void ChildrenAttributesWithoutNamespaceNameNoChildren()
+    public void ChildrenAttributeWithAnEmptyNamespaceNamesNoChildren()
     {
         var starter = CreateStarter(typeof(EmptyChildrenParent).Namespace!, typeof(EmptyChildrenSibling).Namespace!);
         starter.ClassesBuildingMode = ClassesBuildingMode.OnlyAttributes;
 
         starter.BuildTree();
 
-        // Both commands stay at the top: an empty or missing namespace did not make the sibling a child.
+        // Both commands stay at the top: an empty namespace did not make the sibling a child.
         var topLevel = starter.CommandsTypesTree.Children.Select(node => node.Value);
         Assert.That(topLevel, Is.EquivalentTo(new[] { typeof(EmptyChildrenParent), typeof(EmptyChildrenSibling) }));
         Assert.That(starter.CommandsTypesTree.Children.SelectMany(node => node.Children), Is.Empty);

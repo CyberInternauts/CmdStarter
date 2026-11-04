@@ -15,8 +15,10 @@ public class ChildrenAttribute : Attribute
     /// Use the namespace of the type
     /// </summary>
     /// <param name="namespaceForChildren">Type to get the namespace</param>
+    /// <exception cref="ArgumentNullException"><paramref name="namespaceForChildren"/> is <see langword="null"/>.</exception>
     public ChildrenAttribute(Type namespaceForChildren)
     {
+        ArgumentNullException.ThrowIfNull(namespaceForChildren);
         Namespace = namespaceForChildren.Namespace ?? string.Empty;
     }
 
@@ -26,8 +28,10 @@ public class ChildrenAttribute : Attribute
     /// - [Children("CyberInternauts")]
     /// </summary>
     /// <param name="namespaceForChildren"></param>
+    /// <exception cref="ArgumentNullException"><paramref name="namespaceForChildren"/> is <see langword="null"/>.</exception>
     public ChildrenAttribute(string namespaceForChildren)
     {
+        ArgumentNullException.ThrowIfNull(namespaceForChildren);
         Namespace = namespaceForChildren;
     }
 }

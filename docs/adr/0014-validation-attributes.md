@@ -12,6 +12,7 @@ CmdStarter creates System.CommandLine options and arguments from class propertie
 CmdStarter applies every `ValidationAttribute` on a created option's or argument's source property or parameter.
 Validation runs on the converted value during System.CommandLine parsing, using a `ValidationContext` whose `DisplayName` and `MemberName` are the option name without its prefix or the argument name.
 An option or argument is validated only when the parse result contains an explicit value. An absent optional option or argument is not validated, including when it has a default value.
+For an option, absence is the implicit flag of its result. For an argument, absence is read from the tokens, because System.CommandLine marks the result implicit only once the default value is materialized.
 `[Required]` continues to make an option required and also runs as a validation attribute, so an explicitly supplied empty string is rejected.
 Validation failures are added to System.CommandLine's parse errors. They produce a non-zero exit code, are written to the error output, and prevent the handler from running.
 Applications can continue to add custom validators through `FindCommand<T>()` and the symbol's `Validators` collection.

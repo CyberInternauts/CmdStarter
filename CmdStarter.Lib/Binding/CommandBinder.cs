@@ -30,11 +30,10 @@ internal static class CommandBinder
         return getter.Invoke(parseResult, new object[] { argument });
     }
 
+    // symbolType is Option<> or Argument<>: the lookup is by exact signature, whatever the order of the methods of ParseResult.
     private static MethodInfo FindGetter(Type symbolType) => typeof(ParseResult)
-        .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-        .Where(method => method.Name == "GetValue" && method.IsGenericMethodDefinition)
-        .First(method => method.GetParameters() is [{ ParameterType.IsGenericType: true } parameter]
-            && parameter.ParameterType.GetGenericTypeDefinition() == symbolType);
+        .GetMethod("GetValue", 1, new[] { symbolType.MakeGenericType(Type.MakeGenericMethodParameter(0)) })
+        ?? throw new InvalidOperationException($"{typeof(ParseResult).FullName}.GetValue<T>({symbolType.Name}) was not found: this version of System.CommandLine is not supported.");
 
     internal static void BindOptions(ParseResult parseResult, object target, IEnumerable<OptionBinding> bindings)
     {
@@ -66,7 +65,7 @@ internal static class CommandBinder
         var values = new object?[parameters.Length];
         for (var i = 0; i < parameters.Length; i++)
         {
-            var argument = i < arguments.Length ? arguments[i] : null;
+            var argument = arguments[i];
             if (argument is not null)
             {
                 values[i] = GetArgumentValue(parseResult, argument);
@@ -78,10 +77,6 @@ internal static class CommandBinder
             else if (parameters[i].ParameterType == typeof(CommandConsole))
             {
                 values[i] = console;
-            }
-            else if (parameters[i].HasDefaultValue)
-            {
-                values[i] = parameters[i].DefaultValue;
             }
             else
             {
