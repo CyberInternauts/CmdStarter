@@ -232,13 +232,9 @@ public sealed class ReplLineEditor
         return (key.Modifiers & ConsoleModifiers.Control) != 0 && (key.Modifiers & ConsoleModifiers.Alt) == 0;
     }
 
+    // Only called by Complete with at least two candidates: zero and one candidate have returned before.
     private static string CommonPrefix(string[] candidates)
     {
-        if (candidates.Length == 0)
-        {
-            return string.Empty;
-        }
-
         var prefix = candidates[0];
         for (var index = 1; index < candidates.Length; index++)
         {
