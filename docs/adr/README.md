@@ -1,7 +1,7 @@
 # ADR index
 
 | Number | Title | Status |
-| --- | --- |
+| --- | --- | --- |
 | 0001 | [Target .NET 10 Only](0001-target-net-10-only.md) | Accepted |
 | 0002 | [System.CommandLine 2.0 Stable](0002-system-commandline-2-stable.md) | Accepted |
 | 0003 | [Internal Command Binder](0003-internal-command-binder.md) | Accepted |
@@ -12,3 +12,4 @@
 | 0008 | [Code Quality Gates](0008-code-quality-gates.md) | Accepted |
 | 0009 | [Method-Based Command Model](0009-method-based-command-model.md) | Accepted |
 | 0010 | [Errors and Exit Codes](0010-errors-and-exit-codes.md) | Accepted |
+| 0011 | [REPL Mode](0011-repl-mode.md) | Accepted |
