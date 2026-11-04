@@ -670,6 +670,7 @@ public class Starter
         CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, activation.Instance, exitCode));
         return exitCode;
     }
+
     private static object? GetMethodOptionValue(ParseResult result, Option option, ParameterInfo parameter)
     {
         if (CommandBinder.TryGetOptionValue(result, option, out var value)) return value;

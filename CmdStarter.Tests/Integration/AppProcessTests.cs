@@ -55,6 +55,7 @@ public sealed class AppProcessTests
         Assert.That(result.StdErr, Does.Contain("InvalidOperationException"));
         Assert.That(result.StdErr, Does.Contain("integration failure"));
     }
+
     [Test]
     public async Task UsesOneScopePerExecution()
     {
