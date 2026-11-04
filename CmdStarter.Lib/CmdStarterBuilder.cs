@@ -1,5 +1,6 @@
 using System.Reflection;
 using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Loader;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CyberInternauts.CmdStarter;
@@ -40,6 +41,16 @@ public sealed class CmdStarterBuilder
     public CmdStarterBuilder UseRepl(IReplInputProvider inputProvider)
     {
         options.UseRepl(inputProvider);
+        return this;
+    }
+
+    /// <summary>Configures the starter with an explicit command tree.</summary>
+    /// <param name="define">Callback that defines the command tree.</param>
+    /// <returns>This builder.</returns>
+    public CmdStarterBuilder UseTree(Action<CommandTreeDefinition> define)
+    {
+        ArgumentNullException.ThrowIfNull(define);
+        options.ConfigureStarter(starter => starter.UseTree(define));
         return this;
     }
 

@@ -50,6 +50,7 @@ public class Repl
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + "CyberInternauts.CmdStarter.Tests.Commands.Erroneous.NameConflicts");
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + "CyberInternauts.CmdStarter.Tests.Commands.SameLeafNames");
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + "CyberInternauts.CmdStarter.Tests.Commands.DefaultValues");
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + "CyberInternauts.CmdStarter.Tests.Commands.FluentTree");
     }
 
     [TestCase<PreCommand, CommandOne, CommandTwo, CommandThree>()]

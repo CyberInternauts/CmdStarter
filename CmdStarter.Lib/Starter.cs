@@ -57,6 +57,7 @@ public class Starter
     private readonly List<MethodCommandRegistration> methodRegistrations = new();
     private readonly Dictionary<Command, CommandStateMetadata> commandStateMetadata = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<Command> implicitMethodGroups = new(ReferenceEqualityComparer.Instance);
+    private TreeNode<Type>? definedTree;
     private bool hasToFindCommands = true;
     private bool hasToBuildTree = true;
     private bool hasToInstantiate = true;
@@ -231,6 +232,30 @@ public class Starter
     /// </summary>
     public void SetDefaultFactory() => factory = null;
 
+    /// <summary>Defines and replaces the placement of command classes with an explicit fluent tree.</summary>
+    /// <remarks>For command classes in this definition, discovery and placement filters and attributes do not apply: <see cref="Namespaces"/>, <see cref="Classes"/>, <see cref="Assemblies"/>, <see cref="ClassesBuildingMode"/>, <c>[Parent]</c> and <c>[Children]</c> are ignored. Method commands and global options continue to be discovered and filtered as before.</remarks>
+    /// <param name="define">Callback that defines the command tree.</param>
+    /// <returns>This starter.</returns>
+    public Starter UseTree(Action<CommandTreeDefinition> define)
+    {
+        ArgumentNullException.ThrowIfNull(define);
+        var root = new TreeNode<Type>(null);
+        var definition = new CommandTreeDefinition(root);
+        try
+        {
+            define(definition);
+        }
+        finally
+        {
+            definition.Close();
+        }
+
+        root.SetImmutable();
+        definedTree = root;
+        ResetCommands();
+        return this;
+    }
+
     /// <summary>
     /// Find matching commands, build the tree, and execute the requested command. Each execution creates and releases a new command instance.
     /// A Starter is not intended for concurrent Start calls because it stores parsed global options.
@@ -375,7 +400,7 @@ public class Starter
         hasToFindCommands = false;
 
         var searchAssemblies = Assemblies.IsEmpty ? AppDomain.CurrentDomain.GetAssemblies() : Assemblies.Distinct();
-        var commandCandidates = searchAssemblies
+        var commandCandidates = definedTree is null ? searchAssemblies
                     .SelectMany(a => a.GetTypes()
                         .Where(t =>
                             t.IsClass &&
@@ -383,29 +408,29 @@ public class Starter
                             t.IsAssignableTo(typeof(IStarterCommand)) &&
                             t.Namespace != null
                         )
-                    );
+                    ) : Enumerable.Empty<Type>();
 
         var libraryName = typeof(Starter).Assembly.GetName().Name;
         var methodCandidates = searchAssemblies
             .Where(assembly => assembly == typeof(Starter).Assembly || assembly.GetReferencedAssemblies().Any(reference => reference.Name == libraryName))
             .SelectMany(assembly => assembly.GetTypes().Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(type)));
 
-        var classTypes = commandCandidates.ToArray();
+        var classTypes = definedTree?.FlattenValues().ToArray() ?? commandCandidates.ToArray();
         var methodTypes = methodCandidates.ToArray();
         if (!Assemblies.IsEmpty && classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
 
         // Filter by namespaces
-        classTypes = FilterTypesByNamespaces(classTypes, Namespaces.ToList()).ToArray();
+        if (definedTree is null) classTypes = FilterTypesByNamespaces(classTypes, Namespaces.ToList()).ToArray();
         methodTypes = FilterTypesByNamespaces(methodTypes, Namespaces.ToList()).ToArray();
         if (classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Namespaces);
 
         // Filter by classes
-        classTypes = FilterTypesByClasses(classTypes, Classes.ToList()).ToArray();
+        if (definedTree is null) classTypes = FilterTypesByClasses(classTypes, Classes.ToList()).ToArray();
         methodTypes = FilterTypesByClasses(methodTypes, Classes.ToList()).ToArray();
         if (classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Classes);
 
         // Deterministic order: assemblies loading and reflection order must not change the tree or the help
-        this.commandsTypes = CommandsTypes.Clear().AddRange(classTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
+        this.commandsTypes = CommandsTypes.Clear().AddRange(definedTree is null ? classTypes.OrderBy(type => type.FullName, StringComparer.Ordinal) : classTypes);
         MethodCommandsTypes = ImmutableList<Type>.Empty.AddRange(methodTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
     }
 
@@ -419,9 +444,16 @@ public class Starter
 
         FindCommandsTypes();
 
-        var builder = new CommandsTreeBuilder(ClassesBuildingMode, CommandsTypes);
-        CommandsTypesTree = builder.BuildTree();
-        CommandsTypesTree.SetImmutable();
+        if (definedTree is not null)
+        {
+            CommandsTypesTree = definedTree;
+        }
+        else
+        {
+            var builder = new CommandsTreeBuilder(ClassesBuildingMode, CommandsTypes);
+            CommandsTypesTree = builder.BuildTree();
+            CommandsTypesTree.SetImmutable();
+        }
     }
 
     /// <summary>

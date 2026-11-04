@@ -1,5 +1,6 @@
 using System.Reflection;
 using CyberInternauts.CmdStarter.Interfaces;
+using CyberInternauts.CmdStarter.Loader;
 
 namespace CyberInternauts.CmdStarter;
 
@@ -38,5 +39,14 @@ public sealed class CmdStarterOptions
         ArgumentNullException.ThrowIfNull(inputProvider);
         ReplInputProvider = inputProvider;
         return this;
+    }
+
+    /// <summary>Configures the starter with an explicit command tree.</summary>
+    /// <param name="define">Callback that defines the command tree.</param>
+    /// <returns>This options instance.</returns>
+    public CmdStarterOptions UseTree(Action<CommandTreeDefinition> define)
+    {
+        ArgumentNullException.ThrowIfNull(define);
+        return ConfigureStarter(starter => starter.UseTree(define));
     }
 }
