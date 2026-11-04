@@ -347,4 +347,30 @@ public sealed class SamplesTests
         var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Hosting", "greet", "Ann");
         Assert.That(result.StdOut, Does.Not.Contain("Application started"));
     }
+
+    [Test]
+    public async Task FiltersSampleLogsCommand()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Filters", "status");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("ok"));
+        Assert.That(result.StdErr, Does.Contain("[filter] status -> 0"));
+    }
+
+    [Test]
+    public async Task FiltersSampleRequiresConfirmation()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Filters", "deploy");
+        Assert.That(result.ExitCode, Is.EqualTo(3));
+        Assert.That(result.StdOut, Does.Not.Contain("deployed"));
+        Assert.That(result.StdErr, Does.Contain("Confirmation required"));
+    }
+
+    [Test]
+    public async Task FiltersSampleDeploysWithYes()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Filters", "deploy", "--yes");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("deployed"));
+    }
 }

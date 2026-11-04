@@ -40,6 +40,7 @@
     <ProjectReference Include="..\samples\CmdStarter.Samples.DevOpsTool\CmdStarter.Samples.DevOpsTool.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.Repl\CmdStarter.Samples.Repl.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.CommandStates\CmdStarter.Samples.CommandStates.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\samples\CmdStarter.Samples.Filters\CmdStarter.Samples.Filters.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.Hosting\CmdStarter.Samples.Hosting.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
