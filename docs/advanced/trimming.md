@@ -103,20 +103,20 @@ Each warning was handled with an annotation of the member that reads the type, o
 
 ### Trimmed applications
 
-The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `3EC81C9F7D87D19F644C8C943DBC2F5A0E5CB554EFA9AE5AEAD9C791ECF9D491`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 14:24:55 to 14:26:47):
+The package built with the two flags was restored in a private packages folder of the script; its SHA-256 is `30500178874EA7430641CAD873CA8028EBA18E79C9BD020693E0B04E2A6FD1EB`, the same as the package of `artefacts/`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and run as expected (measure of 22:44:08 to 22:46:15):
 
 | Application | Size of the published folder | Command run | Exit code | First line of the output |
 | --- | ---: | --- | ---: | --- |
-| HelloWorld | 21 498 296 bytes | `HelloWorld.exe --to Bob` | 0 | `Hello, Bob!` |
-| DevOpsTool | 21 617 086 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
+| HelloWorld | 21 501 812 bytes | `HelloWorld.exe --to Bob` | 0 | `Hello, Bob!` |
+| DevOpsTool | 21 621 150 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
 | DevOpsTool | | `DevOpsTool.exe --help` | 0 | `Description:` |
 | DevOpsTool | | `DevOpsTool.exe service deploy` | 1 | `Description:`, and "Argument obligatoire manquant pour la commande : 'deploy'." on the error output |
-| Lists | 21 591 787 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
+| Lists | 21 595 371 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
 | Lists | | `Lists.exe greet --who Bob` | 0 | `Hello, Bob!` |
 | Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: Hello, filter!` on the error output |
 | Lists | | `Lists.exe tag red 3 --tags a --tags b` | 0 | `label=red tags=a,b count=3` |
 | Lists | | `Lists.exe show c --names z --numbers 3` | 0 | `names=z values=c numbers=3`, and `filter: Hello, filter!` on the error output |
-| Tree | 21 505 998 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
+| Tree | 21 509 070 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
 | Tree | | `Tree.exe tools --help` | 0 | `Description:` |
 | Tree | | `Tree.exe ct show --label y` | 0 | `label=y` |
 

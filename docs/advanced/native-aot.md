@@ -62,20 +62,20 @@ Without dynamic code, which is the case in a Native AOT executable, the search n
 
 ### Native AOT applications
 
-The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-analysis)), and the package carries the metadata `IsAotCompatible`. The criterion is functional parity: what an application does on CoreCLR, it must do as a native executable. Four applications are measured: HelloWorld and DevOpsTool, and two that the script writes ([Trimming](trimming.md#second-evaluation) describes them): `Lists`, with collection options, a service provider with commands that it does not have registered, a filter registered by type, a command that declares its own static `GetInstance` and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`, or sets `Starter.CommandsTypes` to a type of the catalog. They publish with `-c Release -r win-x64 --self-contained -p:PublishAot=true`, exit code 0 and no warning (the publications reported `IL2104` and `IL3053` before the annotations). The package restored has the same SHA-256 as the package built, `3EC81C9F7D87D19F644C8C943DBC2F5A0E5CB554EFA9AE5AEAD9C791ECF9D491`. They run as expected (measure of 14:24:55 to 14:26:47):
+The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-analysis)), and the package carries the metadata `IsAotCompatible`. The criterion is functional parity: what an application does on CoreCLR, it must do as a native executable. Four applications are measured: HelloWorld and DevOpsTool, and two that the script writes ([Trimming](trimming.md#second-evaluation) describes them): `Lists`, with collection options, a service provider with commands that it does not have registered, a filter registered by type, a command that declares its own static `GetInstance` and a method command with an `[Option] List<string>` parameter; and `Tree`, which places its command under a group with `Starter.UseTree`, or sets `Starter.CommandsTypes` to a type of the catalog. They publish with `-c Release -r win-x64 --self-contained -p:PublishAot=true`, exit code 0 and no warning (the publications reported `IL2104` and `IL3053` before the annotations). The package restored has the same SHA-256 as the package built, `30500178874EA7430641CAD873CA8028EBA18E79C9BD020693E0B04E2A6FD1EB`. They run as expected (measure of 22:44:08 to 22:46:15):
 
 | Application | Size of the native executable | Command run | Exit code | First line of the output |
 | --- | ---: | --- | ---: | --- |
-| HelloWorld | 4 992 512 bytes | `HelloWorld.exe --to Bob` | 0 | `Hello, Bob!` |
-| DevOpsTool | 5 234 176 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
+| HelloWorld | 4 996 096 bytes | `HelloWorld.exe --to Bob` | 0 | `Hello, Bob!` |
+| DevOpsTool | 5 243 904 bytes | `DevOpsTool.exe service deploy api --version 1.2.3` | 0 | `Deploying api 1.2.3 to dev` |
 | DevOpsTool | | `DevOpsTool.exe --help` | 0 | `Description:` |
 | DevOpsTool | | `DevOpsTool.exe service deploy` | 1 | `Description:`, and "Argument obligatoire manquant pour la commande : 'deploy'." on the error output |
-| Lists | 5 201 408 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
+| Lists | 5 204 480 bytes | `Lists.exe show a b --names x --names y --numbers 1 2` | 0 | `names=x,y values=a,b numbers=1,2` |
 | Lists | | `Lists.exe greet --who Bob` | 0 | `Hello, Bob!` |
 | Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: Hello, filter!` on the error output |
 | Lists | | `Lists.exe tag red 3 --tags a --tags b` | 0 | `label=red tags=a,b count=3` |
 | Lists | | `Lists.exe show c --names z --numbers 3` | 0 | `names=z values=c numbers=3`, and `filter: Hello, filter!` on the error output |
-| Tree | 5 029 376 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
+| Tree | 5 032 960 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
 | Tree | | `Tree.exe tools --help` | 0 | `Description:` |
 | Tree | | `Tree.exe ct show --label y` | 0 | `label=y` |
 
