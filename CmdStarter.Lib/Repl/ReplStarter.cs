@@ -35,17 +35,8 @@ public sealed class ReplStarter : Starter
 
     /// <summary>Constructor with namespace filters.</summary>
     /// <param name="inputProvider">Provides input for command parsing.</param>
-    /// <param name="namespaces">Array of included namespaces.</param>
-    public ReplStarter(IReplInputProvider inputProvider, string[] namespaces) : base(namespaces)
-    {
-        this.inputProvider = inputProvider;
-        ShareCompletions();
-    }
-
-    /// <summary>Constructor with namespace filters.</summary>
-    /// <param name="inputProvider">Provides input for command parsing.</param>
-    /// <param name="namespaces">List of included namespaces.</param>
-    public ReplStarter(IReplInputProvider inputProvider, List<string> namespaces) : base(namespaces)
+    /// <param name="namespaces">The namespaces to include.</param>
+    public ReplStarter(IReplInputProvider inputProvider, IEnumerable<string> namespaces) : base(namespaces)
     {
         this.inputProvider = inputProvider;
         ShareCompletions();

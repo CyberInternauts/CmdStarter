@@ -151,21 +151,13 @@ public class Starter
     /// <summary>
     /// Constructor without filters
     /// </summary>
-    public Starter() : this(Array.Empty<string>())
+    public Starter() : this([])
     {
     }
 
-    /// <summary>
-    /// Constructor with namespace filter
-    /// </summary>
-    public Starter(string[] namespaces) : this(new List<string>(namespaces))
-    {
-    }
-
-    /// <summary>
-    /// Constructor with namespace filter
-    /// </summary>
-    public Starter(List<string> namespaces)
+    /// <summary>Constructor with namespace filters.</summary>
+    /// <param name="namespaces">The namespaces to include.</param>
+    public Starter(IEnumerable<string> namespaces)
     {
         GlobalOptionsManager = new(this);
         Namespaces = Namespaces.AddRange(namespaces);

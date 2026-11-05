@@ -239,8 +239,7 @@ CyberInternauts.CmdStarter.Repl.ReplStarter.Launch(string![]! args, System.Threa
 CyberInternauts.CmdStarter.Repl.ReplStarter.Launch(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 CyberInternauts.CmdStarter.Repl.ReplStarter.OnCommandExecuted -> System.EventHandler<CyberInternauts.CmdStarter.Repl.ReplCommandEventArgs!>?
 CyberInternauts.CmdStarter.Repl.ReplStarter.ReplStarter(CyberInternauts.CmdStarter.Interfaces.IReplInputProvider! inputProvider) -> void
-CyberInternauts.CmdStarter.Repl.ReplStarter.ReplStarter(CyberInternauts.CmdStarter.Interfaces.IReplInputProvider! inputProvider, string![]! namespaces) -> void
-CyberInternauts.CmdStarter.Repl.ReplStarter.ReplStarter(CyberInternauts.CmdStarter.Interfaces.IReplInputProvider! inputProvider, System.Collections.Generic.List<string!>! namespaces) -> void
+CyberInternauts.CmdStarter.Repl.ReplStarter.ReplStarter(CyberInternauts.CmdStarter.Interfaces.IReplInputProvider! inputProvider, System.Collections.Generic.IEnumerable<string!>! namespaces) -> void
 CyberInternauts.CmdStarter.Repl.ReplStarter.Stop() -> void
 CyberInternauts.CmdStarter.Sequences.CommandSequence
 CyberInternauts.CmdStarter.Sequences.CommandSequence.Steps.get -> System.Collections.Generic.IReadOnlyList<CyberInternauts.CmdStarter.Sequences.CommandSequenceStep!>!
@@ -309,8 +308,7 @@ CyberInternauts.CmdStarter.Starter.Start(string![]! args) -> System.Threading.Ta
 CyberInternauts.CmdStarter.Starter.Start(string![]! args, CyberInternauts.CmdStarter.CommandConsole! console, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 CyberInternauts.CmdStarter.Starter.Start(string![]! args, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<int>!
 CyberInternauts.CmdStarter.Starter.Starter() -> void
-CyberInternauts.CmdStarter.Starter.Starter(string![]! namespaces) -> void
-CyberInternauts.CmdStarter.Starter.Starter(System.Collections.Generic.List<string!>! namespaces) -> void
+CyberInternauts.CmdStarter.Starter.Starter(System.Collections.Generic.IEnumerable<string!>! namespaces) -> void
 CyberInternauts.CmdStarter.Starter.StartSequence(string! commandLine, CyberInternauts.CmdStarter.CommandConsole! console, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 CyberInternauts.CmdStarter.Starter.StartSequence(string! commandLine, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 CyberInternauts.CmdStarter.Starter.StateProvider.get -> CyberInternauts.CmdStarter.Interfaces.ICommandStateProvider?
