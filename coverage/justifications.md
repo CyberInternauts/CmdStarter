@@ -259,6 +259,70 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`.
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
+### CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs:72
+
+- **File**: `CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs`
+- **Line**: 72, the `catch` around the read of the announcement in `ConnectAsync`.
+- **Code**:
+
+  ```csharp
+  catch (IOException)
+  ```
+
+- **Reason**: on Unix a named pipe is a Unix socket. A connection that waits in the queue of the listening socket is reset (`ECONNRESET`) when the instance of the running session is released, and reading it throws `IOException`. On Windows a pipe that the server closed reads as the end of the stream (`ERROR_BROKEN_PIPE` gives 0 bytes), never as an `IOException`, so the measure, which runs on Windows, cannot reach this line. `ReplRemote.ConnectTriesAgainWhenAQueuedConnectionIsClosed` reaches it on Linux: coverlet, run on that test alone under WSL (Ubuntu 20.04, .NET 10.0.403, lot 036), counts one hit on lines 72, 73, 76 and 77.
+- **Change needed**: a coverage measure on Unix, merged with the Windows one.
+- **Why refused**: `measure-coverage.ps1` runs on Windows only. Removing the `catch` is refused too: under Unix a queued connection reset at the end of a session would leave `ConnectAsync` with an `IOException` instead of trying again, which is the failure lot 036 fixes.
+- **Proposal**: `keep (justified)`.
+- **Decision**: kept, accepted by Main on 2026-11-04: reached on Unix only (ECONNRESET of a queued connection), proven by the test in the WSL run; Windows reads a closed pipe as end of stream.
+
+### CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs:73
+
+- **File**: `CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs`
+- **Line**: 73, the opening brace of the `catch`.
+- **Code**:
+
+  ```csharp
+  {
+  ```
+
+- **Reason**: only reached through line 72.
+- **Change needed**: same as line 72.
+- **Why refused**: same as line 72.
+- **Proposal**: `keep (justified)`.
+- **Decision**: kept, accepted by Main on 2026-11-04 (same decision as line 72).
+
+### CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs:76
+
+- **File**: `CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs`
+- **Line**: 76.
+- **Code**:
+
+  ```csharp
+  line = null;
+  ```
+
+- **Reason**: only reached through line 72: the reset connection is treated as the end of the stream, and the loop tries again with what is left of the timeout.
+- **Change needed**: same as line 72.
+- **Why refused**: same as line 72.
+- **Proposal**: `keep (justified)`.
+- **Decision**: kept, accepted by Main on 2026-11-04 (same decision as line 72).
+
+### CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs:77
+
+- **File**: `CmdStarter.Lib/Repl/Remote/ReplPipeClient.cs`
+- **Line**: 77, the closing brace of the `catch`.
+- **Code**:
+
+  ```csharp
+  }
+  ```
+
+- **Reason**: only reached through line 72.
+- **Change needed**: same as line 72.
+- **Why refused**: same as line 72.
+- **Proposal**: `keep (justified)`.
+- **Decision**: kept, accepted by Main on 2026-11-04 (same decision as line 72).
+
 ### CmdStarter.Lib/Binding/CommandActivation.cs:25
 
 - **File**: `CmdStarter.Lib/Binding/CommandActivation.cs`

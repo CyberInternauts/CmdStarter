@@ -360,6 +360,20 @@ public class ReplRemote
     }
 
     [Test]
+    public async Task DisposingAfterTheServerClosedTheSessionDoesNotThrow()
+    {
+        await using var raw = new RawServer();
+        // Not "await using": the test disposes the client itself, to see what the disposal does.
+        var client = new ReplPipeClient(raw.PipeName);
+        await raw.ConnectAsync(client);
+        await raw.CloseAsync();
+
+        // The write fails on the closed pipe, which leaves it broken: the flush of the disposal meets that pipe, and DisposeAsync keeps quiet about it.
+        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(client, "hello"));
+        Assert.DoesNotThrowAsync(async () => await client.DisposeAsync());
+    }
+
+    [Test]
     public async Task ConnectWaitsForTheAnnouncementOfTheSession()
     {
         // A server that accepts the connection but never announces the session, as a queue of connections that nobody serves does.

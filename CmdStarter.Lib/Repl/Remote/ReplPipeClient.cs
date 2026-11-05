@@ -76,22 +76,21 @@ public sealed class ReplPipeClient : IAsyncDisposable
                     line = null;
                 }
 
-                if (line is null)
+                if (line is not null)
                 {
-                    // The connection closed before the announcement: try again with what is left of the timeout.
-                    continue;
+                    if (line != ReplPipeServer.Announcement)
+                    {
+                        throw new InvalidDataException($"Unexpected line from the server: '{line}'.");
+                    }
+
+                    pipe = stream;
+                    reader = announced;
+                    writer = new StreamWriter(stream, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
+                    connected = true;
+                    return;
                 }
 
-                if (line != ReplPipeServer.Announcement)
-                {
-                    throw new InvalidDataException($"Unexpected line from the server: '{line}'.");
-                }
-
-                pipe = stream;
-                reader = announced;
-                writer = new StreamWriter(stream, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
-                connected = true;
-                return;
+                // The connection closed before the announcement: the loop tries again with what is left of the timeout.
             }
             finally
             {
