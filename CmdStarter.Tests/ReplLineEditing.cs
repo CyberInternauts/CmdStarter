@@ -121,6 +121,66 @@ public class ReplLineEditing
     }
 
     [Test]
+    public void ControlCAbandonsTheLineAndReadingContinues()
+    {
+        var editor = CreateEditor('h', 'e', 'l', CtrlC(), 'o', 'k', Key(ConsoleKey.Enter));
+
+        Assert.That(editor.ReadLine("> "), Is.EqualTo("ok"));
+        Assert.That(editorOutput.ToString(), Does.Contain("^C" + Environment.NewLine + "> "));
+        Assert.That(editor.History, Is.EqualTo(new[] { "ok" }));
+    }
+
+    [Test]
+    public void ControlCOnAnEmptyLineDoesNotEndTheInput()
+    {
+        var editor = CreateEditor(CtrlC(), Key(ConsoleKey.D, control: true));
+
+        Assert.That(editor.ReadLine("> "), Is.Null);
+        Assert.That(editorOutput.ToString(), Does.Contain("^C" + Environment.NewLine + "> "));
+    }
+
+    [Test]
+    public void ControlCRestartsTheHistoryFromItsEnd()
+    {
+        var editor = CreateEditor('o', 'n', 'e', Key(ConsoleKey.Enter), 't', 'w', 'o', Key(ConsoleKey.Enter),
+            'd', 'r', Key(ConsoleKey.UpArrow), CtrlC(), Key(ConsoleKey.UpArrow), Key(ConsoleKey.DownArrow), Key(ConsoleKey.Enter),
+            'd', 'r', Key(ConsoleKey.UpArrow), CtrlC(), Key(ConsoleKey.UpArrow), Key(ConsoleKey.Enter));
+
+        editor.ReadLine("> ");
+        editor.ReadLine("> ");
+
+        // Up shows "two", Ctrl+C forgets the draft "dr", Up shows "two" again (not "one"), Down goes back to the empty draft.
+        var outputLengthBeforeThirdRead = editorOutput.ToString().Length;
+        Assert.That(editor.ReadLine("> "), Is.EqualTo(string.Empty));
+        Assert.That(RenderedAfterControlC(editorOutput.ToString()[outputLengthBeforeThirdRead..]), Is.EqualTo(new[] { "two", string.Empty }));
+
+        var outputLengthBeforeFourthRead = editorOutput.ToString().Length;
+        Assert.That(editor.ReadLine("> "), Is.EqualTo("two"));
+        Assert.That(RenderedAfterControlC(editorOutput.ToString()[outputLengthBeforeFourthRead..]), Is.EqualTo(new[] { "two" }));
+    }
+
+    [Test]
+    public void ControlAltCIsNotAnInterruption()
+    {
+        var editor = CreateEditor('a', AltGrKey('\u00a9'), Key(ConsoleKey.Enter), 'a', AltGrKey('\u0003'), Key(ConsoleKey.Enter));
+
+        Assert.That(editor.ReadLine("> "), Is.EqualTo("a\u00a9"));
+        Assert.That(editor.ReadLine("> "), Is.EqualTo("a"));
+        Assert.That(editorOutput.ToString(), Does.Not.Contain("^C"));
+    }
+
+    [Test]
+    public void ControlCWritesTheEndOfTheLineBeforeTheMark()
+    {
+        var editor = CreateEditor('h', 'e', 'l', Key(ConsoleKey.LeftArrow), Key(ConsoleKey.LeftArrow), CtrlC(), Key(ConsoleKey.Enter));
+
+        Assert.That(editor.ReadLine("> "), Is.EqualTo(string.Empty));
+
+        // Ordinal search: a culture comparison ignores the backspaces, so "hel\b\b^C" would contain "el^C" too.
+        Assert.That(editorOutput.ToString().IndexOf("hel\b\bel^C" + Environment.NewLine + "> ", StringComparison.Ordinal), Is.Not.Negative);
+    }
+
+    [Test]
     public void CompletionsListCommandsAndBuiltInWords()
     {
         var completions = CreateReplStarter().GetCompletions(string.Empty, 0);
@@ -212,6 +272,14 @@ public class ReplLineEditing
             .Select(render => render[prompt.Length..].TrimEnd(' ', '\b'))];
     }
 
+    // What the editor rendered after the "^C" and the new prompt of one read.
+    private static string[] RenderedAfterControlC(string readOutput)
+    {
+        const string mark = "^C\n> ";
+        var text = readOutput.Replace(Environment.NewLine, "\n");
+        return RenderedBuffers(text[(text.LastIndexOf(mark, StringComparison.Ordinal) + mark.Length)..], "> ");
+    }
+
     private ReplLineEditor CreateEditor(params object[] keys) => CreateEditorWithHistory(100, keys);
 
     private ReplLineEditor CreateEditorWithHistory(int historySize, params object[] keys)
@@ -222,6 +290,11 @@ public class ReplLineEditing
     }
 
     private static ConsoleKeyInfo Key(ConsoleKey key, bool control = false) => new('\0', key, false, false, control);
+
+    private static ConsoleKeyInfo CtrlC() => new('\u0003', ConsoleKey.C, shift: false, alt: false, control: true);
+
+    // Windows reports AltGr as Control+Alt.
+    private static ConsoleKeyInfo AltGrKey(char character) => new(character, ConsoleKey.C, false, true, true);
 
     private static ConsoleKeyInfo Key(char character)
     {

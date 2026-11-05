@@ -44,6 +44,10 @@ public sealed class ReplLineEditor
     public Func<string, int, IEnumerable<string>>? CompletionSource { get; set; }
 
     /// <summary>Reads an editable line from the key reader.</summary>
+    /// <remarks>
+    /// Ctrl+C (without Alt) abandons the line being edited: it writes <c>^C</c> and a new prompt, and the reading continues.
+    /// The abandoned line does not enter the history.
+    /// </remarks>
     /// <param name="prompt">Prompt written before the line.</param>
     /// <returns>The completed line, or null when end of input is signaled on an empty line.</returns>
     public string? ReadLine(string prompt)
@@ -81,6 +85,16 @@ public sealed class ReplLineEditor
                         return null;
                     }
 
+                    break;
+                case ConsoleKey.C when IsControlWithoutAlt(key):
+                    output.Write(buffer.ToString(cursor, buffer.Length - cursor));
+                    output.WriteLine("^C");
+                    buffer.Clear();
+                    cursor = 0;
+                    renderedLength = 0;
+                    historyIndex = history.Count;
+                    draft = null;
+                    output.Write(prompt);
                     break;
                 case ConsoleKey.Backspace:
                     if (cursor > 0)

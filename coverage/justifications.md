@@ -375,7 +375,7 @@ Each entry is a level-3 heading `File:line`, then eight items:
 ### CmdStarter.Lib/Repl/ConsoleReplProvider.cs:46
 
 - **File**: `CmdStarter.Lib/Repl/ConsoleReplProvider.cs`
-- **Line**: 46 to 51, the branch of the editor (lines 47 to 51 are uncovered, and 3 of 6 branches of line 46 are covered).
+- **Line**: 46 to 63, the branch of the editor (lines 47 to 63 are uncovered, and 3 of 6 branches of line 46 are covered).
 - **Code**:
 
   ```csharp
@@ -384,12 +384,23 @@ Each entry is a level-3 heading `File:line`, then eight items:
       cancellationToken.ThrowIfCancellationRequested();
       editor ??= new ReplLineEditor(() => Console.ReadKey(intercept: true), Console.Out) { HistorySize = HistorySize };
       editor.CompletionSource = CompletionSource;
-      return editor.ReadLine(Prompt);
+
+      // Ctrl+C is a key while the line is read, so it abandons the line instead of ending the process; a running command gets the signal again.
+      var treatControlCAsInput = Console.TreatControlCAsInput;
+      Console.TreatControlCAsInput = true;
+      try
+      {
+          return editor.ReadLine(Prompt);
+      }
+      finally
+      {
+          Console.TreatControlCAsInput = treatControlCAsInput;
+      }
   }
   ```
 
 - **Reason**: The branch needs a console on which neither the standard input nor the standard output is redirected, because it reads keys with `Console.ReadKey`, which throws on a redirected input. Probe in the test host: `Console.IsInputRedirected`, `Console.IsOutputRedirected` and `Console.IsErrorRedirected` are all `True`. The separate processes of `AppProcessTests` and `AppRunner` redirect standard input too. The raw path (`LineEditing = false`, or a redirected stream) is covered in memory by `ConsoleReplProviderInput`, and the editor itself by `ReplLineEditing` and `ReplLineEditorEdges` with simulated keys.
-- **Change needed**: Either the test would run the application in a pseudo-console (ConPTY on Windows, a pty elsewhere), or the provider would take the console detection and the key reader as injectable members (for example public `Func<bool>` and `Func<ConsoleKeyInfo>` init properties).
-- **Why refused**: A pseudo-console test needs platform-specific native code (P/Invoke of the ConPTY API, another mechanism on Linux) and a child process that really owns a console: that is a test infrastructure much larger than the 5 lines it would cover. An internal seam is possible since lot 031's `InternalsVisibleTo`, but it would still leave line 49 uncovered, the lambda `() => Console.ReadKey(intercept: true)` that is exactly the binding to the real console, and it would add a test-only member to cover four lines; that `InternalsVisibleTo` serves only to prove the symbol factories.
+- **Change needed**: Either the test would run the application in a pseudo-console (ConPTY on Windows, a pty elsewhere), or the provider would take the console detection, the key reader and the Ctrl+C mode (`Console.TreatControlCAsInput`, which only a real console accepts) as injectable members (for example public `Func<bool>` and `Func<ConsoleKeyInfo>` init properties).
+- **Why refused**: A pseudo-console test needs platform-specific native code (P/Invoke of the ConPTY API, another mechanism on Linux) and a child process that really owns a console: that is a test infrastructure much larger than the 5 lines it would cover. An internal seam is possible since lot 031's `InternalsVisibleTo`, but it would still leave line 49 uncovered, the lambda `() => Console.ReadKey(intercept: true)` that is exactly the binding to the real console, and it would add a test-only member to cover four lines; that `InternalsVisibleTo` serves only to prove the symbol factories. The pseudo-console driver that the Helper used for the manual check of Ctrl+C (about 250 lines of Windows-only P/Invoke) stays out of the suite for the same reason.
 - **Proposal**: `keep (justified)`.
-- **Decision**: kept, accepted by Main on 2026-11-04.
+- **Decision**: kept, accepted by Main on 2026-11-05.

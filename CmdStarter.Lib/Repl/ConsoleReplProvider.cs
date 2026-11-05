@@ -48,7 +48,18 @@ public sealed class ConsoleReplProvider : IReplInputProvider
             cancellationToken.ThrowIfCancellationRequested();
             editor ??= new ReplLineEditor(() => Console.ReadKey(intercept: true), Console.Out) { HistorySize = HistorySize };
             editor.CompletionSource = CompletionSource;
-            return editor.ReadLine(Prompt);
+
+            // Ctrl+C is a key while the line is read, so it abandons the line instead of ending the process; a running command gets the signal again.
+            var treatControlCAsInput = Console.TreatControlCAsInput;
+            Console.TreatControlCAsInput = true;
+            try
+            {
+                return editor.ReadLine(Prompt);
+            }
+            finally
+            {
+                Console.TreatControlCAsInput = treatControlCAsInput;
+            }
         }
 
         Console.Out.Write(Prompt);

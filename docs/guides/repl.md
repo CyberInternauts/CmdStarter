@@ -44,6 +44,8 @@ await run.WaitAsync(TimeSpan.FromSeconds(10));
 Assert.That(codes, Is.EqualTo(new[] { 130 }));
 ```
 
+At the prompt, with the line editor, Ctrl+C abandons the line being typed, empty or half typed: it writes `^C` and shows a new prompt, and the session goes on. Without the line editor (`ConsoleReplProvider.LineEditing` is `false`, or the standard input or output is redirected), Ctrl+C at the prompt ends the process, as [ADR 0011](../adr/0011-repl-mode.md) describes. On Windows, Ctrl+Break always ends the process, as [ADR 0020](../adr/0020-repl-line-editing.md) describes.
+
 ## With dependency injection
 
 `CmdStarterBuilder.UseRepl(provider)` makes the application a REPL, and `CmdStarterApp.RunReplAsync()` runs it. Every command runs in its own service scope, and singletons live as long as the application. The `ReplStarter` is registered as a service, and it is the same object as the `Starter`. Calling `RunReplAsync` without `UseRepl` throws `InvalidOperationException`.
@@ -95,6 +97,7 @@ public sealed class CommandScope
 - Tab completes, as described below.
 - Escape clears the line.
 - Ctrl+D or Ctrl+Z on an empty line signals the end of input, and the loop ends.
+- Ctrl+C abandons the line, writes `^C` and shows a new prompt; the abandoned line does not enter the history.
 
 The history keeps the non-blank lines of the session, without an immediate repeat, and drops the oldest lines beyond `HistorySize`. `ReplLineEditor.History` lists it.
 

@@ -13,6 +13,8 @@ Interactive command applications need a predictable input loop, a way to leave i
 
 A cancellation token passed to `Launch` can stop input and cancel the active command. Ctrl+C while a command is running cancels that command's token; Ctrl+C while waiting for input, or a second Ctrl+C during the same command, keeps the console's normal process-termination behavior. A cancelled command whose handler throws `OperationCanceledException` while its token is cancelled returns exit code `130`. `CancelCurrentCommand` provides the same active-command cancellation programmatically.
 
+Amended on 2026-11-05 (lot 038): the sentence about Ctrl+C while waiting for input no longer holds when the line editor reads the line: Ctrl+C is then a key that abandons the line, and the process goes on. It still holds without the line editor (`ConsoleReplProvider.LineEditing` is false, or the standard input or output is redirected). See [ADR 0020](0020-repl-line-editing.md).
+
 `CmdStarterBuilder.UseRepl` configures a `ReplStarter`, and `CmdStarterApp.RunReplAsync` starts it. Each command runs in its own DI scope. Singleton services remain shared across commands. The built application registers its `Starter` as a service; in REPL mode the same instance is also registered as `ReplStarter`.
 
 ## Consequences

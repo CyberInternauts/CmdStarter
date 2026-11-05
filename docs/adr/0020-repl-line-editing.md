@@ -34,6 +34,17 @@ The three `ReplStarter` constructors give `GetCompletions` to a `ConsoleReplProv
 - `Ctrl+D` and `Ctrl+Z` (without Alt, since on Windows AltGr is reported as Ctrl+Alt) end the input when the line is empty. Otherwise they are ignored.
 - Any other key is ignored.
 
+Amended on 2026-11-05 (lot 038): `Ctrl+C` (without Alt) abandons the line. The editor writes the rest of the line from the cursor, then `^C` and a line break, empties the buffer, forgets the draft, puts the history position back at its end and writes the prompt again. `ReadLine` returns nothing at that point, and the history does not change. Ctrl+Alt+C, which some keyboards report for AltGr, is not an interruption and follows the rule of any other key.
+
+`ConsoleReplProvider` sets `Console.TreatControlCAsInput` to `true` while the editor reads a line, so that Ctrl+C reaches the editor as a key, and restores the value it had before, not `false`, because an application may have set it itself. A running command therefore receives the signal as before, and returns 130 ([ADR 0011](0011-repl-mode.md)). Measured on 2026-11-05, with ConPTY on Windows (`\x03` and the win32-input-mode sequence) and a Linux pty (`script`): the key arrives as `C` with Control and `KeyChar` 0x03 on both sides.
+
+- Residual window: a Ctrl+C between the end of the read and the registration of the command, between two steps of a sequence, or during an `OnCommandExecuted` handler still ends the process.
+- Windows: Ctrl+Break stays a signal that ends the process, which is the way out.
+- Linux and macOS: .NET switches ISIG off as a whole, so at the prompt Ctrl+\ is a key that the editor ignores, and Ctrl+Z follows the rule of the editor (end of input on an empty line, ignored otherwise) instead of suspending the process. There is no way out by signal at the prompt any more: `exit`, `quit`, Ctrl+D and the token of `Launch` remain.
+- Without the line editor the process termination is kept. Measured on 2026-11-05: with `Cancel = true`, the read returns `null` before the handler runs, which looks like Ctrl+Z; with `TreatControlCAsInput = true`, Enter arrives as a lone CR and a line is lost.
+
+Two other options were set aside. (B) Leaving Ctrl+C a signal and warning the editor does not work: `Console.ReadKey` stays blocked until a key arrives, so no new prompt appears before the next key, unless an input is injected by a Windows P/Invoke. (C) Ignoring only the signal keeps the line without a new prompt, and would make the REPL end without the editor.
+
 Drawing uses `\r`, the prompt, the buffer, spaces to clear any leftover from a longer line, then backspaces to put the cursor back. No ANSI escape sequence is written.
 
 ## Completion and Command States
