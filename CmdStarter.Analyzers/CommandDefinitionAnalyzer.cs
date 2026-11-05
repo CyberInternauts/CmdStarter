@@ -109,7 +109,7 @@ public sealed class CommandDefinitionAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var handlers = PlainCommands.FindHandlers(type, handlerName, context.Compilation);
+        var handlers = PlainCommands.FindHandlers(type, handlerName);
         if (handlers.Length == 1)
         {
             ReportShape(context, handlers[0], handlers[0].Locations.FirstOrDefault());
@@ -141,13 +141,12 @@ public sealed class CommandDefinitionAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    // The argument Handler = ... of the attribute, else the attribute.
-    private static Location? HandlerLocation(AttributeData attribute, Location? fallback)
-    {
-        var syntax = attribute.ApplicationSyntaxReference?.GetSyntax() as AttributeSyntax;
-        var argument = syntax?.ArgumentList?.Arguments.FirstOrDefault(item => item.NameEquals?.Name.Identifier.ValueText == "Handler");
-        return argument?.GetLocation() ?? fallback;
-    }
+    // The argument Handler = ... of the attribute. It is only asked for an attribute that has a Handler, and a Handler is a named argument: when the attribute comes from the source, the argument is there.
+    // An attribute that comes from a compiled assembly has no syntax: the fallback is used.
+    private static Location? HandlerLocation(AttributeData attribute, Location? fallback) =>
+        attribute.ApplicationSyntaxReference?.GetSyntax() is AttributeSyntax syntax
+            ? syntax.ArgumentList!.Arguments.First(item => item.NameEquals?.Name.Identifier.ValueText == "Handler").GetLocation()
+            : fallback;
 
     private static void AnalyzeCommandAttribute(SyntaxNodeAnalysisContext context, INamedTypeSymbol commandAttribute)
     {

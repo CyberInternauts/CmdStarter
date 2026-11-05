@@ -115,10 +115,26 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:74
+### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:70
 
 - **File**: `CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs`
-- **Line**: 74, the branch where `ApplicationSyntaxReference` is `null` (1 of 2 branches is covered).
+- **Line**: 70, the branch where the attribute of the class has no `ApplicationSyntaxReference` (5 of 6 branches are covered: a class without `[Command]` takes the fallback location).
+- **Code**:
+
+  ```csharp
+  var classLocation = classAttribute?.ApplicationSyntaxReference?.GetSyntax().GetLocation() ?? type.Locations.FirstOrDefault();
+  ```
+
+- **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`). This line replaces the location of the former CMDS0011 report (formerly line 80, same reason), lot 037.
+- **Change needed**: A type that does not come from source would have to be analyzed.
+- **Why refused**: Same as line 46: the symbol action only receives source symbols.
+- **Proposal**: `keep (justified)`: same family as line 46.
+- **Decision**: kept, accepted by Main on 2026-11-05 (same family as 2026-11-04).
+
+### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:76
+
+- **File**: `CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs`
+- **Line**: 76 (formerly 74; the lines moved in lot 037), the branch where `ApplicationSyntaxReference` is `null` (1 of 2 branches is covered).
 - **Code**:
 
   ```csharp
@@ -131,21 +147,21 @@ Each entry is a level-3 heading `File:line`, then eight items:
 - **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
 - **Decision**: kept, accepted by Main on 2026-11-04.
 
-### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:80
+### CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs:147
 
 - **File**: `CmdStarter.Analyzers/CommandDefinitionAnalyzer.cs`
-- **Line**: 80, the branches where `ApplicationSyntaxReference` is `null` and where the fallback location is used (2 of 4 branches are covered).
+- **Line**: 147, in `HandlerLocation`, the branches where `ApplicationSyntaxReference` is `null` and the fallback location is used (2 of 4 branches are covered).
 - **Code**:
 
   ```csharp
-  context.ReportDiagnostic(Diagnostic.Create(Descriptors.EmptyGroup, classAttribute.ApplicationSyntaxReference?.GetSyntax().GetLocation() ?? type.Locations.FirstOrDefault(), type.Name));
+  attribute.ApplicationSyntaxReference?.GetSyntax() is AttributeSyntax syntax
   ```
 
-- **Reason**: Roslyn gives a `SymbolAnalysisContext` only the symbols declared in the compilation being analyzed, and the attributes of a source symbol are bound from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (probe on net10 with Roslyn 5.0: the attributes of a source class, of its method and of a partial class all have a reference; only the attributes of a type loaded from metadata, here `AliasAttribute`, give `null`).
+- **Reason**: `HandlerLocation` is asked only for the `[Command]` attribute of a source symbol that names a `Handler`, and Roslyn binds the attributes of a source symbol from their `AttributeSyntax`, so `ApplicationSyntaxReference` is never `null` for them (same probe as line 46). The other guards of the method (`ArgumentList`, the `Handler` argument itself) were impossible by construction and were removed in lot 037: the attribute names a `Handler`, which is a named argument, so the argument is in the syntax.
 - **Change needed**: A type that does not come from source would have to be analyzed.
-- **Why refused**: Same as line 46.
-- **Proposal**: `keep (justified)`: « la nullité est déclarée par Roslyn, pas par notre construction ; une garde coûte un `?.`, une erreur coûte la construction de l'utilisateur (D3 le montre). »
-- **Decision**: kept, accepted by Main on 2026-11-04.
+- **Why refused**: Same as line 46: the symbol action only receives source symbols.
+- **Proposal**: `keep (justified)`: same family as line 46.
+- **Decision**: kept, accepted by Main on 2026-11-05 (same family as 2026-11-04).
 
 ### CmdStarter.Analyzers/AutoCompleteAttributeAnalyzer.cs:37
 

@@ -9,14 +9,15 @@ namespace CyberInternauts.CmdStarter.Analyzers;
 internal static class PlainCommands
 {
     // The class qualifies as a plain command, whatever its handlers are: whether it has exactly one is a question of the handler (see FindHandlers).
-    internal static bool IsCandidate(INamedTypeSymbol type, INamedTypeSymbol? commandAttribute, INamedTypeSymbol? starterInterface)
+    internal static bool IsCandidate(INamedTypeSymbol type, INamedTypeSymbol? commandAttribute, INamedTypeSymbol starterInterface)
     {
-        if (commandAttribute is null || type.TypeKind != TypeKind.Class || type.IsAbstract || IsOpenGeneric(type))
+        // Roslyn does not report a static class as abstract, as reflection does: it is excluded by its own test.
+        if (commandAttribute is null || type.TypeKind != TypeKind.Class || type.IsAbstract || type.IsStatic || IsOpenGeneric(type))
         {
             return false;
         }
 
-        if (starterInterface is not null && type.AllInterfaces.Contains(starterInterface, SymbolEqualityComparer.Default))
+        if (type.AllInterfaces.Contains(starterInterface, SymbolEqualityComparer.Default))
         {
             return false;
         }
@@ -46,17 +47,15 @@ internal static class PlainCommands
     // The methods that can be the handler of a class that qualifies. With a Handler name: the public instance methods of that name, declared by the class or inherited, but not the ones of object.
     // Without: the public instance methods that the class declares itself, but not accessors and operators, what the compiler generates, the redefinitions of the methods of object
     // and the parameterless Dispose or DisposeAsync of a disposable class. A usable class has exactly one.
-    internal static ImmutableArray<IMethodSymbol> FindHandlers(INamedTypeSymbol type, string? handlerName, Compilation compilation)
+    internal static ImmutableArray<IMethodSymbol> FindHandlers(INamedTypeSymbol type, string? handlerName)
     {
         if (handlerName is not null)
         {
             return FindDesignated(type, handlerName);
         }
 
-        var disposable = compilation.GetTypeByMetadataName("System.IDisposable");
-        var asyncDisposable = compilation.GetTypeByMetadataName("System.IAsyncDisposable");
-        var isDisposable = disposable is not null && type.AllInterfaces.Contains(disposable, SymbolEqualityComparer.Default);
-        var isAsyncDisposable = asyncDisposable is not null && type.AllInterfaces.Contains(asyncDisposable, SymbolEqualityComparer.Default);
+        var isDisposable = type.AllInterfaces.Any(contract => contract.SpecialType == SpecialType.System_IDisposable);
+        var isAsyncDisposable = type.AllInterfaces.Any(contract => contract.Name == "IAsyncDisposable" && contract.ContainingNamespace.ToDisplayString() == "System");
         return [.. type.GetMembers().OfType<IMethodSymbol>().Where(method =>
             method.MethodKind == MethodKind.Ordinary
             && method.DeclaredAccessibility == Accessibility.Public
@@ -93,8 +92,8 @@ internal static class PlainCommands
         return false;
     }
 
-    internal static bool HasAttribute(ISymbol symbol, INamedTypeSymbol? attributeClass) => FindAttribute(symbol, attributeClass) is not null;
+    internal static bool HasAttribute(ISymbol symbol, INamedTypeSymbol attributeClass) => FindAttribute(symbol, attributeClass) is not null;
 
-    internal static AttributeData? FindAttribute(ISymbol symbol, INamedTypeSymbol? attributeClass) =>
-        attributeClass is null ? null : symbol.GetAttributes().FirstOrDefault(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeClass));
+    internal static AttributeData? FindAttribute(ISymbol symbol, INamedTypeSymbol attributeClass) =>
+        symbol.GetAttributes().FirstOrDefault(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeClass));
 }

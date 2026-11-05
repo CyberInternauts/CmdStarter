@@ -71,7 +71,7 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
             var handlers = type.GetMembers().OfType<IMethodSymbol>().Where(method => method.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, commandAttribute)));
             if (isPlain)
             {
-                handlers = PlainCommands.FindHandlers(type, PlainCommands.GetHandlerName(PlainCommands.FindAttribute(type, commandAttribute)!), context.Compilation);
+                handlers = PlainCommands.FindHandlers(type, PlainCommands.GetHandlerName(PlainCommands.FindAttribute(type, commandAttribute)!));
             }
 
             foreach (var method in handlers)

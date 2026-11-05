@@ -58,6 +58,18 @@ public sealed class PlainCommandAnalyzerTests
     public async Task HandlerThatDoesNotExistIsReported() => await AssertCount("CMDS0017", 1, "[Command(Handler = \"Missing\")] public sealed class C { public void Run() { } }");
 
     [Test]
+    public async Task HandlerThatDoesNotExistIsReportedAfterAPositionalName() => await AssertCount("CMDS0017", 1, "[Command(\"name\", Handler = \"Missing\")] public sealed class C { public void Run() { } }");
+
+    [Test]
+    public async Task BaseClassThatDoesNotResolveDoesNotBreakTheSearchOfTheHandler()
+    {
+        // The code does not compile (as in an editor while it is typed): the handler is found in the class, and the unknown base class is skipped without an exception of the analyzer.
+        var diagnostics = await AnalyzerRunner.GetDiagnosticsAsync(Usings + "[Command(Handler = nameof(Run))] public sealed class C : Missing { public int Run() => 0; }", allowCompilationErrors: true);
+
+        Assert.That(diagnostics.Select(diagnostic => diagnostic.Id), Has.None.EqualTo("CMDS0017").And.None.EqualTo("CMDS0011").And.None.EqualTo("AD0001"));
+    }
+
+    [Test]
     public async Task HandlerThatIsNotPublicIsReported() => await AssertCount("CMDS0017", 1, "[Command(Handler = nameof(Run))] public sealed class C { private void Run() { } public void Other() { } }");
 
     [Test]
@@ -68,6 +80,9 @@ public sealed class PlainCommandAnalyzerTests
 
     [Test]
     public async Task HandlerOnAMethodIsReported() => await AssertCount("CMDS0017", 1, "public sealed class C { [Command(Handler = \"x\")] public static void Run() { } }");
+
+    [Test]
+    public async Task HandlerOnAStaticClassIsReported() => await AssertCount("CMDS0017", 1, "[Command(Handler = \"x\")] public static class C { }");
 
     [Test]
     public async Task HandlerOnAGroupIsReported() => await AssertCount("CMDS0017", 1, "[Command(\"group\", Handler = \"x\")] public sealed class C { [Command] public static void Run() { } }");

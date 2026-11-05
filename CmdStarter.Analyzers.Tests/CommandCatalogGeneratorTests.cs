@@ -818,6 +818,18 @@ public sealed class CommandCatalogGeneratorTests
     }
 
     [Test]
+    public void StaticClassMarkedCommandIsAClassOfMethodCommandsNotAPlainCommand()
+    {
+        // A static class cannot be a type argument, so it cannot be listed by AddCommand<T>: it is a group of the method model (empty here, which the engine and the analyzer report).
+        var source = Usings + "namespace Ns; [Command] public static class Empty { }";
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(Calls(result), Is.EqualTo(new[] { "builder.AddMethodCommands(typeof(global::Ns.Empty));" }));
+    }
+
+    [Test]
     public void PlainCommandWithAMissingOrAmbiguousHandlerIsStillListed()
     {
         // The error is the one of the analyzer and of the engine: the generator lists the type, and reads the methods that the handler may be, without a diagnostic.

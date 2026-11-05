@@ -48,7 +48,7 @@ internal static class MethodCommandsLoader
     // Throws InvalidAttributeException for a class that has none, several, or a method that a command cannot be.
     internal static MethodInfo GetPlainCommandMethod([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type type)
     {
-        var handlerName = type.GetCustomAttribute<CommandAttribute>()?.Handler;
+        var handlerName = type.GetCustomAttribute<CommandAttribute>()!.Handler;
         var method = handlerName is null ? FindConventionalHandler(type) : FindDesignatedHandler(type, handlerName);
         ValidateShape(method, type);
         return method;

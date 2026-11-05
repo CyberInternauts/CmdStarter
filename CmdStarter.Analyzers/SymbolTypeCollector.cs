@@ -49,8 +49,8 @@ internal static class SymbolTypeCollector
     // (all the public instance methods of that name when the name is missing or ambiguous, which is an error that the analyzer and the library report), else the public instance methods that the class declares.
     internal static void AddHandlerParameters(INamedTypeSymbol type, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found, SourceProductionContext context)
     {
-        var handlerName = PlainCommands.GetHandlerName(PlainCommands.FindAttribute(type, symbols.CommandAttribute)!);
-        foreach (var method in PlainCommands.FindHandlers(type, handlerName, symbols.Compilation))
+        var handlerName = PlainCommands.GetHandlerName(PlainCommands.FindAttribute(type, symbols.CommandAttribute!)!);
+        foreach (var method in PlainCommands.FindHandlers(type, handlerName))
         {
             foreach (var parameter in method.Parameters.Where(parameter => parameter.RefKind == RefKind.None))
             {

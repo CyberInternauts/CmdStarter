@@ -487,6 +487,36 @@ public class PlainCommands
         Assert.That(starter.FindCommandInstance<ExitInt>(), Is.Null);
     }
 
+    [Test]
+    public void StaticClassWithoutAMethodIsAGroupWithoutCommands()
+    {
+        // A static class cannot be a plain command: it stays a group of the method model, which needs a [Command] method.
+        var starter = CreateStarter(typeof(StaticWithoutMethod));
+
+        var exception = Assert.Throws<InvalidAttributeException>(starter.InstantiateCommands);
+
+        Assert.That(exception!.Message, Does.Contain("must declare at least one command method").And.Contain(typeof(StaticWithoutMethod).FullName));
+    }
+
+    [Test]
+    public async Task DisposeAsyncIsNotTheHandler()
+    {
+        var starter = CreateStarter(typeof(AsyncDisposablePlain), typeof(ImplicitName));
+
+        Assert.That(await starter.Start("async-disposable-plain"), Is.EqualTo(91));
+
+        // The description instance and the instance of the execution are both released with DisposeAsync.
+        Assert.That(PlainLog.Entries, Is.EqualTo(new[] { "dispose-async", "run", "dispose-async" }));
+    }
+
+    [Test]
+    public async Task MethodsThatTheCompilerGeneratesForARecordAreNotHandlers()
+    {
+        var starter = CreateStarter(typeof(RecordPlain), typeof(ImplicitName));
+
+        Assert.That(await starter.Start("record-plain"), Is.EqualTo(92));
+    }
+
     private static Starter CreateStarter(params Type[] types)
     {
         var starter = new Starter();
