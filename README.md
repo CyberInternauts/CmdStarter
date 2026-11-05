@@ -28,10 +28,10 @@ CmdStarter turns plain C# code into a command-line interface built on System.Com
 
 ## Getting started
 
-Install the package. It is a pre-release, so `--prerelease` is needed:
+Install the package:
 
 ```powershell
-dotnet add package cints.CmdStarter --prerelease
+dotnet add package cints.CmdStarter
 ```
 
 The project must target `net10.0`. A command is a class that derives from `StarterCommand`. Its public read/write property `To` becomes the option `--to`, and `HandlingMethod` is the handler:

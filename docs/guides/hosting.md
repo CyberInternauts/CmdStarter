@@ -7,7 +7,7 @@ The `cints.CmdStarter.Hosting` package runs a CmdStarter application on the .NET
 Generic Host support is a separate NuGet package, `cints.CmdStarter.Hosting`, which depends on `Microsoft.Extensions.Hosting`. The core package `cints.CmdStarter` does not depend on it. Its namespace is `CyberInternauts.CmdStarter.Hosting`.
 
 ```powershell
-dotnet add package cints.CmdStarter.Hosting --prerelease
+dotnet add package cints.CmdStarter.Hosting
 ```
 
 Without the Hosting package, `IServiceCollection.AddCmdStarter(...)` still registers CmdStarter with plain Microsoft DI, with no reference to `Microsoft.Extensions.Hosting`.

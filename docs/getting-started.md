@@ -13,10 +13,8 @@ CmdStarter targets .NET 10 only. An application that uses it must target `net10.
 ## Install the package
 
 ```powershell
-dotnet add package cints.CmdStarter --prerelease
+dotnet add package cints.CmdStarter
 ```
-
-The package is a pre-release, so `--prerelease` is needed; in a NuGet interface, tick the option that includes pre-releases.
 
 ## HelloWorld
 
