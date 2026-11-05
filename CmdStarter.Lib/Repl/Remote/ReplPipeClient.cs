@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Pipes;
@@ -24,40 +25,90 @@ public sealed class ReplPipeClient : IAsyncDisposable
         this.pipeName = pipeName;
     }
 
-    /// <summary>Connects to the server on this machine. The server accepts one session at a time and may be between two sessions: this waits for a free server up to the timeout.</summary>
-    /// <param name="timeout">How long to wait for a server that accepts the session.</param>
+    /// <summary>
+    /// Connects to the server on this machine. The server accepts one session at a time and may be between two sessions: this waits for a free server up to the timeout,
+    /// and completes when a server has accepted the session and announced it.
+    /// </summary>
+    /// <param name="timeout">
+    /// How long to wait for a server that announces the session, or <see cref="Timeout.InfiniteTimeSpan"/> to wait without limit.
+    /// The wait includes the time the session factory of the server takes to create the session.
+    /// </param>
     /// <param name="cancellationToken">Token that cancels the wait.</param>
     /// <returns>A task that completes when the session is open.</returns>
-    /// <exception cref="TimeoutException">No server accepted the session before the timeout.</exception>
+    /// <exception cref="TimeoutException">No server announced the session before the timeout.</exception>
     /// <exception cref="InvalidOperationException">This client is already connected.</exception>
+    /// <exception cref="InvalidDataException">The server announced the session with a line that the protocol does not know.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="timeout"/> is negative and is not <see cref="Timeout.InfiniteTimeSpan"/>.</exception>
     public async Task ConnectAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
+        if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeout), timeout, "The timeout cannot be negative, except Timeout.InfiniteTimeSpan.");
+        }
+
         if (pipe is not null)
         {
             throw new InvalidOperationException("The client is already connected.");
         }
 
-        var milliseconds = timeout == Timeout.InfiniteTimeSpan ? Timeout.Infinite : (int)Math.Min(int.MaxValue, timeout.TotalMilliseconds);
-        var stream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
-        var connected = false;
-        try
+        var stopwatch = Stopwatch.StartNew();
+        var encoding = new UTF8Encoding(false);
+        while (true)
         {
-            await stream.ConnectAsync(milliseconds, cancellationToken);
-            connected = true;
-        }
-        finally
-        {
-            if (!connected)
+            var stream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+            StreamReader? announced = null;
+            var connected = false;
+            try
             {
-                await stream.DisposeAsync();
+                var remaining = Remaining(timeout, stopwatch);
+                await stream.ConnectAsync(remaining == Timeout.InfiniteTimeSpan ? Timeout.Infinite : (int)remaining.TotalMilliseconds, cancellationToken);
+                announced = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
+
+                string? line;
+                try
+                {
+                    line = await announced.ReadLineAsync(cancellationToken).AsTask().WaitAsync(Remaining(timeout, stopwatch), cancellationToken);
+                }
+                catch (IOException)
+                {
+                    // A connection that waited in the queue of the pipe and was cut when the running session ended: where the system reports it as an error
+                    // (a reset connection) instead of the end of the stream, it is treated as the end of the stream.
+                    line = null;
+                }
+
+                if (line is null)
+                {
+                    // The connection closed before the announcement: try again with what is left of the timeout.
+                    continue;
+                }
+
+                if (line != ReplPipeServer.Announcement)
+                {
+                    throw new InvalidDataException($"Unexpected line from the server: '{line}'.");
+                }
+
+                pipe = stream;
+                reader = announced;
+                writer = new StreamWriter(stream, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
+                connected = true;
+                return;
+            }
+            finally
+            {
+                if (!connected)
+                {
+                    announced?.Dispose();
+                    await stream.DisposeAsync();
+                }
             }
         }
-
-        var encoding = new UTF8Encoding(false);
-        pipe = stream;
-        reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
-        writer = new StreamWriter(stream, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
     }
+
+    // What is left of the timeout, between zero and what a wait accepts. A wait of zero fails at once with TimeoutException.
+    private static TimeSpan Remaining(TimeSpan timeout, Stopwatch stopwatch) =>
+        timeout == Timeout.InfiniteTimeSpan
+            ? Timeout.InfiniteTimeSpan
+            : TimeSpan.FromMilliseconds(Math.Clamp((timeout - stopwatch.Elapsed).TotalMilliseconds, 0, int.MaxValue));
 
     /// <summary>
     /// Sends a line, copies the lines of output and of errors that the server sends back (without their prefix), and returns the exit code of the line.

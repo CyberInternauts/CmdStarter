@@ -1,6 +1,9 @@
 # 0024. Remote REPL over a Named Pipe
 
 Status: Accepted
+
+Amended on 2026-11-04 (lot 036): the server opens every session with the line `R`, and `ReplPipeClient.ConnectAsync` completes only once it has read it. On Unix a named pipe is a Unix socket, and a connection succeeds as soon as it enters the queue of the listening socket, even when the only instance is taken by a running session. Without the announcement, a client "connected" to a busy server never timed out, and was cut when the running session ended. `ConnectAsync` now completes when a server has accepted the session and announced it, tries again when the connection is closed before the announcement, and its wait includes the time that the session factory takes to create the session. A queued connection dies with the instance of the running session (the last instance closes the listening socket): the next session never accepts it. The server sees a dead connection only when a client gave up after the acceptance and before the announcement (a slow factory): writing `R` fails with an `IOException`, or the first read finds the end of the stream, and that session closes.
+
 Date: 2026-11-04
 
 ## Context
@@ -21,12 +24,13 @@ Each line received is a REPL line: built-in words, sequences and pipes included 
 
 The server never touches `System.Console`, its streams or Ctrl+C. The local REPL of the process console remains usable while a remote session is open.
 
-The client's `ConnectAsync(timeout)` throws `TimeoutException` when no free server accepts the session before the timeout, either because a session is already open or because of the moment between two sessions. `ExecuteAsync(line, output, error)` sends the line, copies the output and the errors without their prefix, and returns the exit code. A blank line is not sent and returns 0. A line that contains a line break is refused. `RunInteractiveAsync(input, output, error, prompt)` loops until its input ends, until the server closes the session, or after an `exit` or `quit` line. The client does not know the exit words of the server, and assumes these two.
+The client's `ConnectAsync(timeout)` completes when a server has accepted the session and announced it. It throws `TimeoutException` when no server announces the session before the timeout: a session is already open, the server is between two sessions, or the session factory is slow or fails, so the session is never announced. `ExecuteAsync(line, output, error)` sends the line, copies the output and the errors without their prefix, and returns the exit code. A blank line is not sent and returns 0. A line that contains a line break is refused. `RunInteractiveAsync(input, output, error, prompt)` loops until its input ends, until the server closes the session, or after an `exit` or `quit` line. The client does not know the exit words of the server, and assumes these two.
 
 ## Protocol
 
 The protocol is UTF-8 text without BOM, one line per message, each line ended by `\n`.
 
+- Server to client, when a session opens: first the line `R`, before anything is read. It comes after the session factory has created the session, so a configuration error never produces it. The client's `ConnectAsync` waits for it and rejects any other first line.
 - Client to server: one command line. A blank line does nothing and gets no response.
 - Server to client, for each other line: lines `O <text>` (output) and `E <text>` (error), in the order in which they were written, then `X <code>`, which ends the response. `<code>` is the exit code of the line, in the sense of a sequence.
 

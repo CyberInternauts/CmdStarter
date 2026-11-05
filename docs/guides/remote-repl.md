@@ -6,7 +6,7 @@ A remote REPL serves a REPL over a named pipe on the local machine, so that anot
 
 `ReplPipeServer` serves a REPL over a named pipe on the local machine, one session at a time. `ReplPipeClient` connects to it. Each session has its own `ReplStarter`, so a login, or any other state, lives and ends with the session. Built-in words, sequences and pipes work as they do in a local REPL.
 
-The pipe allows one server instance. A second client waits for the session in progress to end, and `ConnectAsync` throws `TimeoutException` if no server is free before its timeout.
+The pipe allows one server instance. A second client waits for the session in progress to end, and `ConnectAsync` completes when the server has announced the session. It throws `TimeoutException` if no server announces a session before its timeout.
 
 ## Start a server
 
@@ -19,7 +19,7 @@ await new ReplPipeServer(pipeName, CreateSession).RunAsync(cancellation.Token);
 
 ## The session factory
 
-The factory must create a new `ReplStarter` for each session. Returning the instance of a previous session, or a `ReplStarter` whose own `Launch` loop is running, makes `RunAsync` throw `InvalidOperationException`, with the message that the factory must create a new `ReplStarter` for each session. The client that was connected then sees an `IOException`. A shared instance would carry one session's state into the next, and a remote `exit` would stop the local REPL. An exception thrown by the factory itself also leaves `RunAsync`, and the connected client sees an `IOException`.
+The factory must create a new `ReplStarter` for each session. Returning the instance of a previous session, or a `ReplStarter` whose own `Launch` loop is running, makes `RunAsync` throw `InvalidOperationException`, with the message that the factory must create a new `ReplStarter` for each session. The session is then never announced, so the `ConnectAsync` of the client throws `TimeoutException`. A shared instance would carry one session's state into the next, and a remote `exit` would stop the local REPL. An exception thrown by the factory itself also leaves `RunAsync`, and the `ConnectAsync` of the client throws `TimeoutException` as well, the session never having been announced.
 
 The sample builds each session by hand, and sets the `Namespaces` of its `ReplStarter`:
 
@@ -58,7 +58,7 @@ A line that the server refuses is answered with code 1, and the session goes on.
 
 ## Protocol
 
-The text is UTF-8 without a byte-order mark, one message per line, each line ended by `\n`. The client sends one line of the REPL. The server answers with `O ` followed by the text for each output line and `E ` followed by the text for each error line, in the order they were written, then `X ` followed by the exit code, which ends the answer. A blank line gets no answer.
+The text is UTF-8 without a byte-order mark, one message per line, each line ended by `\n`. When a session opens, the server first sends the line `R`, and `ConnectAsync` returns once it has read it. The client sends one line of the REPL. The server answers with `O ` followed by the text for each output line and `E ` followed by the text for each error line, in the order they were written, then `X ` followed by the exit code, which ends the answer. A blank line gets no answer.
 
 A remote command reads no standard input: its input is empty.
 

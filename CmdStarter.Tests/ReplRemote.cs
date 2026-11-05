@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
 using CyberInternauts.CmdStarter.Repl;
@@ -167,8 +168,9 @@ public class ReplRemote
             Assert.That((await ExecuteAsync(first, "hello")).Code, Is.EqualTo(0));
         }
 
-        await using var second = await server.ConnectAsync();
-        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(second, "hello"));
+        // The server refuses the shared starter before it announces the session: the second client is never told that its session is open.
+        await using var second = new ReplPipeClient(server.PipeName);
+        Assert.ThrowsAsync<TimeoutException>(async () => await second.ConnectAsync(TimeSpan.FromMilliseconds(500)));
         var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await server.Run.WaitAsync(Limit));
         Assert.That(exception!.Message, Does.Contain("new ReplStarter for each session"));
         await server.DisposeAsync();
@@ -179,9 +181,10 @@ public class ReplRemote
     {
         // A factory that fails (here, a container that is being disposed) is a configuration error: it is not swallowed with the errors of the pipe.
         var server = new RunningServer(() => throw new ObjectDisposedException("container"));
-        await using var client = await server.ConnectAsync();
 
-        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(client, "hello"));
+        // The session is never announced: the client waits for it until its timeout.
+        await using var client = new ReplPipeClient(server.PipeName);
+        Assert.ThrowsAsync<TimeoutException>(async () => await client.ConnectAsync(TimeSpan.FromMilliseconds(500)));
 
         var exception = Assert.ThrowsAsync<ObjectDisposedException>(async () => await server.Run.WaitAsync(Limit));
         Assert.That(exception!.ObjectName, Is.EqualTo("container"));
@@ -193,9 +196,10 @@ public class ReplRemote
     {
         // The errors of the pipe close one session; an error of the factory is another matter, even when its type is IOException.
         var server = new RunningServer(() => throw new IOException("the factory could not reach its container"));
-        await using var client = await server.ConnectAsync();
 
-        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(client, "hello"));
+        // The session is never announced: the client waits for it until its timeout.
+        await using var client = new ReplPipeClient(server.PipeName);
+        Assert.ThrowsAsync<TimeoutException>(async () => await client.ConnectAsync(TimeSpan.FromMilliseconds(500)));
 
         var exception = Assert.ThrowsAsync<IOException>(async () => await server.Run.WaitAsync(Limit));
         Assert.That(exception!.Message, Is.EqualTo("the factory could not reach its container"));
@@ -213,8 +217,10 @@ public class ReplRemote
         await input.Waiting.WaitAsync(Limit);
 
         var server = new RunningServer(() => local);
-        await using var client = await server.ConnectAsync();
-        Assert.ThrowsAsync<IOException>(async () => await ExecuteAsync(client, "hello"));
+
+        // The session is never announced: the client waits for it until its timeout.
+        await using var client = new ReplPipeClient(server.PipeName);
+        Assert.ThrowsAsync<TimeoutException>(async () => await client.ConnectAsync(TimeSpan.FromMilliseconds(500)));
         var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await server.Run.WaitAsync(Limit));
         Assert.That(exception!.Message, Does.Contain("new ReplStarter for each session"));
         await server.DisposeAsync();
@@ -235,6 +241,9 @@ public class ReplRemote
         // Not disposed: the server closes the pipe after "exit", and disposing a StreamWriter flushes the pipe, which then throws "Pipe is broken".
         // SendAsync flushes every line, so nothing is left in the writer; the pipe itself is disposed by its "await using".
         var writer = new StreamWriter(pipe, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
+
+        // The server opens the session with the line "R", before it reads anything.
+        Assert.That(await reader.ReadLineAsync().WaitAsync(Limit), Is.EqualTo("R"));
 
         // Output lines are prefixed "O ", error lines "E ", and the answer ends with "X <code>".
         Assert.That(await SendAsync("hello"), Is.EqualTo(new[] { "O hello", "X 0" }));
@@ -351,6 +360,95 @@ public class ReplRemote
     }
 
     [Test]
+    public async Task ConnectWaitsForTheAnnouncementOfTheSession()
+    {
+        // A server that accepts the connection but never announces the session, as a queue of connections that nobody serves does.
+        var pipeName = NewPipeName();
+        using var cancellation = new CancellationTokenSource(Limit);
+        await using var pipe = NewRawPipe(pipeName);
+        var accepted = pipe.WaitForConnectionAsync(cancellation.Token);
+        await using var client = new ReplPipeClient(pipeName);
+
+        var stopwatch = Stopwatch.StartNew();
+        Assert.ThrowsAsync<TimeoutException>(async () => await client.ConnectAsync(TimeSpan.FromMilliseconds(500)));
+
+        Assert.That(stopwatch.Elapsed, Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(400)));
+        await accepted;
+    }
+
+    [Test]
+    public async Task ConnectTriesAgainWhenTheConnectionIsClosedBeforeTheAnnouncement()
+    {
+        var pipeName = NewPipeName();
+        using var cancellation = new CancellationTokenSource(Limit);
+        await using var client = new ReplPipeClient(pipeName);
+        var first = NewRawPipe(pipeName);
+        var acceptedFirst = first.WaitForConnectionAsync(cancellation.Token);
+        var connecting = client.ConnectAsync(Limit);
+        await acceptedFirst;
+
+        // The first instance goes away without a word. Only then can the second exist (the pipe allows one instance at a time).
+        await first.DisposeAsync();
+        await using var second = NewRawPipe(pipeName);
+        await second.WaitForConnectionAsync(cancellation.Token);
+        await WriteRawLineAsync(second, "R");
+        await connecting.WaitAsync(Limit);
+
+        await AssertSessionOfTheRawPipeAsync(client, second);
+    }
+
+    [Test]
+    public async Task ConnectTriesAgainWhenAQueuedConnectionIsClosed()
+    {
+        var pipeName = NewPipeName();
+        using var cancellation = new CancellationTokenSource(Limit);
+        await using var client = new ReplPipeClient(pipeName);
+
+        // The first instance never accepts: the client waits for the announcement in vain.
+        var first = NewRawPipe(pipeName);
+        var connecting = client.ConnectAsync(Limit);
+
+        // Where the first instance is released while the client reads, a closed pipe reads as the end of the stream on Windows
+        // and as a reset connection (an IOException) on Linux. The delay only decides which branch runs: the outcome is the same.
+        await Task.Delay(200);
+        await first.DisposeAsync();
+
+        await using var second = NewRawPipe(pipeName);
+        await second.WaitForConnectionAsync(cancellation.Token);
+        await WriteRawLineAsync(second, "R");
+        await connecting.WaitAsync(Limit);
+
+        await AssertSessionOfTheRawPipeAsync(client, second);
+    }
+
+    [Test]
+    public async Task ConnectRejectsAnAnnouncementItDoesNotKnow()
+    {
+        var pipeName = NewPipeName();
+        using var cancellation = new CancellationTokenSource(Limit);
+        await using var pipe = NewRawPipe(pipeName);
+        var accepted = pipe.WaitForConnectionAsync(cancellation.Token);
+        await using var client = new ReplPipeClient(pipeName);
+        var connecting = client.ConnectAsync(Limit);
+        await accepted;
+
+        await WriteRawLineAsync(pipe, "O hi");
+
+        var exception = Assert.ThrowsAsync<InvalidDataException>(async () => await connecting.WaitAsync(Limit));
+        Assert.That(exception!.Message, Does.Contain("O hi"));
+    }
+
+    [Test]
+    public async Task ConnectRefusesANegativeTimeout()
+    {
+        await using var client = new ReplPipeClient(NewPipeName());
+
+        var exception = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await client.ConnectAsync(TimeSpan.FromMilliseconds(-2)));
+
+        Assert.That(exception!.ParamName, Is.EqualTo("timeout"));
+    }
+
+    [Test]
     public async Task UnexpectedLinesFromTheServerAreRejectedWithTheLine()
     {
         // A server that does not follow the protocol: a prefix nobody knows, then an exit code that is not a number.
@@ -456,6 +554,28 @@ public class ReplRemote
         return (code, output.ToString(), error.ToString());
     }
 
+    private static string NewPipeName() => "cmdstarter-test-" + Guid.NewGuid().ToString("N");
+
+    // The pipe of a ReplPipeServer, with the same options: a single instance, so a second one exists only after the first is released.
+    private static NamedPipeServerStream NewRawPipe(string pipeName) =>
+        new(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+
+    private static async Task WriteRawLineAsync(NamedPipeServerStream pipe, string line)
+    {
+        await pipe.WriteAsync(new UTF8Encoding(false).GetBytes(line + "\n"));
+        await pipe.FlushAsync();
+    }
+
+    // The client is connected to this pipe, not to an earlier one: a line it sends arrives here, and the answer written here comes back.
+    private static async Task AssertSessionOfTheRawPipeAsync(ReplPipeClient client, NamedPipeServerStream pipe)
+    {
+        using var reader = new StreamReader(pipe, new UTF8Encoding(false), detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
+        var execution = ExecuteAsync(client, "hello");
+        Assert.That(await reader.ReadLineAsync().WaitAsync(Limit), Is.EqualTo("hello"));
+        await WriteRawLineAsync(pipe, "X 4");
+        Assert.That((await execution.WaitAsync(Limit)).Code, Is.EqualTo(4));
+    }
+
     // A server that is not a ReplPipeServer: it reads and writes the lines of the protocol by hand, on a pipe name of its own.
     private sealed class RawServer : IAsyncDisposable
     {
@@ -475,11 +595,15 @@ public class ReplRemote
         {
             using var cancellation = new CancellationTokenSource(Limit);
             var waiting = pipe.WaitForConnectionAsync(cancellation.Token);
-            await client.ConnectAsync(Limit);
+            var connecting = client.ConnectAsync(Limit);
             await waiting;
             var encoding = new UTF8Encoding(false);
             reader = new StreamReader(pipe, encoding, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
             writer = new StreamWriter(pipe, encoding, bufferSize: 1024, leaveOpen: true) { NewLine = "\n" };
+
+            // The client is connected once it has read the announcement of the session.
+            await WriteLineAsync("R");
+            await connecting;
         }
 
         internal async Task<string?> ReadLineAsync() => await reader!.ReadLineAsync().WaitAsync(Limit);

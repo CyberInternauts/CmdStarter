@@ -9,9 +9,9 @@ namespace CyberInternauts.CmdStarter.Repl.Remote;
 /// so the state of a session (a login, for instance) lives and ends with it. Only the user who runs the server can connect.
 /// </summary>
 /// <remarks>
-/// The protocol is UTF-8 text, one line per message. The client sends a line of the REPL (built-in words, sequences and pipes included);
-/// a blank line has no answer. For every other line the server sends lines <c>O text</c> (output) and <c>E text</c> (error), in the order
-/// they were written, then a line <c>X code</c> that ends the answer. After <c>exit</c> or <c>quit</c> the answer is <c>X 0</c> and the session is closed.
+/// The protocol is UTF-8 text, one line per message. When a session opens, the server first sends the line <c>R</c>, and <see cref="ReplPipeClient.ConnectAsync(TimeSpan, CancellationToken)"/> returns once it has read it.
+/// The client sends a line of the REPL (built-in words, sequences and pipes included); a blank line has no answer. For every other line the server sends lines
+/// <c>O text</c> (output) and <c>E text</c> (error), in the order they were written, then a line <c>X code</c> that ends the answer. After <c>exit</c> or <c>quit</c> the answer is <c>X 0</c> and the session is closed.
 /// The server never uses <see cref="Console"/>: the console of the process stays available to a local REPL.
 /// </remarks>
 public sealed class ReplPipeServer
@@ -110,6 +110,14 @@ public sealed class ReplPipeServer
         using var output = new PrefixedLineWriter("O ", writer, gate);
         using var error = new PrefixedLineWriter("E ", writer, gate);
 
+        // The session opens with its announcement: a client that connects while another session is running waits in the queue of the pipe
+        // and only gets this line once the server serves it, so a client that has read it knows that a session is its own.
+        lock (gate)
+        {
+            writer.Write(Announcement + "\n");
+            writer.Flush();
+        }
+
         // The session writes to the pipe only: it reads nothing from the console and never touches System.Console.
         session.DefaultConsole = new CommandConsole(TextReader.Null, output, error);
 
@@ -133,4 +141,7 @@ public sealed class ReplPipeServer
             }
         }
     }
+
+    // The first line of every session, written by the server and waited for by ReplPipeClient.ConnectAsync.
+    internal const string Announcement = "R";
 }
