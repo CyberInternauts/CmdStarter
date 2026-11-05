@@ -33,3 +33,4 @@
 | 0029 | [Trimming and Native AOT, Second Evaluation](0029-trimming-and-native-aot-second-evaluation.md) | Accepted |
 | 0030 | [Version Number of the Rewrite](0030-version-number-of-the-rewrite.md) | Accepted |
 | 0031 | [Public API Tracking](0031-public-api-tracking.md) | Accepted |
+| 0032 | [Plain Class Commands](0032-plain-class-commands.md) | Accepted |

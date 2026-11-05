@@ -1,5 +1,7 @@
 using CyberInternauts.CmdStarter.Interfaces;
 using CyberInternauts.CmdStarter.Extensions;
+using CyberInternauts.CmdStarter.Reflection;
+using static CyberInternauts.CmdStarter.Reflection.Helper;
 
 namespace CyberInternauts.CmdStarter.Loader;
 
@@ -29,13 +31,13 @@ public sealed class CommandTreeDefinition
     /// <summary>Adds a command type as a child of this level.</summary>
     /// <typeparam name="TCommand">Command type to add.</typeparam>
     /// <returns>This definition.</returns>
-    public CommandTreeDefinition Add<TCommand>() where TCommand : IStarterCommand => Add(typeof(TCommand));
+    public CommandTreeDefinition Add<TCommand>() => Add(typeof(TCommand));
 
     /// <summary>Adds a command type and defines its children.</summary>
     /// <typeparam name="TCommand">Command type to add.</typeparam>
     /// <param name="children">Definition of the command's children.</param>
     /// <returns>This definition.</returns>
-    public CommandTreeDefinition Add<TCommand>(Action<CommandTreeDefinition> children) where TCommand : IStarterCommand => Add(typeof(TCommand), children);
+    public CommandTreeDefinition Add<TCommand>(Action<CommandTreeDefinition> children) => Add(typeof(TCommand), children);
 
     /// <summary>Adds a command type as a child of this level.</summary>
     /// <param name="commandType">Command type to add.</param>
@@ -61,9 +63,9 @@ public sealed class CommandTreeDefinition
             throw new ArgumentNullException(nameof(children));
         }
 
-        if (!commandType.IsClass || commandType.IsAbstract || !commandType.IsAssignableTo(typeof(IStarterCommand)))
+        if (!commandType.IsClass || commandType.IsAbstract || !(commandType.IsAssignableTo(typeof(IStarterCommand)) || IsPlainCommand(KeptTypes.Of(commandType))))
         {
-            throw new ArgumentException($"Type '{commandType.FullName}' is not a non-abstract class implementing IStarterCommand.", nameof(commandType));
+            throw new ArgumentException($"Type '{commandType.FullName}' is not a non-abstract class implementing IStarterCommand or a plain command class ([Command] without command methods).", nameof(commandType));
         }
 
         if (!state.Types.Add(commandType))

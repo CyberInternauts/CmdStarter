@@ -45,6 +45,6 @@ public class Arguments
             return;
         }
 
-        AssertArguments(starter.FindCommandInstance(command)!, command);
+        AssertArguments((IStarterCommand)starter.FindCommandInstance(command)!, command);
     }
 }

@@ -61,6 +61,7 @@ public class Repl
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.ExecutionPaths.ExecutionLog).Namespace!);
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + "CyberInternauts.CmdStarter.Tests.Commands.TreeBuilding");
         starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.Catalog.Listed).Namespace!);
+        starter.Namespaces = starter.Namespaces.Add(TestsCommon.EXCLUSION_SYMBOL + typeof(Commands.PlainCommands.ImplicitName).Namespace!);
     }
 
     [TestCase<PreCommand, CommandOne, CommandTwo, CommandThree>()]

@@ -88,7 +88,7 @@ internal static class CatalogReader
 
         internal HashSet<Type> GlobalOptionsTypes { get; } = [];
 
-        public void AddCommand<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TCommand>() where TCommand : class, IStarterCommand => CommandTypes.Add(typeof(TCommand));
+        public void AddCommand<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TCommand>() where TCommand : class => CommandTypes.Add(typeof(TCommand));
 
         public void AddMethodCommands([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type declaringType)
         {

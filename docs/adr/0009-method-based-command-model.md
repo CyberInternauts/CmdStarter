@@ -3,6 +3,8 @@
 Status: Accepted
 Date: 2026-11-03
 
+Amended on 2026-11-05: `[Command]` on a class without `[Command]` methods is a plain command, [ADR 0032](0032-plain-class-commands.md).
+
 ## Context
 The class-based command model maps each `IStarterCommand` class to a command, its properties to options, and its `HandlingMethod` parameters to arguments. Applications also need a direct way to expose ordinary methods as commands and receive services through method parameters.
 

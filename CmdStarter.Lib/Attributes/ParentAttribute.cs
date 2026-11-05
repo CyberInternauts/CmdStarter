@@ -1,5 +1,3 @@
-using CyberInternauts.CmdStarter.Interfaces;
-
 namespace CyberInternauts.CmdStarter.Attributes;
 
 /// <summary>
@@ -25,7 +23,7 @@ public class ParentAttribute : Attribute
 
 /// <inheritdoc cref="ParentAttribute"/>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class ParentAttribute<TParentClass> : ParentAttribute where TParentClass : IStarterCommand
+public class ParentAttribute<TParentClass> : ParentAttribute
 {
     /// <inheritdoc cref="ParentAttribute.ParentAttribute(Type?)"/>
     public ParentAttribute() : base(typeof(TParentClass))

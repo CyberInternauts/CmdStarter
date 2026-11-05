@@ -14,7 +14,7 @@ public interface ICommandCatalogBuilder
 {
     /// <summary>Declares a command class.</summary>
     /// <typeparam name="TCommand">The command class.</typeparam>
-    void AddCommand<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TCommand>() where TCommand : class, IStarterCommand;
+    void AddCommand<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TCommand>() where TCommand : class;
 
     /// <summary>Declares a class whose methods marked <c>[Command]</c> are commands. A type is passed, not a type argument, because the class is often static.</summary>
     /// <param name="declaringType">The class that declares the method commands.</param>

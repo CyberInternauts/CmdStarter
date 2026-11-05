@@ -70,7 +70,7 @@ public class Starter
     private bool groupsByNamespace;
     private bool isRootingLonelyCommand = true;
     private string? sequenceOption;
-    private Func<Type, IStarterCommand>? factory;
+    private Func<Type, object>? factory;
     private readonly ConditionalWeakTable<InvocationConfiguration, CommandConsole> consoles = [];
 
     /// <summary>Raised after a command handler returns, before its instance and services are released. It is not raised when parsing fails or the handler throws.</summary>
@@ -134,7 +134,7 @@ public class Starter
     internal bool DynamicCodeSupported { get; init; } = RuntimeFeature.IsDynamicCodeSupported;
 
     /// <summary>Gets or sets the Microsoft.Extensions.DependencyInjection service provider used to create command instances.</summary>
-    /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, IStarterCommand})"/>; a command type's own <see cref="IStarterCommand.GetInstance{TCommand}"/> takes precedence over both.</remarks>
+    /// <remarks>Each execution gets an async scope when the provider exposes <see cref="IServiceScopeFactory"/>, and that scope is disposed when execution ends, including when execution throws. The description instance is resolved in a separate scope disposed after tree construction. Unregistered command types are created with <see cref="ActivatorUtilities"/>. This takes precedence over <see cref="SetFactory(Func{Type, object})"/>; a command type's own <see cref="IStarterCommand.GetInstance{TCommand}"/> takes precedence over both.</remarks>
     public IServiceProvider? ServiceProvider { get; set; }
 
     /// <summary>Gets or sets whether unhandled command exceptions include their full details.</summary>
@@ -278,13 +278,13 @@ public class Starter
     /// Class commands types that will be used to build the tree.
     /// </summary>
     /// <remarks>
-    /// Every type must be a non-abstract class that implements <see cref="IStarterCommand"/>, has a namespace, and is listed once:
+    /// Every type must be a non-abstract class that implements <see cref="IStarterCommand"/> or a plain command class (marked <see cref="CommandAttribute"/> and declaring no command method), has a namespace, and is listed once:
     /// otherwise an <see cref="ArgumentException"/> that names the type is thrown and nothing changes. <see langword="null"/> means an empty list.<br/><br/>
     /// Setting a list resets the tree. Before the first discovery, a non-empty list stands for the discovery of the class commands:
     /// the discovery does not run, so there are no method commands. After the discovery, only the class commands change and the discovered method commands stay.
     /// An empty list goes back to the discovery. Changing <see cref="Namespaces"/>, <see cref="Classes"/> or <see cref="Assemblies"/> afterwards runs the discovery again.
     /// </remarks>
-    /// <exception cref="ArgumentException">A type is <see langword="null"/>, is not a non-abstract class implementing <see cref="IStarterCommand"/>, has no namespace or is listed twice.</exception>
+    /// <exception cref="ArgumentException">A type is <see langword="null"/>, is not a non-abstract class implementing <see cref="IStarterCommand"/> or a plain command class, has no namespace or is listed twice.</exception>
     public ImmutableList<Type> CommandsTypes
     {
         get => commandsTypes;
@@ -316,9 +316,9 @@ public class Starter
                 throw new ArgumentException("A command type cannot be null.", paramName);
             }
 
-            if (!type.IsClass || type.IsAbstract || !type.IsAssignableTo(typeof(IStarterCommand)))
+            if (!type.IsClass || type.IsAbstract || !(type.IsAssignableTo(typeof(IStarterCommand)) || IsPlainCommand(KeptTypes.Of(type))))
             {
-                throw new ArgumentException($"Type '{type.FullName}' is not a non-abstract class implementing IStarterCommand.", paramName);
+                throw new ArgumentException($"Type '{type.FullName}' is not a non-abstract class implementing IStarterCommand or a plain command class ([Command] without command methods).", paramName);
             }
 
             if (type.Namespace is null)
@@ -350,7 +350,7 @@ public class Starter
     /// Set the factory used by this Starter for command types that do not declare their own GetInstance method.
     /// </summary>
     /// <param name="factory"></param>
-    public void SetFactory(Func<Type, IStarterCommand> factory)
+    public void SetFactory(Func<Type, object> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
         this.factory = factory;
@@ -592,7 +592,7 @@ public class Starter
     /// </summary>
     /// <typeparam name="TCommand">Command type to find</typeparam>
     /// <returns>a <see cref="StarterCommand"/> derived class</returns>
-    public Command? FindCommand<TCommand>() where TCommand : IStarterCommand
+    public Command? FindCommand<TCommand>()
     {
         return registrationsByType.TryGetValue(typeof(TCommand), out var registration)
             ? registration.CliCommand
@@ -604,7 +604,7 @@ public class Starter
     /// </summary>
     /// <typeparam name="TCommand">Command type to find.</typeparam>
     /// <returns>The description instance, or <see langword="null"/> when no matching command exists.</returns>
-    public TCommand? FindCommandInstance<TCommand>() where TCommand : class, IStarterCommand
+    public TCommand? FindCommandInstance<TCommand>() where TCommand : class
     {
         return registrationsByType.TryGetValue(typeof(TCommand), out var registration)
             ? registration.DescriptionInstance as TCommand
@@ -616,7 +616,7 @@ public class Starter
     /// </summary>
     /// <param name="command">The System.CommandLine command node.</param>
     /// <returns>The associated command instance, or <see langword="null"/> when the node is not a CmdStarter command.</returns>
-    public IStarterCommand? FindCommandInstance(Command command)
+    public object? FindCommandInstance(Command command)
     {
         return registrationsByCommand.TryGetValue(command, out var registration)
             ? registration.DescriptionInstance
@@ -629,7 +629,7 @@ public class Starter
     /// <remarks>Works for every command type, including those that only implement <see cref="IStarterCommand"/>.</remarks>
     /// <typeparam name="TCommand">Command type to look for.</typeparam>
     /// <returns>The command path, or <see langword="null"/> when no matching command exists.</returns>
-    public string? GetFullCommandString<TCommand>() where TCommand : IStarterCommand
+    public string? GetFullCommandString<TCommand>()
     {
         var command = FindCommand<TCommand>();
         return command is null ? null : GetCommandPath(command);
@@ -681,6 +681,7 @@ public class Starter
         // An assembly with a catalog is read from it, without loading its types or its references; the others are scanned.
         // The predicates below apply to both sources, so a catalog cannot add a type that the scan would not find.
         var classCandidates = new List<Type>();
+        var catalogCommandTypes = new List<Type>();
         var methodCandidates = new List<Type>();
         foreach (var assembly in searchAssemblies)
         {
@@ -690,6 +691,7 @@ public class Starter
             if (CatalogReader.TryRead(assembly, UseCommandCatalogs, referencesLibrary || !DynamicCodeSupported, out var catalog))
             {
                 classCandidates.AddRange(catalog.CommandTypes);
+                catalogCommandTypes.AddRange(catalog.CommandTypes);
                 methodCandidates.AddRange(catalog.MethodCommandTypes);
                 continue;
             }
@@ -711,13 +713,18 @@ public class Starter
             }
         }
 
+        // A plain command has no base class or interface to be recognized by: it is looked for only where a class marked [Command] can be, which are the types of the assemblies that reference the library
+        // (where the classes of method commands are looked for) and the commands that a catalog lists, never the types of every assembly.
+        Type[] plainTypes = definedTree is null
+            ? [.. methodCandidates.Concat(catalogCommandTypes).Distinct().Where(type => type.IsClass && type.Namespace is not null && IsPlainCommand(KeptTypes.Of(type)))]
+            : [];
         var classTypes = definedTree?.FlattenValues().ToArray() ?? [.. classCandidates
             .Where(t =>
                 t.IsClass &&
                 !t.IsAbstract &&
                 t.IsAssignableTo(typeof(IStarterCommand)) &&
                 t.Namespace != null
-            )];
+            ).Concat(plainTypes)];
         var methodTypes = methodCandidates.Where(type => type.IsClass && type.Namespace is not null && MethodCommandsLoader.DeclaresCommands(KeptTypes.Of(type))).ToArray();
         if (!Assemblies.IsEmpty && classTypes.Length == 0 && methodTypes.Length == 0) throw new NoCommandFoundException(NoCommandFoundException.Filter.Assemblies);
 
@@ -832,6 +839,10 @@ public class Starter
     {
         BuildTree();
 
+        // Global options: the filters are applied before any command is created, because the commands that take a container as a parameter (plain commands, method commands)
+        // check it against them. They read the settings of the starter, never the tree.
+        GlobalOptionsManager.FilterTypes();
+
         // Lonely command
         var lonelyCommandHasGroups = CommandsTypes.Count == 1 && HasGroupPath(CommandsTypes[0]);
         if (IsRootingLonelyCommand && CommandsTypes.Count == 1 && MethodCommandsTypes.IsEmpty && !lonelyCommandHasGroups)
@@ -856,9 +867,6 @@ public class Starter
                 }
             });
         }
-
-        // Global options: the filters are applied before the method commands, which check their container parameters against them
-        GlobalOptionsManager.FilterTypes();
 
         foreach (var type in MethodCommandsTypes)
         {
@@ -1013,20 +1021,29 @@ public class Starter
     {
         var activation = Activate(KeptTypes.Of(commandType));
         activations.Add(activation);
-        var instance = (IStarterCommand)activation.Instance!;
-        instance.GlobalOptionsManager = GlobalOptionsManager;
+        var instance = activation.Instance!;
+        var starterInstance = instance as IStarterCommand;
+        if (starterInstance is not null)
+        {
+            starterInstance.GlobalOptionsManager = GlobalOptionsManager;
+        }
 
+        // A plain command has its handler checked here, for every placement of the tree: the name below and the tree-defined name come second.
+        var plainMethod = starterInstance is null ? MethodCommandsLoader.GetPlainCommandMethod(KeptTypes.Of(commandType)) : null;
         var name = definedTreeState?.Names.TryGetValue(commandType, out var definedName) == true
             ? definedName
             : instance is StarterCommand starterCommand
                 ? starterCommand.Name
-                : commandType.Name.PascalToKebabCase();
+                : plainMethod is not null
+                    ? GetPlainCommandName(commandType, plainMethod)
+                    : commandType.Name.PascalToKebabCase();
         var cliCommand = new Command(name);
         var registration = new CommandRegistration
         {
             CommandType = commandType,
             DescriptionInstance = instance,
-            CliCommand = cliCommand
+            CliCommand = cliCommand,
+            PlainMethod = plainMethod
         };
 
         registrationsByCommand.Add(cliCommand, registration);
@@ -1047,7 +1064,15 @@ public class Starter
 
         if (command.Subcommands.Count == 0)
         {
-            registration.HandlerArguments = Reflection.Loader.LoadArguments(registration.DescriptionInstance.HandlingMethod.Method, receptacle);
+            if (registration.PlainMethod is not null)
+            {
+                registration.PlainParameters = ClassifyParameters(registration.PlainMethod, registration.CommandType, receptacle);
+            }
+            else
+            {
+                registration.HandlerArguments = Reflection.Loader.LoadArguments(((IStarterCommand)registration.DescriptionInstance).HandlingMethod.Method, receptacle);
+            }
+
             command.SetAction((parseResult, cancellationToken) => HandleCommandAsync(registration, parseResult, cancellationToken));
         }
 
@@ -1098,19 +1123,32 @@ public class Starter
     private async Task<int> HandleCommandCoreAsync(CommandRegistration registration, ParseResult parseResult, CancellationToken cancellationToken)
     {
         await using var activation = Activate(KeptTypes.Of(registration.CommandType));
-        var instance = (IStarterCommand)activation.Instance!;
-        instance.GlobalOptionsManager = GlobalOptionsManager;
-        if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
+        var instance = activation.Instance!;
+        var starterInstance = instance as IStarterCommand;
+        if (starterInstance is not null)
+        {
+            starterInstance.GlobalOptionsManager = GlobalOptionsManager;
+            if (instance is StarterCommand starterCommand) starterCommand.CliCommand = registration.CliCommand;
+        }
+
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         CommandBinder.BindOptions(parseResult, instance, registration.OptionBindings);
         var console = GetExecutionConsole(parseResult);
+        var plainValues = registration.PlainMethod is null ? null : BuildHandlerValues(registration.PlainParameters, parseResult, activation, console, cancellationToken);
         var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.CommandType, instance, parseResult, activation.Services, console, cancellationToken);
         return await InvokeFiltersAsync(context, async () =>
         {
             int exitCode;
             try
             {
-                exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, instance.HandlingMethod, registration.HandlerArguments, console, cancellationToken);
+                if (registration.PlainMethod is { } plainMethod)
+                {
+                    exitCode = await CommandBinder.ToExitCodeAsync(CommandBinder.Invoke(() => plainMethod.Invoke(instance, plainValues)));
+                }
+                else
+                {
+                    exitCode = await CommandBinder.InvokeHandlerAsync(parseResult, starterInstance!.HandlingMethod, registration.HandlerArguments, console, cancellationToken);
+                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -1149,20 +1187,7 @@ public class Starter
         await using var activation = ActivateMethodCommand(registration.Method);
         GlobalOptionsManager.BindGlobalOptions(parseResult);
         var console = GetExecutionConsole(parseResult);
-        var values = new object?[registration.Parameters.Count];
-        for (var index = 0; index < registration.Parameters.Count; index++)
-        {
-            var binding = registration.Parameters[index];
-            values[index] = binding.Kind switch
-            {
-                ParameterBindingKind.CancellationToken => cancellationToken,
-                ParameterBindingKind.Console => console,
-                ParameterBindingKind.GlobalOptions => GlobalOptionsManager.GetGlobalOptions(binding.Parameter.ParameterType),
-                ParameterBindingKind.Service => GetMethodService(activation, binding.Parameter),
-                ParameterBindingKind.Option => GetMethodOptionValue(parseResult, (Option)binding.Symbol!, binding.Parameter),
-                _ => CommandBinder.GetArgumentValue(parseResult, (Argument)binding.Symbol!)
-            };
-        }
+        var values = BuildHandlerValues(registration.Parameters, parseResult, activation, console, cancellationToken);
         var context = new CommandContext(registration.CliCommand, GetCommandPath(registration.CliCommand), registration.Method, activation.Instance, parseResult, activation.Services, console, cancellationToken);
         return await InvokeFiltersAsync(context, async () =>
         {
@@ -1179,6 +1204,27 @@ public class Starter
             CommandHandled?.Invoke(this, new CommandHandledEventArgs(registration.CliCommand, activation.Instance, exitCode));
             return exitCode;
         });
+    }
+
+    // The values of the parameters of a method command or of a plain command, from how each parameter was classified when the tree was built.
+    private object?[] BuildHandlerValues(IReadOnlyList<ParameterBinding> parameters, ParseResult parseResult, CommandActivation activation, CommandConsole console, CancellationToken cancellationToken)
+    {
+        var values = new object?[parameters.Count];
+        for (var index = 0; index < parameters.Count; index++)
+        {
+            var binding = parameters[index];
+            values[index] = binding.Kind switch
+            {
+                ParameterBindingKind.CancellationToken => cancellationToken,
+                ParameterBindingKind.Console => console,
+                ParameterBindingKind.GlobalOptions => GlobalOptionsManager.GetGlobalOptions(binding.Parameter.ParameterType),
+                ParameterBindingKind.Service => GetMethodService(activation, binding.Parameter),
+                ParameterBindingKind.Option => GetMethodOptionValue(parseResult, (Option)binding.Symbol!, binding.Parameter),
+                _ => CommandBinder.GetArgumentValue(parseResult, (Argument)binding.Symbol!)
+            };
+        }
+
+        return values;
     }
 
     // The console attached to this invocation by StartInvocationAsync, else the console of the process read now.
@@ -1283,47 +1329,75 @@ public class Starter
             Reflection.Loader.LoadAliases(method, command.Aliases);
             command.Hidden = Attribute.IsDefined(method, typeof(HiddenAttribute));
             AddStateMetadata(command, method, canHide: true);
-            var parameters = new List<ParameterBinding>();
-            foreach (var parameter in method.GetParameters())
-            {
-                var parameterType = parameter.ParameterType;
-                if (parameterType == typeof(CancellationToken)) { parameters.Add(new(parameter, ParameterBindingKind.CancellationToken, null)); continue; }
-                if (parameterType == typeof(CommandConsole)) { parameters.Add(new(parameter, ParameterBindingKind.Console, null)); continue; }
-                if (typeof(IGlobalOptionsContainer).IsAssignableFrom(parameterType))
-                {
-                    if (!GlobalOptionsManager.GlobalOptionsTypes.Contains(parameterType))
-                    {
-                        throw new InvalidAttributeException($"Parameter '{parameter.Name}' of method '{method.Name}' (type '{type.FullName}') is the global options container '{parameterType.FullName}', which the filters exclude.");
-                    }
-
-                    parameters.Add(new(parameter, ParameterBindingKind.GlobalOptions, null));
-                    continue;
-                }
-                if (Attribute.IsDefined(parameter, typeof(FromServicesAttribute)))
-                {
-                    if (ServiceProvider is null) throw new InvalidAttributeException($"[FromServices] requires ServiceProvider. Type '{type.FullName}', method '{method.Name}'.");
-                    parameters.Add(new(parameter, ParameterBindingKind.Service, null)); continue;
-                }
-                if (Attribute.IsDefined(parameter, typeof(OptionAttribute)))
-                {
-                    var option = Reflection.Loader.CreateParameterOption(parameter);
-                    command.Options.Add(option);
-                    parameters.Add(new(parameter, ParameterBindingKind.Option, option)); continue;
-                }
-                if (ServiceProvider?.GetService<IServiceProviderIsService>()?.IsService(parameterType) == true)
-                {
-                    parameters.Add(new(parameter, ParameterBindingKind.Service, null)); continue;
-                }
-                var argument = Reflection.Loader.CreateArgument(parameter);
-                command.Arguments.Add(argument);
-                parameters.Add(new(parameter, ParameterBindingKind.Argument, argument));
-            }
+            var parameters = ClassifyParameters(method, type, command);
             EnsureUniqueName(commandParent, command, type, method.Name);
             commandParent.Subcommands.Add(command);
             var registration = new MethodCommandRegistration(method, command, parameters);
             methodRegistrations.Add(registration);
             command.SetAction((parseResult, token) => HandleMethodCommandAsync(registration, parseResult, token));
         }
+    }
+
+    // How each parameter of a handler is bound, in the order of the rules: the token, the console, a global options container, [FromServices], [Option],
+    // a service that the provider knows, and else a positional argument. The symbols of the options and arguments are added to the receptacle.
+    // The same rules serve the methods of the method model and the single method of a plain command.
+    private List<ParameterBinding> ClassifyParameters(MethodInfo method, Type type, Command receptacle)
+    {
+        var parameters = new List<ParameterBinding>();
+        foreach (var parameter in method.GetParameters())
+        {
+            var parameterType = parameter.ParameterType;
+            if (parameterType == typeof(CancellationToken)) { parameters.Add(new(parameter, ParameterBindingKind.CancellationToken, null)); continue; }
+            if (parameterType == typeof(CommandConsole)) { parameters.Add(new(parameter, ParameterBindingKind.Console, null)); continue; }
+            if (typeof(IGlobalOptionsContainer).IsAssignableFrom(parameterType))
+            {
+                if (!GlobalOptionsManager.GlobalOptionsTypes.Contains(parameterType))
+                {
+                    throw new InvalidAttributeException($"Parameter '{parameter.Name}' of method '{method.Name}' (type '{type.FullName}') is the global options container '{parameterType.FullName}', which the filters exclude.");
+                }
+
+                parameters.Add(new(parameter, ParameterBindingKind.GlobalOptions, null));
+                continue;
+            }
+            if (Attribute.IsDefined(parameter, typeof(FromServicesAttribute)))
+            {
+                if (ServiceProvider is null) throw new InvalidAttributeException($"[FromServices] requires ServiceProvider. Type '{type.FullName}', method '{method.Name}'.");
+                parameters.Add(new(parameter, ParameterBindingKind.Service, null)); continue;
+            }
+            if (Attribute.IsDefined(parameter, typeof(OptionAttribute)))
+            {
+                var option = Reflection.Loader.CreateParameterOption(parameter);
+                receptacle.Options.Add(option);
+                parameters.Add(new(parameter, ParameterBindingKind.Option, option)); continue;
+            }
+            if (ServiceProvider?.GetService<IServiceProviderIsService>()?.IsService(parameterType) == true)
+            {
+                parameters.Add(new(parameter, ParameterBindingKind.Service, null)); continue;
+            }
+            var argument = Reflection.Loader.CreateArgument(parameter);
+            receptacle.Arguments.Add(argument);
+            parameters.Add(new(parameter, ParameterBindingKind.Argument, argument));
+        }
+
+        return parameters;
+    }
+
+    // The name of a plain command: the one that [Command] gives (a single segment, unlike a method command), else the name of the class.
+    private static string GetPlainCommandName(Type type, MethodInfo handler)
+    {
+        var name = type.GetCustomAttribute<CommandAttribute>()!.Name;
+        if (name is null)
+        {
+            return type.Name.PascalToKebabCase();
+        }
+
+        var path = GetCommandPath(name, type, handler.Name);
+        if (path.Length > 1)
+        {
+            throw new InvalidAttributeException($"The name of a plain command cannot contain a space: it is a single segment, not a path. Type '{type.FullName}', method '{handler.Name}'.");
+        }
+
+        return path[0];
     }
 
     private static string[] GetCommandPath(string name, Type type, string memberName)
@@ -1445,12 +1519,16 @@ public class Starter
 
     private CommandActivation Activate([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] Type commandType)
     {
-        var getInstance = FindGetInstanceMethod(commandType);
-        if (getInstance.DeclaringType != typeof(IStarterCommand))
+        // A plain command has no GetInstance convention (it has no interface to declare one): FindGetInstanceMethod is for the classes that implement IStarterCommand.
+        if (typeof(IStarterCommand).IsAssignableFrom(commandType))
         {
-            return ServiceProvider is null
-                ? new CommandActivation((IStarterCommand)getInstance.Invoke(null, null)!, ownsInstance: true)
-                : ActivateFromGetInstance(getInstance);
+            var getInstance = FindGetInstanceMethod(commandType);
+            if (getInstance.DeclaringType != typeof(IStarterCommand))
+            {
+                return ServiceProvider is null
+                    ? new CommandActivation(getInstance.Invoke(null, null)!, ownsInstance: true)
+                    : ActivateFromGetInstance(getInstance);
+            }
         }
 
         if (ServiceProvider is not null)
@@ -1461,12 +1539,17 @@ public class Starter
         if (factory is not null)
         {
             var instance = factory(commandType);
-            return instance is null
-                ? throw new InvalidOperationException($"The command factory returned no instance for {commandType.FullName}.")
-                : new CommandActivation(instance, ownsInstance: false);
+            if (instance is null)
+            {
+                throw new InvalidOperationException($"The command factory returned no instance for {commandType.FullName}.");
+            }
+
+            return commandType.IsInstanceOfType(instance)
+                ? new CommandActivation(instance, ownsInstance: false)
+                : throw new InvalidOperationException($"The command factory returned an instance of '{instance.GetType().FullName}' for '{commandType.FullName}'.");
         }
 
-        return new CommandActivation((IStarterCommand)Activator.CreateInstance(commandType)!, ownsInstance: true);
+        return new CommandActivation(Activator.CreateInstance(commandType)!, ownsInstance: true);
     }
 
     private CommandActivation ActivateFromServices([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type? instanceType)
@@ -1492,7 +1575,7 @@ public class Starter
         var (scope, services) = OpenExecutionScope();
         try
         {
-            return new CommandActivation((IStarterCommand)getInstance.Invoke(null, null)!, ownsInstance: true, scope, services);
+            return new CommandActivation(getInstance.Invoke(null, null)!, ownsInstance: true, scope, services);
         }
         catch
         {

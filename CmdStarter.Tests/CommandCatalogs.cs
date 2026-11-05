@@ -20,8 +20,8 @@ public class CommandCatalogs
 
         starter.FindCommandsTypes();
 
-        // Unlisted is a command that the scan finds; the catalog does not declare it.
-        Assert.That(starter.CommandsTypes, Is.EqualTo(new[] { typeof(Listed) }));
+        // Unlisted and PlainUnlisted are commands that the scan finds; the catalog does not declare them.
+        Assert.That(starter.CommandsTypes, Is.EqualTo(new[] { typeof(Listed), typeof(PlainListed) }));
     }
 
     [Test]
@@ -32,7 +32,22 @@ public class CommandCatalogs
 
         starter.FindCommandsTypes();
 
-        Assert.That(starter.CommandsTypes, Is.EqualTo(new[] { typeof(Listed), typeof(Unlisted) }));
+        Assert.That(starter.CommandsTypes, Is.EqualTo(new[] { typeof(Listed), typeof(PlainListed), typeof(PlainUnlisted), typeof(Unlisted) }));
+    }
+
+    [Test]
+    public void PlainCommandIsFoundThroughTheCatalogAndTheScan()
+    {
+        var catalog = CreateStarter();
+        var scan = CreateStarter();
+        scan.UseCommandCatalogs = false;
+
+        catalog.FindCommandsTypes();
+        scan.FindCommandsTypes();
+
+        Assert.That(catalog.CommandsTypes, Does.Contain(typeof(PlainListed)).And.Not.Contain(typeof(PlainUnlisted)));
+        Assert.That(scan.CommandsTypes, Does.Contain(typeof(PlainListed)).And.Contain(typeof(PlainUnlisted)));
+        Assert.That(catalog.MethodCommandsTypes, Is.Empty, "a plain command is not a group of the method model");
     }
 
     [Test]
@@ -40,13 +55,13 @@ public class CommandCatalogs
     {
         var starter = CreateStarter();
         starter.FindCommandsTypes();
-        Assert.That(starter.CommandsTypes, Has.Count.EqualTo(1));
+        Assert.That(starter.CommandsTypes, Has.Count.EqualTo(2));
 
         starter.UseCommandCatalogs = false;
         Assert.That(starter.CommandsTypes, Is.Empty, "the discovery was reset");
 
         starter.FindCommandsTypes();
-        Assert.That(starter.CommandsTypes, Is.EqualTo(new[] { typeof(Listed), typeof(Unlisted) }));
+        Assert.That(starter.CommandsTypes, Is.EqualTo(new[] { typeof(Listed), typeof(PlainListed), typeof(PlainUnlisted), typeof(Unlisted) }));
     }
 
     [Test]
@@ -162,7 +177,7 @@ public class CommandCatalogs
 
         internal List<Type> SymbolTypes { get; } = [];
 
-        public void AddCommand<TCommand>() where TCommand : class, IStarterCommand => Commands.Add(typeof(TCommand));
+        public void AddCommand<TCommand>() where TCommand : class => Commands.Add(typeof(TCommand));
 
         public void AddMethodCommands(Type declaringType) => MethodClasses.Add(declaringType);
 

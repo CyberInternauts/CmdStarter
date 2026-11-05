@@ -64,8 +64,25 @@ public static class Helper
         return method;
     }
 
+    // A plain command is a command of the class model that has no base class or interface of CmdStarter: a concrete class that carries [Command] and declares no [Command] method
+    // (its public read-write properties are its options, its handler a method of the class). Whether it has exactly one handler is checked when the tree is built.
+    // The namespace is not part of the definition: the callers that search for commands also require one.
+    internal static bool IsPlainCommand([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)] Type type) =>
+        IsPlainCommandClass(type)
+        && !type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Any(method => Attribute.IsDefined(method, typeof(CommandAttribute)));
+
+    // What IsPlainCommand tells from the type alone: used where the methods are not needed (the properties of a command that is already known to be one).
+    private static bool IsPlainCommandClass(Type type) =>
+        type.IsClass
+        && !type.IsAbstract
+        && !type.ContainsGenericParameters
+        && !type.IsAssignableTo(typeof(IStarterCommand))
+        && Attribute.IsDefined(type, typeof(CommandAttribute));
+
+    // A plain command has no GetInstance convention: it has no interface to declare one, and FindGetInstanceMethod must not be asked for it.
     internal static bool DeclaresGetInstance([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type commandType) =>
-        FindGetInstanceMethod(commandType).DeclaringType != typeof(IStarterCommand);
+        typeof(IStarterCommand).IsAssignableFrom(commandType) && FindGetInstanceMethod(commandType).DeclaringType != typeof(IStarterCommand);
 
     /// <inheritdoc cref="GetProperties(Type)"/>
     [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "The type is the one of an instance that exists, which is a command or a global options container: the command catalog keeps all the members of the types it declares.")]
@@ -83,17 +100,21 @@ public static class Helper
     {
         LoadInterfaceProperties();
 
+        // A plain command has no base class or interface to tell its options from the rest: every public read-write property is an option, the ones of its base classes included.
+        var isPlain = IsPlainCommandClass(type);
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p =>
                 p.CanWrite && p.CanRead
                 &&
                 (
+                  isPlain
+                ||
                   p.DeclaringType!.IsAssignableTo(typeof(IStarterCommand))
                   && !interfacePropertiesNames!.Contains(p.Name) // Can't be null because already loaded
                 ||
                 p.DeclaringType!.IsAssignableTo(typeof(IGlobalOptionsContainer)))
                 &&
-                !Attribute.IsDefined(p.DeclaringType, typeof(AllOptionsExcludedAttribute))
+                !Attribute.IsDefined(p.DeclaringType!, typeof(AllOptionsExcludedAttribute))
             );
 
         bool hasAnyOptionAttribute = properties.Any(property =>

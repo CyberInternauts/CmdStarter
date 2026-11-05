@@ -38,6 +38,8 @@ CyberInternauts.CmdStarter.Attributes.ChildrenAttribute<TClassForNamespace>.Chil
 CyberInternauts.CmdStarter.Attributes.CommandAttribute
 CyberInternauts.CmdStarter.Attributes.CommandAttribute.CommandAttribute() -> void
 CyberInternauts.CmdStarter.Attributes.CommandAttribute.CommandAttribute(string! name) -> void
+CyberInternauts.CmdStarter.Attributes.CommandAttribute.Handler.get -> string?
+CyberInternauts.CmdStarter.Attributes.CommandAttribute.Handler.init -> void
 CyberInternauts.CmdStarter.Attributes.CommandAttribute.Name.get -> string?
 CyberInternauts.CmdStarter.Attributes.FromServicesAttribute
 CyberInternauts.CmdStarter.Attributes.FromServicesAttribute.FromServicesAttribute() -> void
@@ -276,7 +278,7 @@ CyberInternauts.CmdStarter.Starter.CommandsTypesTree.set -> void
 CyberInternauts.CmdStarter.Starter.DefaultConsole.get -> CyberInternauts.CmdStarter.CommandConsole?
 CyberInternauts.CmdStarter.Starter.DefaultConsole.set -> void
 CyberInternauts.CmdStarter.Starter.FindCommand<TCommand>() -> System.CommandLine.Command?
-CyberInternauts.CmdStarter.Starter.FindCommandInstance(System.CommandLine.Command! command) -> CyberInternauts.CmdStarter.Interfaces.IStarterCommand?
+CyberInternauts.CmdStarter.Starter.FindCommandInstance(System.CommandLine.Command! command) -> object?
 CyberInternauts.CmdStarter.Starter.FindCommandInstance<TCommand>() -> TCommand?
 CyberInternauts.CmdStarter.Starter.FindCommandsTypes() -> void
 CyberInternauts.CmdStarter.Starter.GetFullCommandString<TCommand>() -> string?
@@ -297,7 +299,7 @@ CyberInternauts.CmdStarter.Starter.SequenceOption.set -> void
 CyberInternauts.CmdStarter.Starter.ServiceProvider.get -> System.IServiceProvider?
 CyberInternauts.CmdStarter.Starter.ServiceProvider.set -> void
 CyberInternauts.CmdStarter.Starter.SetDefaultFactory() -> void
-CyberInternauts.CmdStarter.Starter.SetFactory(System.Func<System.Type!, CyberInternauts.CmdStarter.Interfaces.IStarterCommand!>! factory) -> void
+CyberInternauts.CmdStarter.Starter.SetFactory(System.Func<System.Type!, object!>! factory) -> void
 CyberInternauts.CmdStarter.Starter.ShowExceptionDetails.get -> bool
 CyberInternauts.CmdStarter.Starter.ShowExceptionDetails.set -> void
 CyberInternauts.CmdStarter.Starter.Start(string! args) -> System.Threading.Tasks.Task<int>!
