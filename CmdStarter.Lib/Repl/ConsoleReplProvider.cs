@@ -1,4 +1,5 @@
 using CyberInternauts.CmdStarter.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace CyberInternauts.CmdStarter.Repl;
 
@@ -52,6 +53,10 @@ public sealed class ConsoleReplProvider : IReplInputProvider
             // Ctrl+C is a key while the line is read, so it abandons the line instead of ending the process; a running command gets the signal again.
             var treatControlCAsInput = Console.TreatControlCAsInput;
             Console.TreatControlCAsInput = true;
+
+            // A signal that ends the process while the line is read restores the console first: its mode outlives the process.
+            using var restoreOnQuit = PosixSignalRegistration.Create(PosixSignal.SIGQUIT, _ => Console.TreatControlCAsInput = treatControlCAsInput);
+            using var restoreOnTerminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, _ => Console.TreatControlCAsInput = treatControlCAsInput);
             try
             {
                 return editor.ReadLine(Prompt);
