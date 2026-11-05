@@ -1,11 +1,10 @@
-﻿using System.CommandLine.Completions;
+using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
+namespace CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+
+public interface IHasAutoComplete
 {
-    public interface IHasAutoComplete
-    {
-        IEnumerable<CompletionItem> OptionCompletionsExpected();
+    IEnumerable<CompletionItem> OptionCompletionsExpected();
 
-        IEnumerable<CompletionItem> ArgumentCompletionsExpected();
-    }
+    IEnumerable<CompletionItem> ArgumentCompletionsExpected();
 }

@@ -1,9 +1,8 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces
+namespace CyberInternauts.CmdStarter.Interfaces;
+
+/// <summary>
+/// Interface to designate a class as a global options container
+/// </summary>
+public interface IGlobalOptionsContainer
 {
-    /// <summary>
-    /// Interface to designate a class as a global options container
-    /// </summary>
-    public interface IGlobalOptionsContainer
-    {
-    }
 }

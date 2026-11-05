@@ -1,16 +1,15 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Options.Filters
+namespace CyberInternauts.CmdStarter.Tests.Commands.Options.Filters;
+
+public sealed class OptByExcludeAttribute : StarterCommand, IOptByAttribute
 {
-    public sealed class OptByExcludeAttribute : StarterCommand, IOptByAttribute
-    {
-        public static string[] IncludedOptions => new[] { nameof(OptionToInclude) };
+    public static string[] IncludedOptions => [nameof(OptionToInclude)];
 
-        public static string[] ExcludedOptions => new[] { nameof(OptionToExclude) };
+    public static string[] ExcludedOptions => [nameof(OptionToExclude)];
 
-        public int OptionToInclude { get; set; }
+    public int OptionToInclude { get; set; }
 
-        [NotOption]
-        public int OptionToExclude { get; set; }
-    }
+    [NotOption]
+    public int OptionToExclude { get; set; }
 }

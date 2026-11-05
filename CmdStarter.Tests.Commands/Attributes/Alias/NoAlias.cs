@@ -1,15 +1,14 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.Alias
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.Alias;
+
+public sealed class NoAlias : StarterCommand, IHasAliases
 {
-    public sealed class NoAlias : StarterCommand, IHasAliases
-    {
-        private const string COMMAND_NAME = "no-alias";
+    private const string COMMAND_NAME = "no-alias";
 
-        public string[] ExpectedOptionAliases => new string[] { OPTION_PREFIX + OPTION_NAME };
-        public string[] ExpectedCommandAliases => new string[] { COMMAND_NAME };
+    public string[] ExpectedOptionAliases => [OptionPrefix + OPTION_NAME];
+    public string[] ExpectedCommandAliases => [COMMAND_NAME];
 
-        public int Option { get; set; }
-        public const string OPTION_NAME = "option";
-    }
+    public int Option { get; set; }
+    public const string OPTION_NAME = "option";
 }

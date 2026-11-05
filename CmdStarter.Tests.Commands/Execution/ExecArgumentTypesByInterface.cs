@@ -1,44 +1,43 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Execution
+namespace CyberInternauts.CmdStarter.Tests.Commands.Execution;
+
+public class ExecArgumentTypesByInterface : IStarterCommand, IHandleTester
 {
-    public class ExecArgumentTypesByInterface : IStarterCommand, IHandleTester
+    private const int DEFAULT_RETURN = 0;
+    private const string STRING_PARAM_VALUE = "hello";
+    private const bool BOOL_PARAM_VALUE = true;
+    private const int INT_PARAM_VALUE = 42;
+
+    private List<HandlerData> actualHandlerData = [];
+
+    public Delegate HandlingMethod => Execute;
+
+    public int Execute(string stringParam, bool boolParam, int intParam)
     {
-        private const int DEFAULT_RETURN = 0;
-        private const string STRING_PARAM_VALUE = "hello";
-        private const bool BOOL_PARAM_VALUE = true;
-        private const int INT_PARAM_VALUE = 42;
+        actualHandlerData = CreateData(stringParam, boolParam, intParam);
 
-        private List<HandlerData> actualHandlerData = new();
+        return DEFAULT_RETURN;
+    }
 
-        public Delegate HandlingMethod => Execute;
+    public GlobalOptionsManager? GlobalOptionsManager { get; set; }
 
-        public int Execute(string stringParam, bool boolParam, int intParam)
+    public int ExpectedReturn => DEFAULT_RETURN;
+
+    public List<HandlerData> ExpectedHandlerData => CreateData(STRING_PARAM_VALUE, BOOL_PARAM_VALUE, INT_PARAM_VALUE);
+
+    public List<HandlerData> ActualHandlerData => actualHandlerData;
+
+    private static List<HandlerData> CreateData(string stringOpt, bool boolOpt, int intOpt)
+    {
+        var data = new List<HandlerData>
         {
-            actualHandlerData = CreateData(stringParam, boolParam, intParam);
+            new HandlerData(HandlerData.CommandFeature.Argument, string.Empty, stringOpt),
+            new HandlerData(HandlerData.CommandFeature.Argument, string.Empty, boolOpt),
+            new HandlerData(HandlerData.CommandFeature.Argument, string.Empty, intOpt),
+        };
 
-            return DEFAULT_RETURN;
-        }
-
-        public GlobalOptionsManager? GlobalOptionsManager { get; set; }
-
-        public int ExpectedReturn => DEFAULT_RETURN;
-
-        public List<HandlerData> ExpectedHandlerData => CreateData(STRING_PARAM_VALUE, BOOL_PARAM_VALUE, INT_PARAM_VALUE);
-
-        public List<HandlerData> ActualHandlerData => actualHandlerData;
-
-        private static List<HandlerData> CreateData(string stringOpt, bool boolOpt, int intOpt)
-        {
-            var data = new List<HandlerData>
-            {
-                new HandlerData(HandlerData.CommandFeature.Argument, string.Empty, stringOpt),
-                new HandlerData(HandlerData.CommandFeature.Argument, string.Empty, boolOpt),
-                new HandlerData(HandlerData.CommandFeature.Argument, string.Empty, intOpt),
-            };
-
-            return data;
-        }
+        return data;
     }
 }

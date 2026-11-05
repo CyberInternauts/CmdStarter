@@ -1,20 +1,19 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces
+namespace CyberInternauts.CmdStarter.Interfaces;
+
+/// <summary>
+/// Interface to obtain the list of completions
+/// </summary>
+public interface IAutoCompleteProvider
 {
     /// <summary>
-    /// Interface to obtain the list of completions
+    /// List of completions
     /// </summary>
-    public interface IAutoCompleteProvider
-    {
-        /// <summary>
-        /// List of completions
-        /// </summary>
-        /// <returns></returns>
-        string[] GetAutoCompletes();
+    /// <returns></returns>
+    string[] GetAutoCompletes();
 
-        /// <summary>
-        /// Obtain the instance of the auto completion provider
-        /// </summary>
-        /// <returns></returns>
-        static abstract IAutoCompleteProvider GetInstance();
-    }
+    /// <summary>
+    /// Obtain the instance of the auto completion provider
+    /// </summary>
+    /// <returns></returns>
+    static abstract IAutoCompleteProvider GetInstance();
 }

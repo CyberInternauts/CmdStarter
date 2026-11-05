@@ -1,39 +1,42 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Exceptions
+namespace CyberInternauts.CmdStarter.Exceptions;
+
+/// <summary>
+/// No command found exception after applying a <see cref="Filter"/>
+/// </summary>
+public sealed class NoCommandFoundException : CmdStarterException
 {
     /// <summary>
-    /// No command found exception after applying a <see cref="Filter"/>
+    /// Possible filters
     /// </summary>
-    public sealed class NoCommandFoundException : Exception
+    public enum Filter : byte
     {
         /// <summary>
-        /// Possible filters
+        /// Namespaces filter
         /// </summary>
-        public enum Filter : byte
-        {
-            /// <summary>
-            /// Namespaces filter
-            /// </summary>
-            Namespaces,
-
-            /// <summary>
-            /// Classes filter
-            /// </summary>
-            Classes
-        }
+        Namespaces,
 
         /// <summary>
-        /// Last filter applied
+        /// Classes filter
         /// </summary>
-        public Filter LastFilterApplied { get; init; }
+        Classes,
 
-        /// <summary>
-        /// Constructor with <see cref="Filter"/> that was applied to obtained no command
-        /// </summary>
-        /// <param name="lastFilterApplied"></param>
-        public NoCommandFoundException(Filter lastFilterApplied)
-        {
-            LastFilterApplied = lastFilterApplied;
-        }
-
+        /// <summary>Assemblies filter</summary>
+        Assemblies
     }
+
+    /// <summary>
+    /// Last filter applied
+    /// </summary>
+    public Filter LastFilterApplied { get; init; }
+
+    /// <summary>
+    /// Constructor with <see cref="Filter"/> that was applied to obtained no command
+    /// </summary>
+    /// <param name="lastFilterApplied"></param>
+    public NoCommandFoundException(Filter lastFilterApplied)
+        : base($"No command was found after applying the {lastFilterApplied} filter.")
+    {
+        LastFilterApplied = lastFilterApplied;
+    }
+
 }

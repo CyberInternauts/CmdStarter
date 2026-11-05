@@ -1,0 +1,26 @@
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace CyberInternauts.CmdStarter.Demo.Repl.Commands.Queries;
+
+[Description("Removes a book from the database.\nCan only be used when logged in.")]
+[CyberInternauts.CmdStarter.Attributes.AvailableInState(DemoState.LoggedIn)]
+public sealed class Remove : StarterCommand
+{
+
+    public override Delegate HandlingMethod => Execute;
+
+    public int Execute(
+        [Required][Description("The name of the book to be removed.")]
+        string name)
+    {
+        if (DemoDb.Books.Remove(name))
+        {
+            Console.WriteLine($"Book: {name} removed");
+            return 0;
+        }
+
+        Console.WriteLine($"Book: {name} doesn't exist.");
+        return -1;
+    }
+}

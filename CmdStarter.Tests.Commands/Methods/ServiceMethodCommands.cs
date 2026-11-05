@@ -1,0 +1,22 @@
+using CyberInternauts.CmdStarter.Tests.Commands.Lifecycle;
+
+namespace CyberInternauts.CmdStarter.Tests.Commands.Methods;
+
+[Command("svc")]
+public sealed class ServiceMethodCommands(SingletonService singleton)
+{
+    public SingletonService Singleton { get; } = singleton;
+    public static List<object> Received { get; } = [];
+
+    [Command]
+    public int Inferred(string name, ScopedService scoped, ScopedConsumer consumer)
+    { Received.Add(scoped); Received.Add(consumer); return 0; }
+
+    [Command]
+    public int Explicit([FromServices] TransientService transient)
+    { Received.Add(transient); return 0; }
+
+    [Command]
+    public static int StaticWithService(ScopedService scoped)
+    { Received.Add(scoped); return 0; }
+}

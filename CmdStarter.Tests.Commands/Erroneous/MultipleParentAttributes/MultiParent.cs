@@ -1,10 +1,9 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Demo.Types;
+using CyberInternauts.CmdStarter.Tests.Commands.Demo.Types;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.MultipleParentAttributes;
+
+[Parent<Main>]
+[MoreParent<Folders>]
+public class MultiParent : StarterCommand
 {
-    [Parent<Main>]
-    [MoreParent<Folders>]
-    public class MultiParent : StarterCommand
-    {
-    }
 }

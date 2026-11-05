@@ -1,0 +1,9 @@
+// Sample: nested commands, from the namespace hierarchy (remote) and from [Parent<T>] (config).
+
+namespace CyberInternauts.CmdStarter.Samples.NestedCommands;
+
+public static class Program
+{
+    public static Task<int> Main(string[] args) => new Starter().Start(args);
+}
+

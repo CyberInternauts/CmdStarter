@@ -1,49 +1,52 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
+namespace CyberInternauts.CmdStarter.Attributes;
+
+/// <summary>
+/// Set children to a class using a namespace
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class ChildrenAttribute : Attribute
 {
     /// <summary>
-    /// Set children to a class using a namespace
+    /// Namespace to look for children
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class ChildrenAttribute : Attribute
+    public string Namespace { get; private set; }
+
+    /// <summary>
+    /// Use the namespace of the type
+    /// </summary>
+    /// <param name="namespaceForChildren">Type to get the namespace</param>
+    /// <exception cref="ArgumentNullException"><paramref name="namespaceForChildren"/> is <see langword="null"/>.</exception>
+    public ChildrenAttribute(Type namespaceForChildren)
     {
-        /// <summary>
-        /// Namespace to look for children
-        /// </summary>
-        public string Namespace { get; private set; }
-
-        /// <summary>
-        /// Use the namespace of the type
-        /// </summary>
-        /// <param name="namespaceForChildren">Type to get the namespace</param>
-        public ChildrenAttribute(Type namespaceForChildren)
-        {
-            Namespace = namespaceForChildren.Namespace ?? string.Empty;
-        }
-
-        /// <summary>
-        /// Possible usage:<br/>
-        /// - [Children($"{nameof(com)}.{nameof(cyberinternauts)}")]<br/>
-        /// - [Children("com.cyberinternauts")]
-        /// </summary>
-        /// <param name="namespaceForChildren"></param>
-        public ChildrenAttribute(string namespaceForChildren)
-        {
-            Namespace = namespaceForChildren;
-        }
+        ArgumentNullException.ThrowIfNull(namespaceForChildren);
+        Namespace = namespaceForChildren.Namespace ?? string.Empty;
     }
 
     /// <summary>
-    /// Set children to a class using the namespace of the generic type
+    /// Possible usage:<br/>
+    /// - [Children($"{nameof(com)}.{nameof(cyberinternauts)}")]<br/>
+    /// - [Children("CyberInternauts")]
     /// </summary>
-    /// <typeparam name="ClassForNamespace"></typeparam>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public sealed class ChildrenAttribute<ClassForNamespace> : ChildrenAttribute where ClassForNamespace : class
+    /// <param name="namespaceForChildren"></param>
+    /// <exception cref="ArgumentNullException"><paramref name="namespaceForChildren"/> is <see langword="null"/>.</exception>
+    public ChildrenAttribute(string namespaceForChildren)
     {
-        /// <summary>
-        /// <see cref="ChildrenAttribute.ChildrenAttribute(Type)"/>
-        /// </summary>
-        public ChildrenAttribute() : base(typeof(ClassForNamespace))
-        {
-        }
+        ArgumentNullException.ThrowIfNull(namespaceForChildren);
+        Namespace = namespaceForChildren;
+    }
+}
+
+/// <summary>
+/// Set children to a class using the namespace of the generic type
+/// </summary>
+/// <typeparam name="TClassForNamespace"></typeparam>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class ChildrenAttribute<TClassForNamespace> : ChildrenAttribute where TClassForNamespace : class
+{
+    /// <summary>
+    /// <see cref="ChildrenAttribute.ChildrenAttribute(Type)"/>
+    /// </summary>
+    public ChildrenAttribute() : base(typeof(TClassForNamespace))
+    {
     }
 }

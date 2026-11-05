@@ -1,13 +1,12 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.AutoComplete
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.AutoComplete;
+
+public sealed class NonGenericNullCompletion : IErrorRunner, IGetInstance<NonGenericNullCompletion>
 {
-    public sealed class NonGenericNullCompletion : IErrorRunner, IGetInstance<NonGenericNullCompletion>
-    {
-        public Type TypeOfException => typeof(NotSupportedException);
+    public Type TypeOfException => typeof(NotSupportedException);
 
-        public void ErrorInvoker() => new AutoCompleteAttribute(new object[]{ null! });
+    public void ErrorInvoker() => new AutoCompleteAttribute([null!]);
 
-        public static NonGenericNullCompletion GetInstance() => new();
-    }
+    public static NonGenericNullCompletion GetInstance() => new();
 }

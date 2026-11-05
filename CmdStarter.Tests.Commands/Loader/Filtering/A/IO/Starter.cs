@@ -1,9 +1,8 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Filtering.A.IO
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Filtering.A.IO;
+
+public sealed class Starter : StarterCommand
 {
-    public sealed class Starter : StarterCommand
+    public Starter() : base("a-starter")
     {
-        public Starter() : base("a-starter")
-        {
-        }
     }
 }

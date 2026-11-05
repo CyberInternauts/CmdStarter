@@ -1,73 +1,84 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Commands;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions.Filters;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.TestsCommandsAttributes;
+using CyberInternauts.CmdStarter.Tests.Commands.Commands;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
+using CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions.Filters;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.TestsCommandsAttributes;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests
+namespace CyberInternauts.CmdStarter.Tests;
+
+[Category("* All *")]
+[Category("CmdStarter")]
+[Category("Commands")]
+[Category("Options")]
+[Category("GlobalOptions")]
+public class GlobalOptions
 {
-    [Category("* All *")]
-    [Category("CmdStarter")]
-    [Category("Commands")]
-    [Category("Options")]
-    [Category("GlobalOptions")]
-    public class GlobalOptions
+    private Starter starter;
+
+    [OneTimeSetUp]
+    public void GlobalSetup()
     {
-        private Lib.Starter starter;
+        TestsCommon.GlobalSetup();
+    }
 
-        [OneTimeSetUp]
-        public void GlobalSetup()
+    [SetUp]
+    public void MethodSetup()
+    {
+        starter = TestsCommon.CreateCmdStarter();
+    }
+
+    [Test]
+    public void EnsuresGlobalOptionsPresence()
+    {
+        starter.InstantiateCommands();
+
+        var mainOption = TestsCommon.FindOption(starter.RootCommand, MainGlobalOptions.INT_GLOBAL_OPTION_KEBAB);
+        Assert.That(mainOption, Is.Not.Null);
+
+        var secondaryOption = TestsCommon.FindOption(starter.RootCommand, SecondaryGlobalOptions.SECONDARY_INT_GLOBAL_OPTION_KEBAB);
+        Assert.That(secondaryOption, Is.Not.Null);
+    }
+
+    [TestCase<GlobalOptionsFilterOnlyInclude>()]
+    [TestCase<GlobalOptionFilterOnlyExclude>()]
+    [TestCase<GlobalOptionFilterExcludeAll>()]
+    [TestCase<GlobalOptionFilterByLackOfAttribute>()]
+    public void EnsureGlobalOptionsFilter<GlobalContainer>()
+        where GlobalContainer : IGlobalOptionsContainer, IOptByAttribute
+    {
+        starter.Classes = starter.Classes.Clear().Add(typeof(GlobalContainer).FullName!);
+        starter.Classes = starter.Classes.Add(nameof(EmptyCommand));
+
+        starter.InstantiateCommands();
+
+        var rootCommand = starter.RootCommand;
+
+        foreach (var option in GlobalContainer.IncludedOptions)
         {
-            TestsCommon.GlobalSetup();
+            var includedOption = TestsCommon.FindOption(rootCommand, option);
+
+            Assert.That(includedOption, Is.Not.Null);
         }
 
-        [SetUp]
-        public void MethodSetup()
+        foreach (var option in GlobalContainer.ExcludedOptions)
         {
-            starter = TestsCommon.CreateCmdStarter();
-        }
+            var excludedOption = TestsCommon.FindOption(rootCommand, option);
 
-        [Test]
-        public void EnsuresGlobalOptionsPresence()
+            Assert.That(excludedOption, Is.Null);
+        }
+    }
+
+    [Test]
+    public void GlobalOptionsContainerWithoutParameterlessConstructorThrows()
+    {
+        // This namespace is excluded from the default discoveries: only this starter asks for it.
+        var broken = new Starter
         {
-            starter.InstantiateCommands();
+            Namespaces = [typeof(Commands.BrokenGlobalOptions.HealthyCommand).Namespace!]
+        };
 
-            var mainOption = starter.RootCommand.Options.FirstOrDefault(o => o.Name == MainGlobalOptions.INT_GLOBAL_OPTION_KEBAB);
-            Assert.That(mainOption, Is.Not.Null);
+        var exception = Assert.Throws<InvalidAttributeException>(() => broken.InstantiateCommands());
 
-            var secondaryOption = starter.RootCommand.Options.FirstOrDefault(o => o.Name == SecondaryGlobalOptions.SECONDARY_INT_GLOBAL_OPTION_KEBAB);
-            Assert.That(secondaryOption, Is.Not.Null);
-        }
-
-        [TestCase<GlobalOptionsFilterOnlyInclude>()]
-        [TestCase<GlobalOptionFilterOnlyExclude>()]
-        [TestCase<GlobalOptionFilterExcludeAll>()]
-        [TestCase<GlobalOptionFilterByLackOfAttribute>()]
-        public void EnsureGlobalOptionsFilter<GlobalContainer>() 
-            where GlobalContainer : IGlobalOptionsContainer, IOptByAttribute
-        {
-            starter.Classes = starter.Classes.Clear().Add(typeof(GlobalContainer).FullName!);
-            starter.Classes = starter.Classes.Add(nameof(EmptyCommand));
-
-            starter.InstantiateCommands();
-
-            var rootCommand = starter.RootCommand;
-            
-            foreach(var option in GlobalContainer.IncludedOptions)
-            {
-                var includedOption = rootCommand.Options.FirstOrDefault(o =>
-                    o.Name == option);
-
-                Assert.That(includedOption, Is.Not.Null);
-            }
-
-            foreach (var option in GlobalContainer.ExcludedOptions)
-            {
-                var excludedOption = rootCommand.Options.FirstOrDefault(o =>
-                    o.Name == option);
-
-                Assert.That(excludedOption, Is.Null);
-            }
-        }
+        Assert.That(exception!.Message, Does.Contain(typeof(Commands.BrokenGlobalOptions.ContainerWithoutParameterlessConstructor).FullName!));
     }
 }

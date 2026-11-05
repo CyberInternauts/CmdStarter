@@ -1,0 +1,22 @@
+root = true
+
+[*]
+indent_style = space
+
+[*.cs]
+indent_size = 4
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_new_line_before_open_brace = all
+
+# Public API tracking (ADR 0031): every overload reported by the optional-parameter rules has a single optional parameter, the trailing CancellationToken,
+# and differs from its siblings by its required parameters, so the rules are off for the two shipped libraries.
+[{CmdStarter.Lib,CmdStarter.Hosting}/**.cs]
+dotnet_diagnostic.RS0026.severity = none
+dotnet_diagnostic.RS0027.severity = none
+
+[*.{csproj,props,targets,xml,config,json}]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
+

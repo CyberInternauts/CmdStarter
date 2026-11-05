@@ -1,9 +1,8 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Filtering.NSouth
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Filtering.NSouth;
+
+public sealed class Starter : StarterCommand
 {
-    public sealed class Starter : StarterCommand
+    public Starter() : base("nsouth-starter")
     {
-        public Starter() : base("nsouth-starter")
-        {
-        }
     }
 }

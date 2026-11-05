@@ -1,6 +1,5 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute.ChildrenOfParent
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.TreeWithChildrenAttribute.ChildrenOfParent;
+
+public class ChildNoParent : StarterCommand
 {
-    public class ChildNoParent : StarterCommand
-    {
-    }
 }

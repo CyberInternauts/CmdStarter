@@ -1,8 +1,7 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
+namespace CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+
+public interface IOptByAttribute
 {
-    public interface IOptByAttribute
-    {
-        static abstract string[] IncludedOptions { get; }
-        static abstract string[] ExcludedOptions { get; }
-    }
+    static abstract string[] IncludedOptions { get; }
+    static abstract string[] ExcludedOptions { get; }
 }

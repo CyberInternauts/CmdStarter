@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Naming
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Naming;
+
+public class NameKebab : StarterCommand
 {
-    public class NameKebab : StarterCommand
-    {
-        public NameKebab() : base("name-to-kebab") { }
-    }
+    public NameKebab() : base("name-to-kebab") { }
 }

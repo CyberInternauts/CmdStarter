@@ -1,65 +1,64 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
+using CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete.Helper;
 using System.CommandLine.Completions;
 using System.CommandLine;
-using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+
+public sealed class FullFeaturesAutoCompletion : StarterCommand, IHasAutoComplete
 {
-    public sealed class FullFeaturesAutoCompletion : StarterCommand, IHasAutoComplete
+    [AutoComplete<AutoCompleteOptionFullFeatures>()]
+    public string PersonName { get; set; } = null!;
+    public const string OPTION_NAME = "person-name";
+
+    public override Delegate HandlingMethod => Execute;
+
+    private void Execute([AutoComplete(typeof(AutoCompleteArgumentFullFeatures))] int age = 18)
+    { }
+    public const string ARGUMENT_NAME = "age";
+
+    public IEnumerable<CompletionItem> OptionCompletionsExpected()
     {
-        [AutoComplete<AutoCompleteOptionFullFeatures>()]
-        public string PersonName { get; set; } = null!;
-        public const string OPTION_NAME = "person-name";
+        Option<string> expected = new(OPTION_NAME);
 
-        public override Delegate HandlingMethod => Execute;
+        var feeder = AutoCompletionOptionFeeder.GetInstance();
+        var instance = AutoCompleteOptionFactory.GetInstance();
+        var items = new LinkedList<CompletionItem>();
 
-        private void Execute([AutoComplete(typeof(AutoCompleteArgumentFullFeatures))] int age = 18)
-        { }
-        public const string ARGUMENT_NAME = "age";
-
-        public IEnumerable<CompletionItem> OptionCompletionsExpected()
+        foreach (var completion in feeder.GetAutoCompletes())
         {
-            Option<string> expected = new(OPTION_NAME);
+            var item = new CompletionItem(
+                completion,
+                detail: instance.GetDetail(completion),
+                insertText: instance.GetInsertText(completion));
 
-            var feeder = AutoCompletionOptionFeeder.GetInstance();
-            var instance = AutoCompleteOptionFactory.GetInstance();
-            var items = new LinkedList<CompletionItem>();
-
-            foreach (var completion in feeder.GetAutoCompletes())
-            {
-                var item = new CompletionItem(
-                    completion,
-                    detail: instance.GetDetail(completion),
-                    insertText: instance.GetInsertText(completion));
-
-                items.AddLast(item);
-            }
-
-            expected.AddCompletions((ctx) => items);
-
-            return expected.GetCompletions();
+            items.AddLast(item);
         }
 
-        public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
+        expected.CompletionSources.Add((ctx) => items);
+
+        return expected.GetCompletions(CompletionContext.Empty);
+    }
+
+    public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
+    {
+        Argument<int> expected = new("age");
+
+        var feeder = AutoCompletionArgumentFeeder.GetInstance();
+        var instance = AutoCompleteArgumentFactory.GetInstance();
+        var items = new LinkedList<CompletionItem>();
+
+        foreach (var completion in feeder.GetAutoCompletes())
         {
-            Argument<int> expected = new();
+            var item = new CompletionItem(
+                completion,
+                documentation: instance.GetDocumentation(completion));
 
-            var feeder = AutoCompletionArgumentFeeder.GetInstance();
-            var instance = AutoCompleteArgumentFactory.GetInstance();
-            var items = new LinkedList<CompletionItem>();
-
-            foreach (var completion in feeder.GetAutoCompletes())
-            {
-                var item = new CompletionItem(
-                    completion,
-                    documentation: instance.GetDocumentation(completion));
-
-                items.AddLast(item);
-            }
-
-            expected.AddCompletions((ctx) => items);
-
-            return expected.GetCompletions();
+            items.AddLast(item);
         }
+
+        expected.CompletionSources.Add((ctx) => items);
+
+        return expected.GetCompletions(CompletionContext.Empty);
     }
 }

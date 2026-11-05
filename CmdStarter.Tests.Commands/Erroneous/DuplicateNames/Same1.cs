@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.DuplicateNames
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.DuplicateNames;
+
+public class Same1 : StarterCommand
 {
-    public class Same1 : StarterCommand
-    {
-        public Same1() : base("Same") { }
-    }
+    public Same1() : base("Same") { }
 }

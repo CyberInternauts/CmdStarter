@@ -1,0 +1,5 @@
+#nullable enable
+CyberInternauts.CmdStarter.Hosting.CmdStarterHostApplicationBuilderExtensions
+CyberInternauts.CmdStarter.Hosting.CmdStarterHostExtensions
+static CyberInternauts.CmdStarter.Hosting.CmdStarterHostApplicationBuilderExtensions.AddCmdStarter(this Microsoft.Extensions.Hosting.IHostApplicationBuilder! builder, System.Action<CyberInternauts.CmdStarter.CmdStarterOptions!>? configure = null) -> Microsoft.Extensions.Hosting.IHostApplicationBuilder!
+static CyberInternauts.CmdStarter.Hosting.CmdStarterHostExtensions.RunCmdStarterAsync(this Microsoft.Extensions.Hosting.IHost! host, string![]! args, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!

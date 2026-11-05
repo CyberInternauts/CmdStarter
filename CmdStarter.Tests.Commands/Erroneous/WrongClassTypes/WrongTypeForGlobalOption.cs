@@ -1,7 +1,6 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.WrongClassTypes;
+
+[Parent(null)]
+public class WrongTypeForGlobalOption
 {
-    [Parent(null)]
-    public class WrongTypeForGlobalOption
-    {
-    }
 }

@@ -1,6 +1,5 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Filtering
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Filtering;
+
+public sealed class StarterOn : StarterCommand
 {
-    public sealed class StarterOn : StarterCommand
-    {
-    }
 }

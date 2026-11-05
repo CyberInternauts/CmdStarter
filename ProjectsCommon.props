@@ -1,9 +1,9 @@
 <Project>
 
 	<PropertyGroup>
-		<Version>0.9.0.3-beta4.22272.1</Version>
+		<Version>1.0.0</Version>
 		<BasePackageName>cints</BasePackageName>
-		<BaseNamespace>com.cyberinternauts.csharp</BaseNamespace>
+		<BaseNamespace>CyberInternauts</BaseNamespace>
 		<Company>CyberInternauts</Company>
 		<Authors>Jonathan Boivin, Norbert Ormándi</Authors>
 		<Owners>djon2003, DeszkaCodes</Owners>
@@ -12,9 +12,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<RootNamespace>$(BaseNamespace).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 

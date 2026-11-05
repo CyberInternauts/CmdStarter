@@ -1,88 +1,129 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+using CyberInternauts.CmdStarter.Catalog;
+using CyberInternauts.CmdStarter.Exceptions;
+using CyberInternauts.CmdStarter.Interfaces;
 using System.CommandLine;
-using static com.cyberinternauts.csharp.CmdStarter.Lib.Reflection.Helper;
+using static CyberInternauts.CmdStarter.Reflection.Helper;
+using CyberInternauts.CmdStarter.Binding;
+using CyberInternauts.CmdStarter.Reflection;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Lib
+namespace CyberInternauts.CmdStarter;
+
+/// <summary>
+/// Manager for all global options classes found
+/// </summary>
+public sealed class GlobalOptionsManager
 {
-    /// <summary>
-    /// Manager for all global options classes found
-    /// </summary>
-    public sealed class GlobalOptionsManager
+
+    private static IEnumerable<Type>? foundTypes;
+    private readonly Dictionary<Type, object> globalOptions = [];
+    private readonly Dictionary<Type, List<OptionBinding>> optionBindings = [];
+    private readonly Starter starter;
+
+    internal GlobalOptionsManager(Starter starter)
     {
+        this.starter = starter;
+    }
 
-        private static IEnumerable<Type>? foundTypes;
-        private readonly Dictionary<Type, object> globalOptions = new();
-        private readonly Starter starter;
+    /// <summary>
+    /// List of all global options types
+    /// </summary>
+    public List<Type> GlobalOptionsTypes { get; private set; } = [];
 
-        internal GlobalOptionsManager(Starter starter) 
+    /// <summary>
+    /// Retrieve a global options container of a specific type
+    /// </summary>
+    /// <typeparam name="TGlobalOptions">Global options container type to look for</typeparam>
+    /// <returns>An <see cref="IGlobalOptionsContainer"/> or null if nothing found</returns>
+    public TGlobalOptions? GetGlobalOptions<TGlobalOptions>() where TGlobalOptions : class, IGlobalOptionsContainer
+    {
+        var type = typeof(TGlobalOptions);
+
+        return globalOptions.TryGetValue(type, out object? value) ? (TGlobalOptions)value : null;
+    }
+
+    // Only called for a container that the filters admit: it is rebuilt by BindGlobalOptions at each parse.
+    internal object GetGlobalOptions(Type type) => globalOptions[type];
+
+    internal void FilterTypes()
+    {
+        GlobalOptionsTypes.Clear();
+
+        // Found here and not in the constructor: a catalog that fails is a configuration error of the tree, never of "new Starter()", and the setting UseCommandCatalogs is the one the starter has by now.
+        FindTypes(starter.UseCommandCatalogs, starter.DynamicCodeSupported);
+        var filteredTypes = foundTypes!;
+        if (!starter.Assemblies.IsEmpty)
         {
-            this.starter = starter;
-            FindTypes();
+            filteredTypes = filteredTypes.Where(type => starter.Assemblies.Contains(type.Assembly));
         }
+        filteredTypes = FilterTypesByNamespaces(filteredTypes, [.. starter.Namespaces]);
+        filteredTypes = FilterTypesByClasses(filteredTypes, [.. starter.Classes]);
 
-        /// <summary>
-        /// List of all global options types
-        /// </summary>
-        public List<Type> GlobalOptionsTypes { get; private set; } = new();
+        GlobalOptionsTypes.AddRange(filteredTypes.OrderBy(type => type.FullName, StringComparer.Ordinal));
+    }
 
-        /// <summary>
-        /// Retrieve a global options container of a specific type
-        /// </summary>
-        /// <typeparam name="GlobalOptionsType">Global options container type to look for</typeparam>
-        /// <returns>An <see cref="IGlobalOptionsContainer"/> or null if nothing found</returns>
-        public GlobalOptionsType? GetGlobalOptions<GlobalOptionsType>() where GlobalOptionsType : class, IGlobalOptionsContainer
+    internal void LoadOptions(Command receptacle)
+    {
+        optionBindings.Clear();
+        foreach (var type in GlobalOptionsTypes)
         {
-            var type = typeof(GlobalOptionsType);
-
-            return globalOptions.TryGetValue(type, out object? value) ? (GlobalOptionsType)value : null;
-        }
-
-        /// <summary>
-        /// Add/change a global options container object based on its type
-        /// </summary>
-        /// <typeparam name="GlobalOptionsType">Global options container type to use as key</typeparam>
-        /// <param name="globalOption"></param>
-        internal void SetGlobalOptions<GlobalOptionsType>(GlobalOptionsType globalOption) where GlobalOptionsType : class, IGlobalOptionsContainer
-        {
-            var type = typeof(GlobalOptionsType);
-
-            if (globalOptions.ContainsKey(type)) 
+            var kept = KeptTypes.Of(type);
+            var bindings = Reflection.Loader.LoadOptions(kept, receptacle);
+            optionBindings[type] = bindings;
+            var sample = CreateSample(kept);
+            foreach (var binding in bindings)
             {
-                globalOptions[type] = globalOption;
-            }
-            else
-            {
-                globalOptions.Add(type, globalOption);
-            }
-        }
-
-        internal void FilterTypes()
-        {
-            GlobalOptionsTypes.Clear();
-
-            var filteredTypes = FilterTypesByNamespaces(foundTypes!, starter.Namespaces.ToList()); // foundTypes can't be null as initialized in constructor
-            filteredTypes = FilterTypesByClasses(filteredTypes, starter.Classes.ToList());
-
-            GlobalOptionsTypes.AddRange(filteredTypes);
-        }
-
-        internal void LoadOptions(Command receptacle)
-        {
-            foreach(var type in GlobalOptionsTypes)
-            {
-                Reflection.Loader.LoadOptions(type, receptacle);
+                Reflection.Loader.SetImplicitDefault(binding.Option, binding.Property.GetValue(sample));
             }
         }
+    }
 
-        private static void FindTypes()
+    private static object CreateSample([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type)
+    {
+        try
         {
-            if (foundTypes != null) return;
-
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .Where(t => t.IsClass && t.IsAssignableTo(typeof(IGlobalOptionsContainer)));
-
-            foundTypes = new List<Type>(types);
+            return Activator.CreateInstance(type)!;
         }
+        catch (MissingMethodException exception)
+        {
+            throw new InvalidAttributeException($"The global options container '{type.FullName}' needs a public parameterless constructor. {exception.Message}");
+        }
+    }
+
+    internal void BindGlobalOptions(ParseResult parseResult)
+    {
+        foreach (var type in GlobalOptionsTypes)
+        {
+            if (optionBindings.TryGetValue(type, out var bindings))
+            {
+                globalOptions[type] = CommandBinder.CreateGlobalOptions(parseResult, KeptTypes.Of(type), bindings);
+            }
+        }
+    }
+
+    private static void FindTypes(bool useCatalogs, bool dynamicCodeSupported)
+    {
+        if (foundTypes != null) return;
+
+        foundTypes = FindContainerTypes(AppDomain.CurrentDomain.GetAssemblies(), useCatalogs, dynamicCodeSupported);
+    }
+
+    // Assembly by assembly, like the search of the commands: the catalog of an assembly, else its types. The same predicate applies to both.
+    // Without dynamic code (Native AOT), the references of an assembly cannot be asked and only the catalogs are read: an assembly that has none is not scanned.
+    internal static List<Type> FindContainerTypes(IEnumerable<Assembly> assemblies, bool useCatalogs, bool dynamicCodeSupported)
+    {
+        IEnumerable<Type> Read(Assembly assembly)
+        {
+            var canHaveCatalog = !useCatalogs || !dynamicCodeSupported || CatalogReader.ReferencesLibrary(assembly);
+            if (CatalogReader.TryRead(assembly, useCatalogs, canHaveCatalog, out var catalog))
+            {
+                return catalog.GlobalOptionsTypes;
+            }
+
+            return dynamicCodeSupported ? GetLoadableTypes(assembly) : [];
+        }
+
+        return new List<Type>(assemblies.SelectMany(Read).Where(t => t.IsClass && t.IsAssignableTo(typeof(IGlobalOptionsContainer))));
     }
 }

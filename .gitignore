@@ -147,6 +147,13 @@ coverage*.json
 coverage*.xml
 coverage*.info
 
+# Output of measure-coverage.ps1 (coverage/justifications.md is tracked)
+coverage/results/
+coverage/report/
+
+# Output of measure-trimming.ps1
+coverage/trimming/
+
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml
@@ -361,3 +368,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# DocFX output
+_site/
+api/*.yml
+api/.manifest

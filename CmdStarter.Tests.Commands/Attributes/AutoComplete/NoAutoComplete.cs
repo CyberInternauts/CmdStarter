@@ -1,28 +1,26 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces;
-using System.CommandLine;
+using CyberInternauts.CmdStarter.Tests.Common.Interfaces;
 using System.CommandLine.Completions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Attributes.AutoComplete
+namespace CyberInternauts.CmdStarter.Tests.Commands.Attributes.AutoComplete;
+
+public sealed class NoAutoComplete : StarterCommand, IHasAutoComplete
 {
-    public sealed class NoAutoComplete : StarterCommand, IHasAutoComplete
+    public string PersonName { get; set; } = null!;
+    public const string OPTION_NAME = "person-name";
+
+    public override Delegate HandlingMethod => Execute;
+
+    private void Execute(int age = 18)
+    { }
+    public const string ARGUMENT_NAME = "age";
+
+    public IEnumerable<CompletionItem> OptionCompletionsExpected()
     {
-        public string PersonName { get; set; } = null!;
-        public const string OPTION_NAME = "person-name";
+        return Array.Empty<CompletionItem>();
+    }
 
-        public override Delegate HandlingMethod => Execute;
-
-        private void Execute(int age = 18)
-        { }
-        public const string ARGUMENT_NAME = "age";
-
-        public IEnumerable<CompletionItem> OptionCompletionsExpected()
-        {
-            return Array.Empty<CompletionItem>();
-        }
-
-        public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
-        {
-            return Array.Empty<CompletionItem>();
-        }
+    public IEnumerable<CompletionItem> ArgumentCompletionsExpected()
+    {
+        return Array.Empty<CompletionItem>();
     }
 }

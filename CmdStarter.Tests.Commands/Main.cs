@@ -1,6 +1,5 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands
+namespace CyberInternauts.CmdStarter.Tests.Commands;
+
+public class Main : StarterCommand
 {
-    public class Main : StarterCommand
-    {
-    }
 }

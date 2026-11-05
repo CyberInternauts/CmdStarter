@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\ProjectsCommon.props" />
+  <Import Project="..\Packaging.props" />
+
+  <PropertyGroup>
+    <RootNamespace>CyberInternauts.CmdStarter.Hosting</RootNamespace>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <PackageId>$(BasePackageName).CmdStarter.Hosting</PackageId>
+    <Description>Generic Host (Microsoft.Extensions.Hosting) integration for CmdStarter.</Description>
+    <PackageTags>System.CommandLine;command line;cli;generic host;hosting</PackageTags>
+    <PackageReadmeFile>PKG-README.md</PackageReadmeFile>
+    <PackageReleaseNotes>1.0.0: rewrite on System.CommandLine 2.0 stable and .NET 10, with breaking changes. Migration guide: https://github.com/CyberInternauts/CmdStarter/blob/master/docs/migration/0.9-to-1.0.md</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="PKG-README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CmdStarter.Lib\CmdStarter.Lib.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

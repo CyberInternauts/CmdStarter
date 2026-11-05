@@ -1,6 +1,5 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Loader.Childing.Children.SubChildren
+namespace CyberInternauts.CmdStarter.Tests.Commands.Loader.Childing.Children.SubChildren;
+
+public class SubChild1 : StarterCommand
 {
-    public class SubChild1 : StarterCommand
-    {
-    }
 }

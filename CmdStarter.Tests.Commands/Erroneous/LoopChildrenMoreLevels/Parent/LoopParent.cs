@@ -1,9 +1,8 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.Child;
+using CyberInternauts.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.Child;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.Parent
+namespace CyberInternauts.CmdStarter.Tests.Commands.Erroneous.LoopChildrenMoreLevels.Parent;
+
+[Parent<LoopChild>]
+public class LoopParent : StarterCommand
 {
-    [Parent<LoopChild>]
-    public class LoopParent : StarterCommand
-    {
-    }
 }

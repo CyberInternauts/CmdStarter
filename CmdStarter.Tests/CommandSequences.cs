@@ -1,0 +1,531 @@
+using System.Collections.Immutable;
+using CyberInternauts.CmdStarter.Repl;
+using CyberInternauts.CmdStarter.Sequences;
+using CyberInternauts.CmdStarter.Tests.Commands.Repl;
+using CyberInternauts.CmdStarter.Tests.Commands.Sequences;
+
+namespace CyberInternauts.CmdStarter.Tests;
+
+[Category("* All *")]
+[Category("Sequences")]
+public class CommandSequences
+{
+    [OneTimeSetUp]
+    public void GlobalSetup() => TestsCommon.GlobalSetup();
+
+    [SetUp]
+    public void Setup() => SequenceLog.Entries.Clear();
+
+    [Test]
+    public void SplitsOnSemicolonsOutsideQuotes()
+    {
+        var steps = Parse("a; \"b;c\" d ; e");
+
+        Assert.That(steps.Select(step => step.CommandLine), Is.EqualTo(new[] { "a", "\"b;c\" d", "e" }));
+        Assert.That(steps.Select(step => step.Operator), Is.EqualTo(new[] { SequenceOperator.None, SequenceOperator.Always, SequenceOperator.Always }));
+    }
+
+    [Test]
+    public void ReadsAndOrOperators()
+    {
+        var steps = Parse("a && b || c");
+
+        Assert.That(steps.Select(step => step.CommandLine), Is.EqualTo(new[] { "a", "b", "c" }));
+        Assert.That(steps.Select(step => step.Operator), Is.EqualTo(new[] { SequenceOperator.None, SequenceOperator.OnSuccess, SequenceOperator.OnFailure }));
+    }
+
+    [Test]
+    public void SingleAmpersandIsText()
+    {
+        var steps = Parse("a & b");
+
+        Assert.That(steps.Select(step => step.CommandLine), Is.EqualTo(new[] { "a & b" }));
+        Assert.That(steps.Select(step => step.Operator), Is.EqualTo(new[] { SequenceOperator.None }));
+    }
+
+    [Test]
+    public void SplitsPipelines()
+    {
+        var steps = Parse("a | b \"c|d\" || e");
+
+        Assert.That(steps, Has.Count.EqualTo(2));
+        Assert.That(steps[0].CommandLine, Is.EqualTo("a | b \"c|d\""));
+        Assert.That(steps[0].Operator, Is.EqualTo(SequenceOperator.None));
+        Assert.That(steps[0].Pipeline, Is.EqualTo(new[] { "a", "b \"c|d\"" }));
+        Assert.That(steps[1].Operator, Is.EqualTo(SequenceOperator.OnFailure));
+        Assert.That(steps[1].Pipeline, Is.EqualTo(new[] { "e" }));
+    }
+
+    [Test]
+    public void InvalidPipelinesAreRejected()
+    {
+        var invalidLines = new[] { "| a", "a |", "a | | b", "a || | b", "a | && b" };
+
+        Assert.Multiple(() =>
+        {
+            foreach (var line in invalidLines)
+            {
+                Assert.That(CommandSequence.TryParse(line, out var sequence, out var error), Is.False, line);
+                Assert.That(sequence, Is.Null, line);
+                Assert.That(error, Does.Contain("'|'"), line);
+            }
+        });
+    }
+
+    [Test]
+    public void EmptyStepsAfterSemicolonAreSkipped()
+    {
+        var steps = Parse("a;;b;");
+
+        Assert.That(steps.Select(step => step.CommandLine), Is.EqualTo(new[] { "a", "b" }));
+        Assert.That(steps.Select(step => step.Operator), Is.EqualTo(new[] { SequenceOperator.None, SequenceOperator.Always }));
+    }
+
+    [Test]
+    public void InvalidSequencesAreRejected()
+    {
+        var invalidLines = new (string Line, string ExpectedInMessage)[]
+        {
+            ("&& a", "&&"),
+            ("|| a", "||"),
+            ("a &&", "&&"),
+            ("a || || b", "||"),
+            ("a && ; b", "&&"),
+            ("a ; && b", "&&"),
+            ("a \"b", "quote")
+        };
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (line, expectedInMessage) in invalidLines)
+            {
+                Assert.That(CommandSequence.TryParse(line, out var sequence, out var error), Is.False, line);
+                Assert.That(sequence, Is.Null, line);
+                Assert.That(error, Does.Contain(expectedInMessage), line);
+            }
+
+            // A blank line is valid and has no step; it is not an error.
+            foreach (var blankLine in new[] { string.Empty, "   ", " ; ; " })
+            {
+                Assert.That(CommandSequence.TryParse(blankLine, out var sequence, out var error), Is.True, blankLine);
+                Assert.That(error, Is.Null, blankLine);
+                Assert.That(sequence!.Steps, Is.Empty, blankLine);
+            }
+        });
+    }
+
+    [Test]
+    public async Task StartSequenceRunsStepsAndReturnsLastCode()
+    {
+        var starter = CreateStarter();
+
+        Assert.That(await starter.StartSequence("ok; fail"), Is.EqualTo(3));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok", "fail" }));
+    }
+
+    [Test]
+    public async Task AndSkipsAfterFailure()
+    {
+        var starter = CreateStarter();
+
+        Assert.That(await starter.StartSequence("fail && ok"), Is.EqualTo(3));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "fail" }));
+
+        SequenceLog.Entries.Clear();
+        Assert.That(await starter.StartSequence("ok && fail && other"), Is.EqualTo(3));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok", "fail" }));
+    }
+
+    [Test]
+    public async Task OrRunsAfterFailureOnly()
+    {
+        var starter = CreateStarter();
+
+        Assert.That(await starter.StartSequence("fail || ok"), Is.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "fail", "ok" }));
+
+        SequenceLog.Entries.Clear();
+        Assert.That(await starter.StartSequence("ok || fail"), Is.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok" }));
+    }
+
+    [Test]
+    public async Task CancelledStepStopsSequence()
+    {
+        var starter = CreateStarter();
+
+        Assert.That(await starter.StartSequence("cancelled; ok"), Is.EqualTo(130));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "cancelled" }));
+
+        SequenceLog.Entries.Clear();
+        Assert.That(await starter.StartSequence("ok && cancelled || ok"), Is.EqualTo(130));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok", "cancelled" }));
+    }
+
+    [Test]
+    public async Task InvalidSequenceReturnsOneAndWritesError()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var console = new CommandConsole(new StringReader(string.Empty), output, error);
+
+        Assert.That(await starter.StartSequence("ok &&", console), Is.EqualTo(1));
+        Assert.That(SequenceLog.Entries, Is.Empty);
+        Assert.That(error.ToString(), Is.Not.Empty);
+    }
+
+    [Test]
+    public async Task InvalidSequenceWritesToTheDefaultConsoleWhenNoConsoleIsGiven()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        starter.DefaultConsole = ConsoleWith(string.Empty, output, error);
+
+        Assert.That(await starter.StartSequence("ok &&"), Is.EqualTo(1));
+        Assert.That(error.ToString(), Does.Contain("&&"));
+        Assert.That(SequenceLog.Entries, Is.Empty);
+    }
+
+    [Test]
+    public async Task InvalidSequenceWritesToTheProcessErrorWithoutAnyConsole()
+    {
+        var previousError = Console.Error;
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        try
+        {
+            Console.SetError(error);
+
+            Assert.That(await starter.StartSequence("ok &&"), Is.EqualTo(1));
+        }
+        finally
+        {
+            Console.SetError(previousError);
+        }
+
+        Assert.That(error.ToString(), Does.Contain("&&"));
+    }
+
+    [Test]
+    public async Task BlankLineRunsLikeAPlainStart()
+    {
+        var starter = CreateStarter();
+        using var plainError = new StringWriter();
+        using var sequenceError = new StringWriter();
+
+        var plainCode = await starter.Start("   ", ConsoleWith(plainError));
+        var sequenceCode = await starter.StartSequence("   ", ConsoleWith(sequenceError));
+
+        Assert.That(sequenceCode, Is.EqualTo(plainCode));
+        Assert.That(sequenceError.ToString(), Is.EqualTo(plainError.ToString()));
+        Assert.That(SequenceLog.Entries, Is.Empty);
+    }
+
+    [Test]
+    public async Task SequenceOptionWithConsoleRunsThePipelineOnThatConsole()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        starter.SequenceOption = "-c";
+
+        Assert.That(await starter.Start(["-c", "emit | sort"], ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task PipelineWithoutConsoleUsesTheDefaultConsole()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var starter = CreateStarter();
+        starter.DefaultConsole = ConsoleWith(string.Empty, output, error);
+
+        Assert.That(await starter.StartSequence("emit | sort"), Is.EqualTo(0));
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task PipelineWithoutAnyConsoleUsesTheProcessStreams()
+    {
+        var previousOutput = Console.Out;
+        var previousInput = Console.In;
+        using var output = new StringWriter();
+        using var input = new StringReader(string.Empty);
+        var starter = CreateStarter();
+        try
+        {
+            Console.SetOut(output);
+            Console.SetIn(input);
+
+            Assert.That(await starter.StartSequence("emit | sort"), Is.EqualTo(0));
+        }
+        finally
+        {
+            Console.SetOut(previousOutput);
+            Console.SetIn(previousInput);
+        }
+
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task CancelledCommandStopsThePipeline()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("cancelled | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(130));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "cancelled" }));
+    }
+
+    [Test]
+    public async Task UnclosedQuoteWithoutOperatorRunsAsBefore()
+    {
+        var starter = CreateStarter();
+        using var startError = new StringWriter();
+
+        // What a plain Start does with an unclosed quote: System.CommandLine cannot read a command token from it, so nothing runs and the code is not 0.
+        var startCode = await starter.Start("\"ok", ConsoleWith(startError));
+        Assert.That(startCode, Is.Not.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.Empty);
+
+        // StartSequence gives the same code, and reports the System.CommandLine error, not an invalid sequence.
+        using var sequenceError = new StringWriter();
+        Assert.That(await starter.StartSequence("\"ok", ConsoleWith(sequenceError)), Is.EqualTo(startCode));
+        Assert.That(sequenceError.ToString(), Is.EqualTo(startError.ToString()));
+        Assert.That(sequenceError.ToString(), Does.Not.Contain("Unclosed double quote"));
+
+        // The REPL loop hands the line to Start: the event is raised once, with the same code.
+        using var replError = new StringWriter();
+        var codes = new List<int>();
+        var repl = CreateRepl("\"ok");
+        repl.DefaultConsole = ConsoleWith(replError);
+        repl.OnCommandExecuted += (_, eventArgs) => codes.Add(eventArgs.ReturnCode);
+        await repl.Launch();
+        Assert.That(codes, Is.EqualTo(new[] { startCode }));
+        Assert.That(replError.ToString(), Does.Not.Contain("Unclosed double quote"));
+    }
+
+    private static CommandConsole ConsoleWith(StringWriter error) => new(new StringReader(string.Empty), new StringWriter(), error);
+
+    [Test]
+    public async Task SequenceOptionRunsSequence()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var console = new CommandConsole(new StringReader(string.Empty), output, error);
+        var starter = CreateStarter();
+        starter.SequenceOption = "-c";
+
+        Assert.That(await starter.Start(["-c", "ok; other"]), Is.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok", "other" }));
+
+        // Without the option, "-c" is an unknown option, as before.
+        SequenceLog.Entries.Clear();
+        var plainStarter = CreateStarter();
+        Assert.That(await plainStarter.Start(["-c", "ok"], console), Is.Not.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.Empty);
+    }
+
+    [Test]
+    public void SequenceOptionConflictThrows()
+    {
+        var starter = CreateStarter();
+        starter.SequenceOption = "ok";
+
+        var exception = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
+        Assert.That(exception!.Message, Does.Contain("ok"));
+    }
+
+    [Test]
+    public void SequenceOptionConflictWithARootOptionThrows()
+    {
+        // The root command always has the help option: its name and its aliases are taken.
+        var starter = CreateStarter();
+        starter.SequenceOption = "--help";
+        var byName = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
+        Assert.That(byName!.Message, Does.Contain("'--help'").And.Contain("root command"));
+
+        starter.SequenceOption = "-h";
+        var byAlias = Assert.Throws<InvalidAttributeException>(() => starter.InstantiateCommands());
+        Assert.That(byAlias!.Message, Does.Contain("'-h'").And.Contain("'--help'"));
+    }
+
+    [Test]
+    public async Task ReplRunsSequences()
+    {
+        var executed = 0;
+        var repl = CreateRepl("ok; other", "fail || ok");
+        repl.OnCommandExecuted += (_, _) => executed++;
+
+        await repl.Launch();
+
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok", "other", "fail", "ok" }));
+        Assert.That(executed, Is.EqualTo(4));
+    }
+
+    [Test]
+    public async Task ExitInsideSequenceEndsLoop()
+    {
+        var repl = CreateRepl("ok; exit; other", "ok");
+
+        await repl.Launch();
+
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "ok" }));
+    }
+
+    [Test]
+    public void CompletionUsesCurrentStep()
+    {
+        var repl = CreateRepl();
+
+        var completions = repl.GetCompletions("ok; ot", 6);
+        Assert.That(completions, Does.Contain("other"));
+        Assert.That(completions, Does.Not.Contain("ok"));
+
+        Assert.That(repl.GetCompletions("ok; ", 4), Does.Contain("exit"));
+    }
+
+    [Test]
+    public void CompletionAfterTrailingOperator()
+    {
+        Assert.That(CreateRepl().GetCompletions("ok && ", 6), Does.Contain("other"));
+    }
+
+    [Test]
+    public void CompletionInsideOperatorUsesWholeLine()
+    {
+        Assert.That(CreateRepl().GetCompletions("ok &&", 4), Does.Not.Contain("other"));
+    }
+
+    [Test]
+    public void CompletionAfterHelpWordInStepListsCommands()
+    {
+        var completions = CreateRepl().GetCompletions("ok; help ", 9);
+
+        Assert.That(completions, Does.Contain("other"));
+        Assert.That(completions, Does.Not.Contain("exit"));
+    }
+
+    [Test]
+    public async Task PipelinePassesOutputToNextInput()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("emit | sort", ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+    }
+
+    [Test]
+    public async Task ThreeStagePipelineReturnsLastCode()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("emit | sort | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(3));
+        Assert.That(output.ToString().Trim(), Is.EqualTo("3"));
+    }
+
+    [Test]
+    public async Task ErrorsBypassThePipe()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("warn | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(1));
+        Assert.That(error.ToString(), Does.Contain("warning"));
+        Assert.That(output.ToString().Trim(), Is.EqualTo("1"));
+    }
+
+    [Test]
+    public async Task PipelineRunsEveryCommandEvenAfterFailure()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        Assert.That(await starter.StartSequence("fail | count", ConsoleWith(string.Empty, output, error)), Is.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "fail", "count" }));
+    }
+
+    [Test]
+    public async Task PipelinesCombineWithOperators()
+    {
+        var starter = CreateStarter();
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var console = ConsoleWith(string.Empty, output, error);
+
+        // The code of a pipeline is the one of its last command: count reads nothing and returns 0, so "&&" goes on.
+        Assert.That(await starter.StartSequence("fail | count && ok", console), Is.EqualTo(0));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "fail", "count", "ok" }));
+
+        // Here count returns 3, so "&&" skips ok.
+        SequenceLog.Entries.Clear();
+        Assert.That(await starter.StartSequence("emit | count && ok", console), Is.EqualTo(3));
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "emit", "count" }));
+    }
+
+    [Test]
+    public async Task ReplRunsPipeline()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var executed = 0;
+        var repl = CreateRepl("emit | sort");
+        repl.DefaultConsole = ConsoleWith(string.Empty, output, error);
+        repl.OnCommandExecuted += (_, _) => executed++;
+
+        await repl.Launch();
+
+        Assert.That(output.ToString().ReplaceLineEndings("\n"), Is.EqualTo("a\nb\nc\n"));
+        Assert.That(executed, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task ExitCannotBePiped()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var repl = CreateRepl("ok | exit", "other");
+        repl.DefaultConsole = ConsoleWith(string.Empty, output, error);
+
+        await repl.Launch();
+
+        Assert.That(SequenceLog.Entries, Is.EqualTo(new[] { "other" }));
+        Assert.That(error.ToString(), Does.Contain("cannot be piped"));
+    }
+
+    [Test]
+    public void CompletionAfterPipe()
+    {
+        Assert.That(CreateRepl().GetCompletions("emit | so", 9), Does.Contain("sort"));
+    }
+
+    private static CommandConsole ConsoleWith(string input, StringWriter output, StringWriter error) => new(new StringReader(input), output, error);
+
+    private static Starter CreateStarter() => new()
+    {
+        Namespaces = [typeof(Ok).Namespace!]
+    };
+
+    private static ReplStarter CreateRepl(params string?[] lines) => new(new ScriptedInputProvider(lines))
+    {
+        Namespaces = [typeof(Ok).Namespace!]
+    };
+
+    private static IReadOnlyList<CommandSequenceStep> Parse(string line)
+    {
+        Assert.That(CommandSequence.TryParse(line, out var sequence, out var error), Is.True, error);
+        Assert.That(error, Is.Null);
+        return sequence!.Steps;
+    }
+}

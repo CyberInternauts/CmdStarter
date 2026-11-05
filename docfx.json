@@ -1,0 +1,44 @@
+{
+  // Links to the samples/ folder point outside the DocFX content: report them as information. The documentation tests check that every relative link exists.
+  "rules": { "InvalidFileLink": "info" },
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": ".",
+          "files": [
+            "CmdStarter.Lib/bin/Debug/net10.0/CmdStarter.Lib.dll",
+            "CmdStarter.Hosting/bin/Debug/net10.0/CmdStarter.Hosting.dll"
+          ]
+        }
+      ],
+      "dest": "api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "docs/**.md",
+          "docs/toc.yml"
+        ]
+      },
+      {
+        "files": [
+          "index.md",
+          "toc.yml"
+        ]
+      }
+    ],
+    "dest": "_site",
+    "globalMetadata": {
+      "_appTitle": "CmdStarter"
+    }
+  }
+}

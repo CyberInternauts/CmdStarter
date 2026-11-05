@@ -1,8 +1,7 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Common.Interfaces
+namespace CyberInternauts.CmdStarter.Tests.Common.Interfaces;
+
+public interface IHasAliases
 {
-    public interface IHasAliases
-    {
-        string[] ExpectedOptionAliases { get; }
-        string[] ExpectedCommandAliases { get; }
-    }
+    string[] ExpectedOptionAliases { get; }
+    string[] ExpectedCommandAliases { get; }
 }

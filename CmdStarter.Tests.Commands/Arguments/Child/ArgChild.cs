@@ -1,8 +1,7 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.Arguments.Child
+namespace CyberInternauts.CmdStarter.Tests.Commands.Arguments.Child;
+
+[Parent<ArgParent>]
+public class ArgChild : StarterCommand
 {
-    [Parent<ArgParent>]
-    public class ArgChild : StarterCommand
-    {
-        public override Delegate HandlingMethod => (int p1) => { };
-    }
+    public override Delegate HandlingMethod => (int p1) => { };
 }

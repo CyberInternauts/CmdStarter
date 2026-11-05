@@ -1,0 +1,428 @@
+namespace CyberInternauts.CmdStarter.Tests.Integration;
+
+[Category("* All *")]
+[Category("Integration")]
+public sealed class SamplesTests
+{
+    [Test]
+    public async Task HelloWorldGreetsTheWorld()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.HelloWorld");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hello, World!"));
+    }
+
+    [Test]
+    public async Task HelloWorldGreetsByName()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.HelloWorld", "--to", "Bob");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hello, Bob!"));
+    }
+
+    [Test]
+    public async Task TwoCommandsAdds()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.TwoCommands", "add", "2", "3");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("5"));
+    }
+
+    [Test]
+    public async Task TwoCommandsSubtracts()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.TwoCommands", "subtract", "5", "3");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("2"));
+    }
+
+    [Test]
+    public async Task NestedCommandsAddsRemote()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.NestedCommands",
+            "remote",
+            "add",
+            "origin",
+            "https://example.com/repo.git");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Added remote origin (https://example.com/repo.git)"));
+    }
+
+    [Test]
+    public async Task NestedCommandsRemovesRemote()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.NestedCommands",
+            "remote",
+            "remove",
+            "origin");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Removed remote origin"));
+    }
+
+    [Test]
+    public async Task NestedCommandsSetsConfig()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.NestedCommands",
+            "config",
+            "set",
+            "color",
+            "blue");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("color=blue"));
+    }
+
+    [Test]
+    public async Task FluentTreeSampleListsUsers()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.FluentTree", "users", "ls");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("ann, bob"));
+    }
+
+    [Test]
+    public async Task FluentTreeSampleListsGroups()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.FluentTree", "groups", "list");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("admins, devs"));
+    }
+
+    [Test]
+    public async Task FluentTreeSampleRunsGroupedCommand()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.FluentTree", "admin", "reset");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("reset done"));
+    }
+
+    [Test]
+    public async Task DependencyInjectionInjectsClassCommand()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.DependencyInjection", "greet", "--to", "Ann");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hello, Ann!"));
+    }
+
+    [Test]
+    public async Task DependencyInjectionInjectsMethodCommand()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.DependencyInjection", "welcome", "Ann");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Welcome! Hello, Ann!"));
+    }
+
+    [Test]
+    public async Task ScopedServicesShareOneScopePerRun()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.ScopedServices", "run");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(
+            result.StdOut
+                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Trim())
+                .ToArray(),
+            Is.EqualTo(new[] { "working", "same-scope", "committed", "unit of work disposed" }));
+    }
+
+    [Test]
+    public async Task GlobalOptionsReachClassCommand()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.GlobalOptions", "status", "--verbose");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("status: ok"));
+        Assert.That(result.StdOut, Does.Contain("details: all systems nominal"));
+    }
+
+    [Test]
+    public async Task GlobalOptionsDefaultToOff()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.GlobalOptions", "info");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("info: v1"));
+        Assert.That(result.StdOut, Does.Not.Contain("details:"));
+    }
+
+    [Test]
+    public async Task ValidationAcceptsValidPort()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Validation", "serve", "--port", "8080");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Serving on port 8080"));
+    }
+
+    [Test]
+    public async Task ValidationRejectsNonNumericPort()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Validation", "serve", "--port", "abc");
+        Assert.That(result.ExitCode, Is.Not.Zero);
+    }
+
+    [Test]
+    public async Task ValidationRejectsOutOfRangePort()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Validation", "serve", "--port", "70000");
+        Assert.That(result.ExitCode, Is.Not.Zero);
+        Assert.That(result.AllOutput, Does.Contain("Port must be between 1 and 65535."));
+    }
+
+    [Test]
+    public async Task ValidationRejectsMissingArgument()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Validation", "ping");
+        Assert.That(result.ExitCode, Is.Not.Zero);
+    }
+
+    [Test]
+    public async Task ValidationAcceptsArgumentAndOption()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.Validation",
+            "ping",
+            "example.com",
+            "--count",
+            "2");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Pinging example.com 2 times"));
+    }
+
+    [Test]
+    public async Task ConfigurationReadsEnvironment()
+    {
+        var environment = new Dictionary<string, string?> { ["SAMPLE_REGION"] = "eu-west" };
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Configuration", environment, "show-region");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Region: eu-west"));
+    }
+
+    [Test]
+    public async Task ConfigurationOptionOverridesEnvironment()
+    {
+        var environment = new Dictionary<string, string?> { ["SAMPLE_REGION"] = "eu-west" };
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.Configuration",
+            environment,
+            "show-region",
+            "--region",
+            "us-east");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Region: us-east"));
+    }
+
+    [Test]
+    public async Task ConfigurationFallsBackToDefault()
+    {
+        var environment = new Dictionary<string, string?> { ["SAMPLE_REGION"] = null };
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Configuration", environment, "show-region");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Region: local"));
+    }
+
+    [Test]
+    public async Task DevOpsToolDeploys()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.DevOpsTool",
+            "service",
+            "deploy",
+            "api",
+            "--version",
+            "1.2.3");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Deploying api 1.2.3 to dev"));
+    }
+
+    [Test]
+    public async Task DevOpsToolDryRunsInProd()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.DevOpsTool",
+            "service",
+            "deploy",
+            "api",
+            "--version",
+            "1.2.3",
+            "--environment",
+            "prod",
+            "--dry-run");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("[dry-run] Deploying api 1.2.3 to prod"));
+    }
+
+    [Test]
+    public async Task DevOpsToolRejectsUnknownService()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.DevOpsTool", "service", "deploy", "billing");
+        Assert.That(result.ExitCode, Is.EqualTo(3));
+        Assert.That(result.StdErr, Does.Contain("Unknown service: billing"));
+    }
+
+    [Test]
+    public async Task DevOpsToolRejectsUnknownEnvironment()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.DevOpsTool",
+            "service",
+            "rollback",
+            "web",
+            "--environment",
+            "qa");
+        Assert.That(result.ExitCode, Is.EqualTo(2));
+        Assert.That(result.StdErr, Does.Contain("Unknown environment: qa"));
+    }
+
+    [Test]
+    public async Task DevOpsToolShowsStatus()
+    {
+        var result = await AppRunner.RunAsync(
+            "samples/CmdStarter.Samples.DevOpsTool",
+            "status",
+            "--environment",
+            "staging");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Environment: staging"));
+        Assert.That(result.StdOut, Does.Contain("worker: healthy"));
+    }
+
+    [Test]
+    public async Task ReplSampleRunsSession()
+    {
+        var result = await AppRunner.RunWithInputAsync(
+            "samples/CmdStarter.Samples.Repl",
+            "whoami\n\nlogin ann\nwhoami\nhelp\nexit\nwhoami\n");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("anonymous (scope 1)"));
+        Assert.That(result.StdOut, Does.Contain("Logged in as ann (scope 2)"));
+        Assert.That(result.StdOut, Does.Contain("ann (scope 3)"));
+        Assert.That(result.StdOut, Does.Not.Contain("(scope 4)"));
+        Assert.That(result.StdErr, Is.Empty);
+    }
+
+    [Test]
+    public async Task ReplSampleRunsSequence()
+    {
+        var result = await AppRunner.RunWithInputAsync(
+            "samples/CmdStarter.Samples.Repl",
+            "login ann; whoami\nexit\n");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Logged in as ann (scope 1)"));
+        Assert.That(result.StdOut, Does.Contain("ann (scope 2)"));
+        Assert.That(result.StdErr, Is.Empty);
+    }
+
+    [Test]
+    public async Task ReplSampleEndsAtEndOfInput()
+    {
+        var result = await AppRunner.RunWithInputAsync("samples/CmdStarter.Samples.Repl", "whoami\n");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("anonymous (scope 1)"));
+    }
+
+    [Test]
+    public async Task ReplServerSampleDemo()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.ReplServer", "demo");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("running"));
+        Assert.That(result.StdOut, Does.Contain("hi"));
+    }
+
+    [Test]
+    public async Task DaemonSampleDemo()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Daemon", "demo");
+        Assert.That(result.ExitCode, Is.Zero);
+
+        // Two counts forwarded to the daemon share its counter; once it stopped, the count runs on a counter of its own.
+        var first = result.StdOut.IndexOf("forwarded: 1", StringComparison.Ordinal);
+        var second = result.StdOut.IndexOf("forwarded: 2", StringComparison.Ordinal);
+        var local = result.StdOut.IndexOf("local: 1", StringComparison.Ordinal);
+        Assert.That(first, Is.GreaterThanOrEqualTo(0));
+        Assert.That(second, Is.GreaterThan(first));
+        Assert.That(local, Is.GreaterThan(second));
+    }
+
+    [Test]
+    public async Task CommandStatesSampleFollowsSession()
+    {
+        var result = await AppRunner.RunWithInputAsync(
+            "samples/CmdStarter.Samples.CommandStates",
+            "whoami\nlogin ann\nwhoami\nlogin bob\nlogout\nexit\n");
+
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Welcome, ann."));
+        Assert.That(result.StdOut, Does.Contain("You are ann."));
+        Assert.That(result.StdOut, Does.Contain("Goodbye, ann."));
+        Assert.That(result.StdOut, Does.Not.Contain("Welcome, bob."));
+        Assert.That(result.StdErr, Does.Contain("Command 'whoami' is not available in the current state."));
+        Assert.That(result.StdErr, Does.Contain("Command 'login' is not available in the current state."));
+    }
+
+    [Test]
+    public async Task HostingSampleReadsAppSettings()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Hosting", "greet", "Ann");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hello, Ann!"));
+    }
+
+    [Test]
+    public async Task HostingSampleEnvironmentOverridesSettings()
+    {
+        var environment = new Dictionary<string, string?> { ["Greeting__Prefix"] = "Hey" };
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Hosting", environment, "greet", "Ann");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hey, Ann!"));
+    }
+
+    [Test]
+    public async Task HostingSampleWritesNoHostStatus()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Hosting", "greet", "Ann");
+        Assert.That(result.StdOut, Does.Not.Contain("Application started"));
+    }
+
+    [Test]
+    public async Task FiltersSampleLogsCommand()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Filters", "status");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("ok"));
+        Assert.That(result.StdErr, Does.Contain("[filter] status -> 0"));
+    }
+
+    [Test]
+    public async Task FiltersSampleRequiresConfirmation()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Filters", "deploy");
+        Assert.That(result.ExitCode, Is.EqualTo(3));
+        Assert.That(result.StdOut, Does.Not.Contain("deployed"));
+        Assert.That(result.StdErr, Does.Contain("Confirmation required"));
+    }
+
+    [Test]
+    public async Task FiltersSampleDeploysWithYes()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.Filters", "deploy", "--yes");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("deployed"));
+    }
+
+    [Test]
+    public async Task TestingSampleTransfers()
+    {
+        var done = await AppRunner.RunAsync("samples/CmdStarter.Samples.Testing", "transfer", "alice", "bob", "--amount", "10");
+        Assert.That(done.ExitCode, Is.Zero);
+        Assert.That(done.StdOut, Does.Contain("Transferred 10 from alice to bob."));
+
+        var invalidAmount = await AppRunner.RunAsync("samples/CmdStarter.Samples.Testing", "transfer", "alice", "bob", "--amount", "0");
+        Assert.That(invalidAmount.ExitCode, Is.EqualTo(2));
+        Assert.That(invalidAmount.StdErr, Does.Contain("The amount must be positive."));
+
+        var refused = await AppRunner.RunAsync("samples/CmdStarter.Samples.Testing", "transfer", "alice", "carol", "--amount", "10");
+        Assert.That(refused.ExitCode, Is.EqualTo(1));
+        Assert.That(refused.StdErr, Does.Contain("Transfer refused."));
+    }
+}

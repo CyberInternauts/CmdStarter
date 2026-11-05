@@ -1,18 +1,15 @@
-﻿using com.cyberinternauts.csharp.CmdStarter.Lib.Interfaces;
+namespace CyberInternauts.CmdStarter.Tests.Commands.GlobalOptions;
 
-namespace com.cyberinternauts.csharp.CmdStarter.Tests.Commands.GlobalOptions
+public class MainGlobalOptions : IGlobalOptionsContainer
 {
-    public class MainGlobalOptions : IGlobalOptionsContainer
-    {
-        [Description(INT_GLOBAL_OPTION_DESC)]
-        public int IntGlobalOption { get; set; } = INT_GLOBAL_OPTION_VALUE;
-        public const int INT_GLOBAL_OPTION_VALUE = 888;
-        public const string INT_GLOBAL_OPTION_KEBAB = "int-global-option";
-        public const string INT_GLOBAL_OPTION_DESC = "My first global option";
+    [Description(INT_GLOBAL_OPTION_DESC)]
+    public int IntGlobalOption { get; set; } = INT_GLOBAL_OPTION_VALUE;
+    public const int INT_GLOBAL_OPTION_VALUE = 888;
+    public const string INT_GLOBAL_OPTION_KEBAB = "int-global-option";
+    public const string INT_GLOBAL_OPTION_DESC = "My first global option";
 
-        [Hidden]
-        [Description(HIDDEN_INT_GLOBAL_OPTION_DESC)]
-        public int HiddenIntGlobalOption { get; set; } = 887;
-        public const string HIDDEN_INT_GLOBAL_OPTION_DESC = "Hidden global option";
-    }
+    [Hidden]
+    [Description(HIDDEN_INT_GLOBAL_OPTION_DESC)]
+    public int HiddenIntGlobalOption { get; set; } = 887;
+    public const string HIDDEN_INT_GLOBAL_OPTION_DESC = "Hidden global option";
 }

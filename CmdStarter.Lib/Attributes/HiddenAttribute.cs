@@ -1,10 +1,9 @@
-﻿namespace com.cyberinternauts.csharp.CmdStarter.Lib.Attributes
+namespace CyberInternauts.CmdStarter.Attributes;
+
+/// <summary>
+/// Hide from help
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Method, AllowMultiple = false)]
+public sealed class HiddenAttribute : Attribute
 {
-    /// <summary>
-    /// Hide from help
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class HiddenAttribute : Attribute
-    {
-    }
 }
