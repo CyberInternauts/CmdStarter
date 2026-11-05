@@ -3,7 +3,7 @@
 
   <!-- This project holds commands that are wrong on purpose (cycles, name conflicts, invalid methods): the analyzer package is referenced for its catalog generator, and its rules are silenced here. -->
   <PropertyGroup>
-    <NoWarn>$(NoWarn);CMDS0001;CMDS0002;CMDS0003;CMDS0004;CMDS0005;CMDS0006;CMDS0007;CMDS0008;CMDS0009;CMDS0010;CMDS0011;CMDS0012;CMDS0013</NoWarn>
+    <NoWarn>$(NoWarn);CMDS0001;CMDS0002;CMDS0003;CMDS0004;CMDS0005;CMDS0006;CMDS0007;CMDS0008;CMDS0009;CMDS0010;CMDS0011;CMDS0012;CMDS0013;CMDS0017</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

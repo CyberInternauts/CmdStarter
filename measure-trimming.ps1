@@ -48,7 +48,9 @@ $packageVersion = $versionMatch.Groups[1].Value
 #   output that tells which constructor served;
 # - a command `made` that declares its own static GetInstance, so it is created through FindGetInstanceMethod (MakeGenericMethod on a class, then Invoke), and shows that this method made it. Its execution
 #   still has the scope of the service provider (ADR 0006, amended on 2026-11-04), so its filter is created with the constructor that takes IGreeter, like the one of the other commands;
-# - a class with a method marked [Command] that has an [Option] List<string> parameter and an int parameter (command `tag`), created by ActivatorUtilities too.
+# - a class with a method marked [Command] that has an [Option] List<string> parameter and an int parameter (command `tag`), created by ActivatorUtilities too;
+# - a plain command (command `reporter`): a class marked [Command] that has no base class or interface of CmdStarter, whose handler is named by Handler = nameof(Report) and INHERITED from a base class
+#   (GetMethods without DeclaredOnly), with an option property that is inherited too (the properties of the base classes), an argument, and a global options container as a parameter.
 # The commands are not rooted, so that the command name is on the command line.
 # The fourth application, Tree, places its commands with Starter.UseTree, under a group; with the mode `ct` it sets Starter.CommandsTypes to a type of the catalog instead.
 $listsProgram = @'
@@ -155,6 +157,34 @@ public sealed class Tagger
 }
 '@
 
+$listsReporter = @'
+using CyberInternauts.CmdStarter.Attributes;
+using CyberInternauts.CmdStarter.Interfaces;
+
+namespace CyberInternauts.CmdStarter.Samples.Lists;
+
+public sealed class ListsGlobals : IGlobalOptionsContainer
+{
+    public int Level { get; set; } = 3;
+}
+
+public abstract class ReporterBase
+{
+    public string Prefix { get; set; } = "report";
+
+    public int Report(string text, ListsGlobals globals)
+    {
+        Console.WriteLine($"{Prefix}: {text} level={globals.Level}");
+        return 0;
+    }
+}
+
+[Command(Handler = nameof(Report))]
+public sealed class Reporter : ReporterBase
+{
+}
+'@
+
 # The fourth application places its commands with Starter.UseTree, under a group.
 $treeProgram = @'
 using CyberInternauts.CmdStarter;
@@ -210,13 +240,14 @@ $applications = @(
     [pscustomobject]@{
         Name   = 'Lists'
         Sample = $null
-        Files  = [ordered]@{ 'Program.cs' = $listsProgram; 'Services.cs' = $listsServices; 'Show.cs' = $listsShow; 'Greet.cs' = $listsGreet; 'Made.cs' = $listsMade; 'Tagger.cs' = $listsTagger }
+        Files  = [ordered]@{ 'Program.cs' = $listsProgram; 'Services.cs' = $listsServices; 'Show.cs' = $listsShow; 'Greet.cs' = $listsGreet; 'Made.cs' = $listsMade; 'Tagger.cs' = $listsTagger; 'Reporter.cs' = $listsReporter }
         Runs   = @(
             [pscustomobject]@{ Arguments = 'show a b --names x --names y --numbers 1 2'; Expect = 'Output'; Line = 'names=x,y values=a,b numbers=1,2' },
             [pscustomobject]@{ Arguments = 'greet --who Bob'; Expect = 'Output'; Line = 'Hello, Bob!' },
             [pscustomobject]@{ Arguments = 'made'; Expect = 'OutputAndError'; Line = 'made by GetInstance'; ErrorLine = 'filter: Hello, filter!' },
             [pscustomobject]@{ Arguments = 'tag red 3 --tags a --tags b'; Expect = 'Output'; Line = 'label=red tags=a,b count=3' },
-            [pscustomobject]@{ Arguments = 'show c --names z --numbers 3'; Expect = 'OutputAndError'; Line = 'names=z values=c numbers=3'; ErrorLine = 'filter: Hello, filter!' }
+            [pscustomobject]@{ Arguments = 'show c --names z --numbers 3'; Expect = 'OutputAndError'; Line = 'names=z values=c numbers=3'; ErrorLine = 'filter: Hello, filter!' },
+            [pscustomobject]@{ Arguments = 'reporter hello --prefix note --level 5'; Expect = 'OutputAndError'; Line = 'note: hello level=5'; ErrorLine = 'filter: Hello, filter!' }
         )
     },
     [pscustomobject]@{

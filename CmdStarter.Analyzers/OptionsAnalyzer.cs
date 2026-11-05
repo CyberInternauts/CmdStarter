@@ -30,7 +30,7 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
             var globalNames = new HashSet<string>(StringComparer.Ordinal);
             foreach (var globalType in GetAllTypes(start.Compilation.Assembly.GlobalNamespace).Where(candidate => Implements(candidate, globalInterface)))
             {
-                foreach (var property in GetOptions(globalType, starterInterface, globalInterface, option, notOption, excluded))
+                foreach (var property in GetOptions(globalType, starterInterface, globalInterface, option, notOption, excluded, isPlain: false))
                 {
                     AddNames(globalNames, property.Name, property.GetAttributes(), alias);
                 }
@@ -48,14 +48,16 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!type.IsAbstract && Implements(type, globalInterface) && GetOptions(type, starterInterface, globalInterface, optionAttribute, notOptionAttribute, excludedAttribute).Length == 0)
+        if (!type.IsAbstract && Implements(type, globalInterface) && GetOptions(type, starterInterface, globalInterface, optionAttribute, notOptionAttribute, excludedAttribute, isPlain: false).Length == 0)
         {
             context.ReportDiagnostic(Diagnostic.Create(Descriptors.EmptyGlobalOptions, type.Locations.FirstOrDefault(), type.Name));
         }
 
-        if (Implements(type, starterInterface))
+        // A plain command has its options too: its public read-write properties, and the [Option] parameters of its handler.
+        var isPlain = PlainCommands.IsCandidate(type, commandAttribute, starterInterface);
+        if (Implements(type, starterInterface) || isPlain)
         {
-            foreach (var property in GetOptions(type, starterInterface, globalInterface, optionAttribute, notOptionAttribute, excludedAttribute))
+            foreach (var property in GetOptions(type, starterInterface, globalInterface, optionAttribute, notOptionAttribute, excludedAttribute, isPlain))
             {
                 if (Intersects(globalNames, GetNames(property.Name, property.GetAttributes(), aliasAttribute)))
                 {
@@ -66,7 +68,13 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
 
         if (commandAttribute is not null)
         {
-            foreach (var method in type.GetMembers().OfType<IMethodSymbol>().Where(method => method.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, commandAttribute))))
+            var handlers = type.GetMembers().OfType<IMethodSymbol>().Where(method => method.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, commandAttribute)));
+            if (isPlain)
+            {
+                handlers = PlainCommands.FindHandlers(type, PlainCommands.GetHandlerName(PlainCommands.FindAttribute(type, commandAttribute)!), context.Compilation);
+            }
+
+            foreach (var method in handlers)
             {
                 foreach (var parameter in method.Parameters.Where(parameter => parameter.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, optionAttribute))))
                 {
@@ -79,17 +87,17 @@ public sealed class OptionsAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static IPropertySymbol[] GetOptions(INamedTypeSymbol type, INamedTypeSymbol starterInterface, INamedTypeSymbol globalInterface, INamedTypeSymbol optionAttribute, INamedTypeSymbol notOptionAttribute, INamedTypeSymbol excludedAttribute)
+    private static IPropertySymbol[] GetOptions(INamedTypeSymbol type, INamedTypeSymbol starterInterface, INamedTypeSymbol globalInterface, INamedTypeSymbol optionAttribute, INamedTypeSymbol notOptionAttribute, INamedTypeSymbol excludedAttribute, bool isPlain)
     {
         var properties = type.GetMembers().OfType<IPropertySymbol>().Concat(GetBaseProperties(type)).Where(property =>
             property.DeclaredAccessibility == Accessibility.Public
             && !property.IsStatic
             && property.GetMethod is not null
             && property.SetMethod is not null
-            && (Implements(property.ContainingType, starterInterface) || Implements(property.ContainingType, globalInterface))
+            && (isPlain || Implements(property.ContainingType, starterInterface) || Implements(property.ContainingType, globalInterface))
             && property.ContainingType is { } declaringType
             && !declaringType.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, excludedAttribute))
-            && !(Implements(declaringType, starterInterface) && starterInterface.GetMembers().OfType<IPropertySymbol>().Any(item => StringComparer.Ordinal.Equals(item.Name, property.Name))))
+            && !(!isPlain && Implements(declaringType, starterInterface) && starterInterface.GetMembers().OfType<IPropertySymbol>().Any(item => StringComparer.Ordinal.Equals(item.Name, property.Name))))
             .ToArray();
         var hasOption = properties.Any(property => property.GetAttributes().Any(attribute => SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, optionAttribute)));
         return [.. properties.Where(property =>

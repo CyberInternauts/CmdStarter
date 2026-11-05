@@ -84,10 +84,12 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
             return;
         }
 
-        // The predicates of the scan: a command is a concrete class with a namespace, a class of method commands has a namespace, a container needs neither.
+        // The predicates of the scan: a command is a concrete class with a namespace that implements IStarterCommand or is a plain command (marked [Command], no [Command] method),
+        // a class of method commands has a namespace and is not a plain command, a container needs neither.
         var hasNamespace = !type.ContainingNamespace.IsGlobalNamespace;
-        var isCommand = hasNamespace && !type.IsAbstract && Implements(type, symbols.StarterCommand);
-        var isMethodClass = hasNamespace && DeclaresCommands(type, symbols.CommandAttribute);
+        var isPlain = hasNamespace && PlainCommands.IsCandidate(type, symbols.CommandAttribute, symbols.StarterCommand);
+        var isCommand = hasNamespace && ((!type.IsAbstract && Implements(type, symbols.StarterCommand)) || isPlain);
+        var isMethodClass = hasNamespace && !isPlain && DeclaresCommands(type, symbols.CommandAttribute);
         var isContainer = Implements(type, symbols.GlobalOptionsContainer);
         if (!isCommand && !isMethodClass && !isContainer)
         {
@@ -116,7 +118,14 @@ public sealed class CommandCatalogGenerator : IIncrementalGenerator
         {
             found.Commands.Add(name);
             SymbolTypeCollector.AddProperties(type, symbols, found, context);
-            SymbolTypeCollector.AddHandlingMethod(type, name, symbols, found, context);
+            if (isPlain)
+            {
+                SymbolTypeCollector.AddHandlerParameters(type, symbols, found, context);
+            }
+            else
+            {
+                SymbolTypeCollector.AddHandlingMethod(type, name, symbols, found, context);
+            }
         }
 
         if (isMethodClass)

@@ -75,6 +75,7 @@ The static analysis gives no `IL` warning (see [Trimming](trimming.md#static-ana
 | Lists | | `Lists.exe made` | 0 | `made by GetInstance`, and `filter: Hello, filter!` on the error output |
 | Lists | | `Lists.exe tag red 3 --tags a --tags b` | 0 | `label=red tags=a,b count=3` |
 | Lists | | `Lists.exe show c --names z --numbers 3` | 0 | `names=z values=c numbers=3`, and `filter: Hello, filter!` on the error output |
+| Lists | | `Lists.exe reporter hello --prefix note --level 5` | 0 | `note: hello level=5`, and `filter: Hello, filter!` on the error output |
 | Tree | 5 032 960 bytes | `Tree.exe tools show --label x` | 0 | `label=x` |
 | Tree | | `Tree.exe tools --help` | 0 | `Description:` |
 | Tree | | `Tree.exe ct show --label y` | 0 | `label=y` |

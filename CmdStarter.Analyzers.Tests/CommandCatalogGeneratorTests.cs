@@ -98,7 +98,7 @@ public sealed class CommandCatalogGeneratorTests
     {
         var source = Usings + """
             namespace Ns;
-            [Command("group")] public class OnClass { }
+            [Command("group")] public class OnClass { [Command] public int Go() => 0; }
             public class OnPublicMethod { [Command] public int Run() => 0; }
             public class OnPrivateStatic { [Command] private static int Hidden() => 0; }
             public static class StaticHost { [Command] public static int Go() => 0; }
@@ -791,6 +791,73 @@ public sealed class CommandCatalogGeneratorTests
     // The calls that register a type of value.
     private static string[] SymbolCalls(GeneratorResult result) =>
         [.. Calls(result).Where(call => call.StartsWith("builder.AddSymbolType<", StringComparison.Ordinal))];
+
+    [Test]
+    public void PlainCommandIsListedAsACommandWithTheTypesOfItsHandler()
+    {
+        // A class marked [Command] without a [Command] method is a command of the class model, not a class of method commands. Its properties and the parameters of its handler count,
+        // but not the ones of the other methods when Handler names one.
+        var source = Usings + """
+            namespace Ns;
+            [Command] public sealed class Greeter { public string Greeting { get; set; } = ""; public int Run(Guid id) => 0; }
+            [Command(Handler = nameof(Go))] public sealed class Designated { public int Go(DayOfWeek day) => 0; public int Skip(long ignored) => 0; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+        Assert.That(Calls(result), Is.EqualTo(new[]
+        {
+            "builder.AddCommand<global::Ns.Designated>();",
+            "builder.AddCommand<global::Ns.Greeter>();",
+            "builder.AddSymbolType<global::System.DayOfWeek>();",
+            "builder.AddSymbolType<global::System.Guid>();",
+            "builder.AddSymbolType<string>();"
+        }));
+    }
+
+    [Test]
+    public void PlainCommandWithAMissingOrAmbiguousHandlerIsStillListed()
+    {
+        // The error is the one of the analyzer and of the engine: the generator lists the type, and reads the methods that the handler may be, without a diagnostic.
+        var source = Usings + """
+            namespace Ns;
+            [Command] public sealed class NoHandler { public int A(long x) => 0; public int B(short y) => 0; }
+            [Command(Handler = "Missing")] public sealed class Missing { public int Run(byte b) => 0; }
+            [Command(Handler = nameof(Run))] public sealed class Overloaded { public int Run(char c) => 0; public int Run(double d) => 0; }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(result.GeneratorDiagnostics, Is.Empty);
+        Assert.That(Calls(result), Is.EqualTo(new[]
+        {
+            "builder.AddCommand<global::Ns.Missing>();",
+            "builder.AddCommand<global::Ns.NoHandler>();",
+            "builder.AddCommand<global::Ns.Overloaded>();",
+            "builder.AddSymbolType<char>();",
+            "builder.AddSymbolType<double>();",
+            "builder.AddSymbolType<long>();",
+            "builder.AddSymbolType<short>();"
+        }));
+    }
+
+    [Test]
+    public void InheritedHandlerOfAPlainCommandIsRead()
+    {
+        var source = Usings + """
+            namespace Ns;
+            public class Base { public int Run(Guid id) => 0; public string Label { get; set; } = ""; }
+            [Command(Handler = nameof(Run))] public sealed class Derived : Base { }
+            """;
+
+        var result = GeneratorRunner.Run(source);
+
+        AssertCompiles(result);
+        Assert.That(Calls(result), Is.EqualTo(new[] { "builder.AddCommand<global::Ns.Derived>();", "builder.AddSymbolType<global::System.Guid>();", "builder.AddSymbolType<string>();" }));
+    }
 
     // The calls that Describe makes, one per line, without their indentation.
     private static string[] Calls(GeneratorResult result) =>

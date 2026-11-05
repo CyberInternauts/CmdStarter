@@ -45,6 +45,20 @@ internal static class SymbolTypeCollector
         }
     }
 
+    // The type of every parameter of the handler of a plain command, but the ones that never become an argument. The handler is read like the library reads it: the method that [Command(Handler = ...)] names
+    // (all the public instance methods of that name when the name is missing or ambiguous, which is an error that the analyzer and the library report), else the public instance methods that the class declares.
+    internal static void AddHandlerParameters(INamedTypeSymbol type, CommandCatalogGenerator.Symbols symbols, CommandCatalogGenerator.Found found, SourceProductionContext context)
+    {
+        var handlerName = PlainCommands.GetHandlerName(PlainCommands.FindAttribute(type, symbols.CommandAttribute)!);
+        foreach (var method in PlainCommands.FindHandlers(type, handlerName, symbols.Compilation))
+        {
+            foreach (var parameter in method.Parameters.Where(parameter => parameter.RefKind == RefKind.None))
+            {
+                Add(parameter.Type, MemberName(method), parameter.Locations.FirstOrDefault(), symbols, found, context);
+            }
+        }
+    }
+
     // The member that uses a type, as CMDS0016 names it: the full name of its type and its name.
     private static string MemberName(ISymbol member) =>
         member.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + member.Name;

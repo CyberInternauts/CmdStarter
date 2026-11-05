@@ -148,12 +148,15 @@ public class CommandCatalogs
         var recorder = new RecordingBuilder();
         ((ICommandCatalog)Activator.CreateInstance(assembly.GetCustomAttribute<CommandCatalogAttribute>()!.CatalogType)!).Describe(recorder);
 
-        // The predicates of the scan, written again here.
+        // The predicates of the scan, written again here. A plain command is a class marked [Command] that declares no [Command] method and has no base class or interface of CmdStarter:
+        // it is a command, and not a class of method commands.
         var types = assembly.GetTypes();
-        var commands = types.Where(type => type.IsClass && !type.IsAbstract && type.IsAssignableTo(typeof(IStarterCommand)) && type.Namespace != null);
-        var methodClasses = types.Where(type => type.IsClass && type.Namespace != null && (Attribute.IsDefined(type, typeof(CommandAttribute))
-            || type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly)
-                .Any(method => Attribute.IsDefined(method, typeof(CommandAttribute)))));
+        var declaredMethods = (Type type) => type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly);
+        var plain = (Type type) => type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && !type.IsAssignableTo(typeof(IStarterCommand))
+            && Attribute.IsDefined(type, typeof(CommandAttribute)) && !declaredMethods(type).Any(method => Attribute.IsDefined(method, typeof(CommandAttribute)));
+        var commands = types.Where(type => type.IsClass && type.Namespace != null && ((!type.IsAbstract && type.IsAssignableTo(typeof(IStarterCommand))) || plain(type)));
+        var methodClasses = types.Where(type => type.IsClass && type.Namespace != null && !plain(type) && (Attribute.IsDefined(type, typeof(CommandAttribute))
+            || declaredMethods(type).Any(method => Attribute.IsDefined(method, typeof(CommandAttribute)))));
         var containers = types.Where(type => type.IsClass && type.IsAssignableTo(typeof(IGlobalOptionsContainer)));
 
         Assert.That(recorder.Commands, Is.Not.Empty);
