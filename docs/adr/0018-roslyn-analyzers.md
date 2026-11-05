@@ -25,9 +25,11 @@ Every diagnostic from CMDS0001 through CMDS0011 reproduces a validation already 
 | CMDS0008 | Reports a `ref`, `out`, or `in` parameter on a method marked `[Command]`; runtime validation in `MethodCommandsLoader.Validate`. |
 | CMDS0009 | Reports a type that implements `IStarterCommand` and declares a `[Command]` method; runtime validation in `MethodCommandsLoader.Validate`. |
 | CMDS0010 | Reports an instance `[Command]` method declared by a non-static abstract class; runtime validation in `MethodCommandsLoader.Validate`. |
-| CMDS0011 | Reports a class marked `[Command]` that declares no `[Command]` method; runtime validation in `MethodCommandsLoader.Validate`. |
+| CMDS0011 | Reports a class marked `[Command]` that declares no `[Command]` method and has no handler (see the amendment below); runtime validation in `MethodCommandsLoader`. |
 | CMDS0012 | Advises when an option on a command shares a name or alias with a global option and therefore hides it; requested in ADR 0010, not checked at runtime. |
 | CMDS0013 | Advises when a non-abstract global options container contributes no option properties; requested by Jira CMD-16, not checked at runtime. |
+
+Amended on 2026-11-05 (lot 037): a class marked `[Command]` that declares no `[Command]` method is a plain command ([ADR 0032](0032-plain-class-commands.md)). CMDS0011 is retitled "Command class without a handler" ("Type '{0}' must declare command methods or exactly one public instance method") and reports such a class that has no public instance method of its own, or several, without `Handler`, and a static, abstract or generic one; CMDS0009 also reports a class that implements `IStarterCommand` and is itself marked `[Command]`; CMDS0007 and CMDS0008 also apply to the handler of a plain command; CMDS0012 also covers its properties and the `[Option]` parameters of its handler; and CMDS0017 "Invalid command handler" is added for a `Handler` that names no public instance method, several, or that is set on a method, on a class of command methods or on a class that cannot be a plain command. CMDS0017 reproduces a validation of the runtime too.
 
 All rules have `Warning` severity. This lets a potential false positive remain visible without blocking compilation; an application can raise the severity in `.editorconfig`.
 

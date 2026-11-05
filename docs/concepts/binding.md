@@ -4,7 +4,7 @@ This page explains how the parts of a command become the command line: the prope
 
 ## Properties become options
 
-In the class model, a public instance property that has a getter and a setter becomes an option. Any setter counts, even a `private` or an `init` one: a property that is not meant to be an option must have no setter, or carry `[NotOption]`. Its name is `--` followed by the kebab-case of the property name. Static, private, protected, read-only and write-only properties do not become options.
+In the class model, a public instance property that has a getter and a setter becomes an option. Any setter counts, even a `private` or an `init` one: a property that is not meant to be an option must have no setter, or carry `[NotOption]`. Its name is `--` followed by the kebab-case of the property name. Static, private, protected, read-only and write-only properties do not become options. A plain command (a class marked `[Command]` that declares no `[Command]` method, with no base class and no interface) follows the same rule, and the properties it inherits from its base classes are options too, except the ones of a base class marked `[AllOptionsExcluded]`.
 
 Three attributes change this selection:
 
@@ -65,13 +65,13 @@ In the class model, the parameters of the handler become positional arguments, n
 public override Delegate HandlingMethod => (Action<int, int>)((left, right) => Console.Out.WriteLine(left - right));
 ```
 
-A `CommandConsole` parameter is not an argument: CmdStarter injects it into the handler.
+A `CommandConsole` parameter is not an argument: CmdStarter injects it into the handler. The handler of a plain command is a method of the class, not a delegate, and its parameters follow the rules of the method commands below instead.
 
 A handler parameter can carry `[Description]`, `[Hidden]`, `[AutoComplete]` and validation attributes. See [Attributes](attributes.md) and [Validation](../guides/validation.md).
 
 ## Method commands: how parameters are classified
 
-Each parameter of a `[Command]` method is classified when the command tree is built. The rules are checked in this order, and the first one that matches decides, so a `[FromServices]` parameter is a service even if it also carries `[Option]`, and an `[Option]` parameter is an option even if its type is a registered service:
+Each parameter of a `[Command]` method, and of the handler of a plain command, is classified when the command tree is built. The rules are checked in this order, and the first one that matches decides, so a `[FromServices]` parameter is a service even if it also carries `[Option]`, and an `[Option]` parameter is an option even if its type is a registered service:
 
 - a `CancellationToken`, which receives the cancellation token of the execution;
 - a `CommandConsole`, which receives the console of the execution (see [Command console](../guides/command-console.md));

@@ -21,6 +21,29 @@ public sealed class SamplesTests
     }
 
     [Test]
+    public async Task PlainCommandGreetsWithItsOption()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.PlainCommand", "greet", "Bob", "--greeting", "Hi");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Hi, Bob!"));
+    }
+
+    [Test]
+    public async Task PlainCommandRunsTheHandlerThatHandlerNames()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.PlainCommand", "report", "sales", "--verbose");
+        Assert.That(result.ExitCode, Is.Zero);
+        Assert.That(result.StdOut, Does.Contain("Report on sales, in detail"));
+    }
+
+    [Test]
+    public async Task PlainCommandWithoutItsArgumentIsAParseError()
+    {
+        var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.PlainCommand", "greet");
+        Assert.That(result.ExitCode, Is.Not.Zero);
+    }
+
+    [Test]
     public async Task TwoCommandsAdds()
     {
         var result = await AppRunner.RunAsync("samples/CmdStarter.Samples.TwoCommands", "add", "2", "3");

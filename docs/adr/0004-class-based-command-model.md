@@ -11,3 +11,5 @@ One class represents one command; properties are options and HandlingMethod para
 
 ## Consequences
 The class model remains supported alongside the additive [method-based model](0009-method-based-command-model.md).
+
+Amended on 2026-11-05 (lot 037): a class that implements no interface of CmdStarter can be a command of the class model too, a plain command: it carries `[Command]` and declares no `[Command]` method, its public read/write properties are its options and its handler is a method of the class. See [ADR 0032](0032-plain-class-commands.md).

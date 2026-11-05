@@ -9,7 +9,7 @@ This page lists the attributes that CmdStarter defines, and the .NET attributes 
 | `[AutoComplete]`, `[AutoComplete<T>]` | property, parameter | gives completions to an option or an argument | this page |
 | `[AvailableInState]` | class, method | restricts a command to the listed application states | [Command states](../guides/command-states.md) |
 | `[Children]`, `[Children<T>]` | class | places the commands of a namespace under the class | [Discovery](discovery.md) |
-| `[Command]` | class, method | declares a method command, or a group class | [Commands](commands.md) |
+| `[Command]` | class, method | declares a method command, a group class, or a plain command; `Handler` names the handler of a plain command | [Commands](commands.md) |
 | `[FromServices]` | parameter of a method command | resolves the parameter from dependency injection | [Binding](binding.md), [Dependency injection](dependency-injection.md) |
 | `[Hidden]` | class, property, parameter, method | hides the element from the help | this page |
 | `[NotOption]` | property | the property is not an option | [Binding](binding.md) |
@@ -82,7 +82,7 @@ private void Execute([AutoComplete<AgeEnum>()] int age = 18)
 
 ## `[Command]`, `[Parent]` and `[Children]`
 
-`[Command]` marks a method, or a class used as a group, as a command of the method model. See [Commands](commands.md). `[Parent]` and `[Children]` place class commands in the tree. See [Discovery](discovery.md).
+`[Command]` has three uses. On a method, it declares a command of the method model. On a class that declares such methods, it makes the class a group. On a class that declares none, it makes the class a plain command, a plain class with no base class and no interface, of the class model; its `Handler` property then names the handler, for example `[Command(Handler = nameof(Show))]`, and it is an error on a method or on a group. See [Commands](commands.md). `[Parent]` and `[Children]` place class commands in the tree. See [Discovery](discovery.md).
 
 ## `[AvailableInState]`
 

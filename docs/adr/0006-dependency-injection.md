@@ -13,6 +13,7 @@ Applications need per-invocation service scopes while CmdStarter should remain u
 
 CmdStarter creates a description instance while building the command tree and a new execution instance for every command run.
 Creation priority is a `GetInstance<T>()` method declared by the command type, `Starter.ServiceProvider`, `Starter.SetFactory`, then the parameterless constructor.
+Amended on 2026-11-05 (lot 037): a plain command ([ADR 0032](0032-plain-class-commands.md)) has no `GetInstance<T>()` convention, so its creation priority starts at `Starter.ServiceProvider`. `Starter.SetFactory` takes a `Func<Type, object>`, and its instance must be of the type asked for, otherwise an `InvalidOperationException` is thrown.
 Microsoft DI executions use one asynchronous service scope per execution; the scope is disposed even when a handler throws.
 The description instance resolved from Microsoft DI uses its own scope, disposed after the tree and global options are built.
 CmdStarter disposes instances it creates itself: through a `GetInstance<T>()` method declared by the command type, `Activator` or `ActivatorUtilities`.

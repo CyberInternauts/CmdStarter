@@ -65,6 +65,8 @@ public sealed class Set : StarterCommand
 
 `config set color blue` prints `color=blue`.
 
+A plain command (a class marked `[Command]` that declares no `[Command]` method, with no base class and no interface) can be the parent or the child: `[Parent<T>]` on a plain class places it under any class command, plain or not, and `T` can itself be a plain class. See [Commands](../concepts/commands.md#plain-classes).
+
 ```powershell
 dotnet run --project samples/CmdStarter.Samples.NestedCommands -- config set color blue
 ```

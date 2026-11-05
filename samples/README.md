@@ -5,6 +5,7 @@ These examples are small, runnable programs that show common ways to build comma
 | Example | What it shows | Try it | Guide |
 |---|---|---|---|
 | [HelloWorld](CmdStarter.Samples.HelloWorld) | A single rooted command with a property option | `dotnet run --project samples/CmdStarter.Samples.HelloWorld -- --to Bob` | [Getting started](../docs/getting-started.md) |
+| [PlainCommand](CmdStarter.Samples.PlainCommand) | Plain classes, with no base class and no interface, that become commands with `[Command]`, one with its handler named by `Handler` | `dotnet run --project samples/CmdStarter.Samples.PlainCommand -- greet Bob --greeting Hi` | [Commands](../docs/concepts/commands.md) |
 | [TwoCommands](CmdStarter.Samples.TwoCommands) | Two top-level commands with positional arguments | `dotnet run --project samples/CmdStarter.Samples.TwoCommands -- add 2 3` | [Getting started](../docs/getting-started.md) |
 | [NestedCommands](CmdStarter.Samples.NestedCommands) | Namespace and attribute based command nesting | `dotnet run --project samples/CmdStarter.Samples.NestedCommands -- remote add origin https://example.com/repo.git` | [Nested commands](../docs/guides/nested-commands.md) |
 | [FluentTree](CmdStarter.Samples.FluentTree) | Explicit command tree defined with `Starter.UseTree` | `dotnet run --project samples/CmdStarter.Samples.FluentTree -- users ls` | [Fluent tree](../docs/guides/fluent-tree.md) |

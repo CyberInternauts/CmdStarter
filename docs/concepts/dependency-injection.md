@@ -11,6 +11,8 @@ CmdStarter creates a command instance by the first of these means that applies:
 3. the factory set with `Starter.SetFactory`, one per `Starter`;
 4. the parameterless constructor.
 
+A plain command (a class marked `[Command]` that declares no `[Command]` method, with no base class and no interface) has no `GetInstance`: the first means does not apply to it, and the other three do.
+
 So a command that declares `GetInstance` is never taken from the container or the factory, and with a service provider set, the factory is not called. The execution of such a command still has its service scope when a service provider is set: the filters registered by type are created with their services, `CommandContext.Services` is not `null`, and the scope is released at the end of the execution.
 
 A `GetInstance` method is generic with one type parameter, static and public, and it returns a new instance on each call. The following command has no parameterless constructor, so it is created through this method:
@@ -112,7 +114,7 @@ The `CmdStarter.Hosting` package is described in [the hosting guide](../guides/h
 
 ## Another container: `SetFactory`
 
-To use another container, set a factory with `Starter.SetFactory`. The application registers the command types in that container itself. The factory is called once for the tree and once per execution. CmdStarter does not dispose the instances that the factory returns. The SimpleInjector demo uses this form:
+To use another container, set a factory with `Starter.SetFactory`, a function from a `Type` to an `object`. The instance it returns must be of the type asked for, otherwise the execution throws `InvalidOperationException`. The application registers the command types in that container itself. The factory is called once for the tree and once per execution. CmdStarter does not dispose the instances that the factory returns. The SimpleInjector demo uses this form:
 
 <!-- snippet: CmdStarter.Demo.SimpleInjector/Program.cs -->
 ```csharp

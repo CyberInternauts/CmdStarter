@@ -7,9 +7,9 @@ The package `cints.CmdStarter` ships a source generator. In each project that re
 The generator is in the same assembly as the [analyzers](analyzers.md), so it needs no extra package. In every compilation that references CmdStarter.Lib, it writes a file `CommandCatalog.g.cs` with:
 
 - the assembly attribute `CommandCatalogAttribute`, which designates the catalog;
-- an internal class `CommandCatalog_<assembly name>` that implements `ICommandCatalog`. Its `Describe` method has one line per type: `AddCommand` for a command class, `AddMethodCommands` for a class of method commands, and `AddGlobalOptions` for a global options container, in the ordinal order of the full names.
+- an internal class `CommandCatalog_<assembly name>` that implements `ICommandCatalog`. Its `Describe` method has one line per type: `AddCommand` for a command class or a plain command, `AddMethodCommands` for a class of method commands, and `AddGlobalOptions` for a global options container, in the ordinal order of the full names.
 
-The catalog lists the types that the scan would find: non-abstract classes that implement `IStarterCommand` and have a namespace; classes with a namespace that are marked `[Command]` or declare a method marked `[Command]`; and classes that implement `IGlobalOptionsContainer`. A project with no command gets an empty catalog, which tells `Starter` that there is nothing to search in the assembly. Nothing is written in a compilation that does not reference CmdStarter.Lib.
+The catalog lists the types that the scan would find: non-abstract classes that implement `IStarterCommand` and have a namespace; plain commands (concrete, non-generic classes with a namespace that are marked `[Command]`, declare no method marked `[Command]` and do not implement `IStarterCommand`); the other classes with a namespace that are marked `[Command]` or declare a method marked `[Command]`; and classes that implement `IGlobalOptionsContainer`. A project with no command gets an empty catalog, which tells `Starter` that there is nothing to search in the assembly. Nothing is written in a compilation that does not reference CmdStarter.Lib.
 
 The catalog validates nothing. The checks stay in `Starter`, which raises the same exceptions as before.
 
@@ -92,6 +92,7 @@ The registration over-approximates on purpose: a type registered for nothing cos
 
 - The type of every public instance property that has a getter and a setter (a private setter and `init` count; a property without setter, a static property and an indexer do not), in each listed command and each listed global options container, with the inherited properties. The properties that the library itself declares are not counted.
 - The type of every parameter of the methods marked `[Command]`, except `CancellationToken`, `CommandConsole`, and the parameters passed by reference. A method that is not marked does not count.
+- The type of every parameter of the handler of a plain command: the method that `Handler` names, or all the public instance methods of that name when the name is missing or ambiguous, or all its public instance methods when there is no `Handler`. The generator reports nothing about a wrong handler: the analyzer and `Starter` do.
 - The types of the parameters of the delegate that the `HandlingMethod` of a command gives, when they can be read at compile time.
 
 ### How `HandlingMethod` is read

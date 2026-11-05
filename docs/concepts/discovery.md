@@ -4,7 +4,7 @@ This page explains how CmdStarter finds the class commands, how it filters them,
 
 ## Where commands are searched
 
-`Starter` searches the assemblies listed in `Starter.Assemblies`. When that list is empty, it searches every loaded assembly. For class commands, it keeps the non-abstract classes that implement `IStarterCommand` and have a namespace.
+`Starter` searches the assemblies listed in `Starter.Assemblies`. When that list is empty, it searches every loaded assembly. For class commands, it keeps the non-abstract classes that implement `IStarterCommand` and have a namespace, and the plain commands that have a namespace: the classes marked `[Command]` that declare no `[Command]` method, which it looks for in the assemblies that reference CmdStarter and in the types that a catalog lists (see [Commands](commands.md#plain-classes)).
 
 An assembly is searched in one of two ways. When it carries a `[CommandCatalog]` attribute and `Starter.UseCommandCatalogs` is `true` (the default), `Starter` reads the catalog that the attribute designates: the generator of the package writes one at compile time, and its types are the candidates, without a scan of the types of the assembly. Otherwise, the assembly is scanned by reflection. The predicate above applies to the types of both sources. See [Source generator](../advanced/source-generator.md).
 
@@ -59,7 +59,7 @@ The result of discovery is sorted by full type name, with an ordinal comparison.
 
 - Changing `Namespaces`, `Classes`, `Assemblies` or `UseCommandCatalogs` resets the commands and the tree, and the discovery runs again.
 - Changing `ClassesBuildingMode`, `IsRootingLonelyCommand` or `GroupsByNamespace` resets the tree.
-- Setting `CommandsTypes` resets the tree, and the list is checked first: a type that is not a non-abstract class implementing `IStarterCommand`, that has no namespace or that is listed twice raises an `ArgumentException` that names the type, and nothing changes. `null` means an empty list.
+- Setting `CommandsTypes` resets the tree, and the list is checked first: a type that is not a non-abstract class implementing `IStarterCommand` or a plain command class, that has no namespace or that is listed twice raises an `ArgumentException` that names the type, and nothing changes. `null` means an empty list.
   - Before the first discovery, a non-empty list stands for the discovery of the class commands: the discovery does not run, so there are no method commands.
   - After the discovery, only the class commands change and the discovered method commands stay.
   - An empty list goes back to the discovery.

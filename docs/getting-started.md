@@ -123,7 +123,7 @@ The first prints `Hello, Ann!`, the second `Welcome! Hello, Ann!`.
 
 ## Where to go next
 
-- [Commands](concepts/commands.md): the two command models.
+- [Commands](concepts/commands.md): the two command models, and the plain classes (no base class, no interface) that `[Command]` turns into commands.
 - [Dependency injection](concepts/dependency-injection.md).
 - [Nested commands](guides/nested-commands.md) and [Testing](guides/testing.md).
 - [Samples](../samples/README.md): all the runnable examples.

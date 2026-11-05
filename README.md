@@ -10,7 +10,7 @@ CmdStarter turns plain C# code into a command-line interface built on System.Com
 
 ## Features
 
-- Two command models: classes (inheriting `StarterCommand` or implementing `IStarterCommand`) and `[Command]` methods. See [Commands](docs/concepts/commands.md).
+- Two command models: classes (inheriting `StarterCommand`, implementing `IStarterCommand`, or plain classes with no base class and no interface that carry `[Command]`) and `[Command]` methods. See [Commands](docs/concepts/commands.md).
 - Discovery by namespaces and class filters, or a command tree described in code with `Starter.UseTree`. See [Discovery](docs/concepts/discovery.md) and [Fluent command tree](docs/guides/fluent-tree.md).
 - Options and arguments deduced from the code. See [Binding](docs/concepts/binding.md).
 - A Roslyn analyzer that reports definition errors at compile time. See [Analyzers](docs/advanced/analyzers.md).

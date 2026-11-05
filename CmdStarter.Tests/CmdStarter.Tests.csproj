@@ -30,6 +30,7 @@
     <ProjectReference Include="..\CmdStarter.Demo.SimpleInjector\CmdStarter.Demo.SimpleInjector.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\CmdStarter.Demo.Repl\CmdStarter.Demo.Repl.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.HelloWorld\CmdStarter.Samples.HelloWorld.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\samples\CmdStarter.Samples.PlainCommand\CmdStarter.Samples.PlainCommand.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.TwoCommands\CmdStarter.Samples.TwoCommands.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.NestedCommands\CmdStarter.Samples.NestedCommands.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\samples\CmdStarter.Samples.FluentTree\CmdStarter.Samples.FluentTree.csproj" ReferenceOutputAssembly="false" />

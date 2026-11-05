@@ -65,7 +65,7 @@ See [Discovery](../concepts/discovery.md) for the ordinary discovery rules.
 
 Definition errors fail immediately, when `UseTree` is called. They are not `InvalidAttributeException`:
 
-- `ArgumentException`: a type that is not a non-abstract class implementing `IStarterCommand`; a type added twice; a blank or multi-segment group name; a group with no command.
+- `ArgumentException`: a type that is not a non-abstract class implementing `IStarterCommand` or a plain command class; a type added twice; a blank or multi-segment group name; a group with no command.
 - `InvalidOperationException`: `WithName` on the root or on a group; any change to a definition kept after `UseTree` has returned.
 
 If the callback throws, the previous tree stays in place.

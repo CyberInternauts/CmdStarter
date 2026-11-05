@@ -1,6 +1,6 @@
 # Commands
 
-CmdStarter turns C# code into a command-line tree. A command is declared in one of two models: the **class model**, where a class is a command, and the **method model**, where a method is a command. Both models can be used in the same application. This page covers each model, how a handler sets the exit code, and how names are derived. The rules that find and place commands are in [Discovery](discovery.md). The rules that turn properties and parameters into options and arguments are in [Binding](binding.md).
+CmdStarter turns C# code into a command-line tree. A command is declared in one of two models: the **class model**, where a class is a command, and the **method model**, where a method is a command. The class model has two forms: a class that implements `IStarterCommand`, and a **plain class**, which has no base class and no interface and is made a command by `[Command]`. All of them can be used in the same application. This page covers each form, how a handler sets the exit code, and how names are derived. The rules that find and place commands are in [Discovery](discovery.md). The rules that turn properties and parameters into options and arguments are in [Binding](binding.md).
 
 ## The class model
 
@@ -70,6 +70,48 @@ The value that the handler returns becomes the exit code of the process:
 
 Only the leaf commands of the tree run a handler. A command that has subcommands is the path to them. In the [NestedCommands](../../samples/CmdStarter.Samples.NestedCommands) sample, `remote add origin ...` runs the leaf command `add`.
 
+## Plain classes
+
+A class that carries `[Command]` and declares no `[Command]` method is a **plain command**: a plain class, with no base class and no interface. It is a command of the class model in every respect: it is discovered, placed in the tree, hidden, aliased and filtered like a class that implements `IStarterCommand`, and it is not a group of method commands. Its public read/write properties are its options, and its handler is its only public instance method:
+
+<!-- snippet: samples/CmdStarter.Samples.PlainCommand/Commands/Greet.cs -->
+```csharp
+[Command]
+public sealed class Greet
+{
+    public string Greeting { get; set; } = "Hello";
+
+    public int Run(string name)
+    {
+        Console.Out.WriteLine($"{Greeting}, {name}!");
+        return 0;
+    }
+}
+```
+
+The parameters of the handler are classified with the rules of the method model (see [Binding](binding.md)): the cancellation token, the console, a global options container, `[FromServices]`, `[Option]`, a service that the service provider knows, and otherwise a positional argument. The properties of the class are its options in addition. The exit code comes from the return value, as in the table above.
+
+The name of a plain command is the name of its class in kebab-case. `[Command("name")]` gives another name, in a single word: a name with a space is a path, which belongs to the method model, and throws `InvalidAttributeException`.
+
+When the class has other public methods, or inherits the handler from a base class, `Handler` names the handler:
+
+<!-- snippet: samples/CmdStarter.Samples.PlainCommand/Commands/Report.cs -->
+```csharp
+[Command(Handler = nameof(Show))]
+public sealed class Report
+{
+    public bool Verbose { get; set; }
+
+    public int Show(string topic)
+    // ...
+    public string Describe(string topic) => $"Report on {topic}";
+}
+```
+
+The handler is then the public instance method of that name, declared by the class or inherited; two methods of that name, or none, throw `InvalidAttributeException`. Without `Handler`, the handler is the only public instance method that the class declares itself. The redefinitions of the methods of `object` and the parameterless `Dispose` or `DisposeAsync` of a disposable class do not count, and a class with no such method, or with several, throws `InvalidAttributeException` when the tree is built. The handler cannot be generic and cannot have `ref`, `out` or `in` parameters.
+
+A plain command is created by the service provider, else by the factory of `Starter.SetFactory`, else by its parameterless constructor (see [Dependency injection](dependency-injection.md)). It has no `GetInstance` and no `GetGlobalOptions<T>()`: a global options container is a parameter of its handler.
+
 ## The method model
 
 A method marked with `[Command]` is a command. The method model is built with these shapes:
@@ -137,8 +179,9 @@ public sealed class AuditLogCommands
 The following declarations throw `InvalidAttributeException` when the command tree is built:
 
 - a `[Command]` method that is not public, that is generic, or that has `ref`, `out` or `in` parameters;
-- a class that implements `IStarterCommand` and also has `[Command]` methods;
-- a `[Command("group")]` class that has no `[Command]` method;
+- a class that implements `IStarterCommand` and also has `[Command]` methods, or that is itself marked `[Command]`;
+- a static, abstract or generic class marked `[Command]` that has no `[Command]` method (a concrete class without one is a plain command: see [Plain classes](#plain-classes));
+- `Handler` on a method, or on a class that has `[Command]` methods: it names the handler of a plain command only;
 - an abstract class that is not static and that has instance commands;
 - two commands with the same name under the same parent.
 
@@ -176,6 +219,6 @@ With `Starter.IsRootingLonelyCommand` set to `false`, the command name is requir
 
 ## See also
 
-- Examples: [HelloWorld](../../samples/CmdStarter.Samples.HelloWorld), [TwoCommands](../../samples/CmdStarter.Samples.TwoCommands), [DevOpsTool](../../samples/CmdStarter.Samples.DevOpsTool), [DependencyInjection](../../samples/CmdStarter.Samples.DependencyInjection).
+- Examples: [HelloWorld](../../samples/CmdStarter.Samples.HelloWorld), [PlainCommand](../../samples/CmdStarter.Samples.PlainCommand), [TwoCommands](../../samples/CmdStarter.Samples.TwoCommands), [DevOpsTool](../../samples/CmdStarter.Samples.DevOpsTool), [DependencyInjection](../../samples/CmdStarter.Samples.DependencyInjection).
 - Neighbouring pages: [Discovery](discovery.md), [Attributes](attributes.md), [Binding](binding.md), [Dependency injection](dependency-injection.md), [Nested commands](../guides/nested-commands.md).
-- ADRs: [0004, class-based command model](../adr/0004-class-based-command-model.md), [0009, method-based command model](../adr/0009-method-based-command-model.md).
+- ADRs: [0004, class-based command model](../adr/0004-class-based-command-model.md), [0009, method-based command model](../adr/0009-method-based-command-model.md), [0032, plain class commands](../adr/0032-plain-class-commands.md).
