@@ -16,7 +16,7 @@ CmdStarter turns plain C# code into a command-line application, on top of System
 
 The package is `cints.CmdStarter`, for .NET 10. Version 1.0 accepts breaking changes, listed in the [migration guide](migration/0.9-to-1.0.md).
 
-Start with [Getting started](getting-started.md).
+Start with [Getting started](getting-started.md). [CmdStarter compared](comparison.md) sets it beside Spectre.Console.Cli, CliFx and Cocona.
 
 ## Concepts
 

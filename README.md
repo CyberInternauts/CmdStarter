@@ -7,6 +7,7 @@ CmdStarter turns plain C# code into a command-line interface built on System.Com
 - Article: https://www.codeproject.com/Articles/5361921/Integrate-System-CommandLine-Easily-with-CmdStarte
 - Nuget package: https://www.nuget.org/packages/cints.CmdStarter
 - Jira: https://cyberinternauts.atlassian.net/browse/CMD
+- Comparison with Spectre.Console.Cli, CliFx and Cocona: [docs/comparison.md](docs/comparison.md)
 
 ## Features
 

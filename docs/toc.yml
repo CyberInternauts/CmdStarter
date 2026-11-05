@@ -2,6 +2,8 @@
   href: index.md
 - name: Getting started
   href: getting-started.md
+- name: CmdStarter compared
+  href: comparison.md
 - name: Concepts
   items:
   - name: Commands
