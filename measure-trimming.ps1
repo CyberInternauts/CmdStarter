@@ -5,7 +5,8 @@
 .DESCRIPTION
     1. builds CmdStarter.sln in Release, which writes the package cints.CmdStarter in artefacts/;
     2. recreates, outside the repository, $env:TEMP\CmdStarter-trimming\HelloWorld, ...\DevOpsTool and ...\Lists: an application that references the package
-       (RestoreSources = artefacts/ and nuget.org, RestorePackagesPath = $env:TEMP\CmdStarter-trimming\packages, so the global NuGet cache of the user is never read or written)
+       (RestoreSources = artefacts/ and nuget.org, or nuget.org only with -FromNuGet; RestorePackagesPath = $env:TEMP\CmdStarter-trimming\packages and
+       NUGET_HTTP_CACHE_PATH = $env:TEMP\CmdStarter-trimming\http-cache, so the NuGet caches of the user are never read or written)
        and holds a copy of the sources of the sample (Lists, which has the collection options, is written by the script);
     3. publishes each application with -p:PublishTrimmed=true and with -p:PublishAot=true (-c Release -r win-x64 --self-contained);
     4. runs each executable and records the exit code, the first line of the output and the first line of the error output;
@@ -14,10 +15,16 @@
 
 .PARAMETER SkipBuild
     Does not build the solution (the package of artefacts/ must be the one to measure). For tries of the script only.
+
+.PARAMETER FromNuGet
+    Measures the package as nuget.org serves it. Nothing is built: the .nupkg of the version of ProjectsCommon.props is downloaded from the flat container of nuget.org
+    into $env:TEMP\CmdStarter-trimming-nuget, the applications restore cints.CmdStarter from nuget.org only, and the restored package must have the SHA-256 of the
+    downloaded one. nuget.org adds a repository signature, so these bytes differ from those of artefacts/.
 #>
 [CmdletBinding()]
 param(
-    [switch] $SkipBuild
+    [switch] $SkipBuild,
+    [switch] $FromNuGet
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,6 +34,8 @@ $repositoryRoot = $PSScriptRoot
 $artefacts = Join-Path $repositoryRoot 'artefacts'
 $workRoot = Join-Path $env:TEMP 'CmdStarter-trimming'
 $packagesPath = Join-Path $workRoot 'packages'
+$httpCachePath = Join-Path $workRoot 'http-cache'
+$nugetIndex = 'https://api.nuget.org/v3/index.json'
 $reportFolder = Join-Path $repositoryRoot 'coverage/trimming'
 $reportPath = Join-Path $reportFolder 'trimming.md'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
@@ -322,29 +331,45 @@ function Get-FirstLine {
 
 # --- 1. The package ---------------------------------------------------------------------------------------------------------------------------------------------
 
-if (-not $SkipBuild) {
-    Write-Host 'Building CmdStarter.sln in Release...'
-    dotnet build CmdStarter.sln -c Release -nologo -v:q
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "dotnet build failed (exit code $LASTEXITCODE): nothing was measured."
-        exit $LASTEXITCODE
+if ($FromNuGet) {
+    # The reference is the package that the users receive: downloaded from the flat container, outside the work folder that step 2 recreates.
+    $versionLower = $packageVersion.ToLowerInvariant()
+    $downloadFolder = Join-Path $env:TEMP 'CmdStarter-trimming-nuget'
+    Remove-Item -LiteralPath $downloadFolder -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Path $downloadFolder | Out-Null
+    $packageLabel = "https://api.nuget.org/v3-flatcontainer/cints.cmdstarter/$versionLower/cints.cmdstarter.$versionLower.nupkg"
+    $packageFile = Join-Path $downloadFolder "cints.cmdstarter.$versionLower.nupkg"
+    Write-Host "Downloading $packageLabel..."
+    Invoke-WebRequest -Uri $packageLabel -OutFile $packageFile -UseBasicParsing
+}
+else {
+    if (-not $SkipBuild) {
+        Write-Host 'Building CmdStarter.sln in Release...'
+        dotnet build CmdStarter.sln -c Release -nologo -v:q
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "dotnet build failed (exit code $LASTEXITCODE): nothing was measured."
+            exit $LASTEXITCODE
+        }
     }
+
+    $packageLabel = "artefacts/cints.CmdStarter.$packageVersion.nupkg"
+    $packageFile = Join-Path $artefacts "cints.CmdStarter.$packageVersion.nupkg"
 }
 
-$packageFile = Join-Path $artefacts "cints.CmdStarter.$packageVersion.nupkg"
 if (-not (Test-Path -LiteralPath $packageFile)) {
     Write-Error "The package $packageFile does not exist."
     exit 1
 }
 
-$builtHash = (Get-FileHash -LiteralPath $packageFile -Algorithm SHA256).Hash
+$referenceHash = (Get-FileHash -LiteralPath $packageFile -Algorithm SHA256).Hash
 
 # --- 2. The applications ----------------------------------------------------------------------------------------------------------------------------------------
 
 Remove-Item -LiteralPath $workRoot -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $workRoot, $packagesPath | Out-Null
 
-$sources = (@($artefacts, 'https://api.nuget.org/v3/index.json')) -join ';'
+# With -FromNuGet, nuget.org is the only source: with artefacts/ as well, the restore could take either copy of the same version.
+$sources = if ($FromNuGet) { $nugetIndex } else { (@($artefacts, $nugetIndex)) -join ';' }
 foreach ($application in $applications) {
     $directory = Join-Path $workRoot $application.Name
     New-Item -ItemType Directory -Path $directory | Out-Null
@@ -394,6 +419,9 @@ foreach ($application in $applications) {
 # Native AOT needs vswhere.exe on the PATH of the publishing process (it is in the folder of the Visual Studio installer).
 $vswhereFolder = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer'
 $originalPath = $env:PATH
+# The HTTP cache of NuGet is private too, so that nothing this measure downloads lands in the caches of the user.
+$originalHttpCache = $env:NUGET_HTTP_CACHE_PATH
+$env:NUGET_HTTP_CACHE_PATH = $httpCachePath
 if (Test-Path -LiteralPath (Join-Path $vswhereFolder 'vswhere.exe')) {
     $env:PATH = "$vswhereFolder;$env:PATH"
 }
@@ -482,15 +510,16 @@ try {
 }
 finally {
     $env:PATH = $originalPath
+    $env:NUGET_HTTP_CACHE_PATH = $originalHttpCache
 }
 
 # --- 4. The package that was restored ---------------------------------------------------------------------------------------------------------------------------
 
 $restoredFile = Join-Path $packagesPath "cints.cmdstarter/$($packageVersion.ToLowerInvariant())/cints.cmdstarter.$($packageVersion.ToLowerInvariant()).nupkg"
 $restoredHash = if (Test-Path -LiteralPath $restoredFile) { (Get-FileHash -LiteralPath $restoredFile -Algorithm SHA256).Hash } else { 'not restored' }
-$sameHash = $builtHash -eq $restoredHash
+$sameHash = $referenceHash -eq $restoredHash
 if (-not $sameHash) {
-    $failures.Add("The restored package is not the one of artefacts/ (SHA-256 $restoredHash instead of $builtHash).")
+    $failures.Add("The restored package is not $packageLabel (SHA-256 $restoredHash instead of $referenceHash).")
 }
 
 # --- 5. The report ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -504,7 +533,7 @@ $report = New-Object System.Text.StringBuilder
 [void] $report.AppendLine()
 [void] $report.AppendLine('| Package | SHA-256 | Same |')
 [void] $report.AppendLine('| --- | --- | --- |')
-[void] $report.AppendLine("| artefacts/cints.CmdStarter.$packageVersion.nupkg | $builtHash | |")
+[void] $report.AppendLine("| $packageLabel | $referenceHash | |")
 [void] $report.AppendLine("| restored in the private packages folder | $restoredHash | $(if ($sameHash) { 'yes' } else { 'NO' }) |")
 [void] $report.AppendLine()
 [void] $report.AppendLine('## Publications')
