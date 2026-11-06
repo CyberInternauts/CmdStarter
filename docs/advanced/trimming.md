@@ -1,6 +1,6 @@
 # Trimming
 
-This page says where CmdStarter stands with trimming. It holds two evaluations, both of 2026-11-04. The first, from the start of the page to its conclusion, was made before the command catalog and the typed factories of symbols existed, and found that trimming did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 1.0 supports trimming for an application that has the command catalog.
+This page says where CmdStarter stands with trimming. It holds two evaluations, both of 2026-11-04. The first, from the start of the page to its conclusion, was made before the command catalog and the typed factories of symbols existed, and found that trimming did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 1.0 supports trimming for an application that has the command catalog. On 2026-11-05 it was measured again with [the package that nuget.org serves](#the-package-that-nugetorg-serves).
 
 ## What the library does with reflection
 
@@ -128,13 +128,24 @@ The publications no longer report `IL2104` ("Assembly 'CmdStarter.Lib' produced 
 - A command that declares its own static `GetInstance` is created by it (`made by GetInstance`). The execution of a command created that way still has the scope of the service provider ([ADR 0006](../adr/0006-dependency-injection.md), amended on 2026-11-04), so its filter is created with its services, which gives `filter: Hello, filter!`.
 - `Starter.UseTree` places a command under a group, and the help of the group is not empty; `Starter.CommandsTypes`, set to a type of the catalog (the `ct` mode of `Tree`), gives the command.
 
+### The package that nuget.org serves
+
+On 2026-11-05, after the publication of version 1.0.0, the four applications were published again with the package `cints.CmdStarter` 1.0.0 that nuget.org serves, restored from nuget.org only, in a private packages folder (`measure-trimming.ps1 -FromNuGet`, measure of 19:08:24 to 19:10:23). nuget.org adds its repository signature to the package, so its bytes differ from those of the package built in `artefacts/`: the package downloaded from nuget.org has 138 697 bytes and the SHA-256 `57453BED1217606E44CBFB4423E6A01F0511EDB978496D5E5A5525E7C7B74CCC`, and the restored package has the same SHA-256. Compared entry by entry, the two packages differ only by the signature file `.signature.p7s`. The four applications publish with exit code 0 and no warning, with the options `-c Release -r win-x64 --self-contained -p:PublishTrimmed=true`, and the thirteen commands of the table above give the same exit codes and the same first lines:
+
+| Application | Size of the published folder |
+| --- | ---: |
+| HelloWorld | 21 507 444 bytes |
+| DevOpsTool | 21 626 782 bytes |
+| Lists | 21 602 391 bytes |
+| Tree | 21 514 702 bytes |
+
 ### The first measure of this evaluation
 
 The first measure, taken with the catalog and the factories and nothing else, failed on the eight runs of the two applications of the first evaluation. The commands were found, because the catalog keeps them, but both trimmed applications stopped with `FileNotFoundException` ("Could not load file or assembly 'System.Runtime, Version=8.0.0.0'") when the catalog attribute was read on an assembly. A probe application, outside the repository, read the attribute on each loaded assembly of a trimmed application and gave the name of the culprit: `System.CommandLine.resources`, the satellite assembly of System.CommandLine for the culture of the machine (French). It references `System.Runtime` 8.0.0.0, which a trimmed application does not have; the same application not trimmed read all the assemblies. The attribute is now read only on the library or on an assembly that references it, and an assembly whose attributes cannot be loaded counts as one without a catalog. A culture other than the French one of this machine was not tried.
 
 ## Conclusion
 
-Version 1.0 supports trimming for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree, which publish without warning and run as expected. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
+Version 1.0 supports trimming for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree, which publish without warning and run as expected, with the package built from the sources and with the package that nuget.org serves. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
 
 Functions that are lost when trimmed:
 

@@ -1,6 +1,6 @@
 # Native AOT
 
-This page says where CmdStarter stands with Native AOT. The reflection used by the library and the static analysis are described on the [Trimming](trimming.md) page. It holds two evaluations, both of 2026-11-04. The first was made before the command catalog and the typed factories of symbols existed, and found that Native AOT did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 1.0 supports Native AOT for an application that has the command catalog.
+This page says where CmdStarter stands with Native AOT. The reflection used by the library and the static analysis are described on the [Trimming](trimming.md) page. It holds two evaluations, both of 2026-11-04. The first was made before the command catalog and the typed factories of symbols existed, and found that Native AOT did not work. The [second evaluation](#second-evaluation) was made after them and supersedes it: version 1.0 supports Native AOT for an application that has the command catalog. On 2026-11-05 it was measured again with [the package that nuget.org serves](#the-package-that-nugetorg-serves).
 
 ## Method
 
@@ -94,9 +94,20 @@ The help and the results of eight more commands of DevOpsTool, run by hand, were
 
 In DevOpsTool, `service --help` lists `deploy` then `rollback` in the Native AOT executable, as in the trimmed one. The order of the methods without dynamic code is the one that `GetMethods` gives; it was not tried with a class whose methods are not in the order of their declarations.
 
+### The package that nuget.org serves
+
+On 2026-11-05, after the publication of version 1.0.0, the four applications were published again as native executables with the package `cints.CmdStarter` 1.0.0 that nuget.org serves, restored from nuget.org only (`measure-trimming.ps1 -FromNuGet`, measure of 19:08:24 to 19:10:23). That package carries the repository signature of nuget.org; its SHA-256 is `57453BED1217606E44CBFB4423E6A01F0511EDB978496D5E5A5525E7C7B74CCC`, the same as the restored package, and apart from the signature file its entries are those of the package built in `artefacts/` (see [Trimming](trimming.md#the-package-that-nugetorg-serves)). The four applications publish with `-c Release -r win-x64 --self-contained -p:PublishAot=true`, exit code 0 and no warning, and the thirteen commands of the table above give the same exit codes and the same first lines:
+
+| Application | Size of the native executable |
+| --- | ---: |
+| HelloWorld | 5 008 896 bytes |
+| DevOpsTool | 5 256 192 bytes |
+| Lists | 5 219 328 bytes |
+| Tree | 5 045 248 bytes |
+
 ## Conclusion
 
-Version 1.0 supports Native AOT for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
+Version 1.0 supports Native AOT for an application that has the command catalog, which the package generates by default, with the functions that the four measured applications use. This was measured on win-x64 with HelloWorld, DevOpsTool, Lists and Tree, with the package built from the sources and with the package that nuget.org serves. What it needs is on the [Source generator](source-generator.md#trimming-and-native-aot) page.
 
 Functions that are lost in a Native AOT executable:
 
